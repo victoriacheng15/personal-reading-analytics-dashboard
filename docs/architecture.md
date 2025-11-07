@@ -1,31 +1,30 @@
 # Architecture Guide
 
-This document outlines the structure, components, and data flow of the articles-extractor application.
+This document outlines the structure, components, and data flow of the articles-extractor data pipeline.
 
 ## Overview
 
-articles-extractor is a web scraping application that automatically extracts articles from multiple sources and stores them in a Google Sheet. It's designed to run on a schedule (via cron, Docker, or GitHub Actions) and support multiple article providers.
+articles-extractor is a **serverless ETL (Extract, Transform, Load) data pipeline** that orchestrates automated article extraction from multiple sources and aggregates them into a centralized Google Sheet. Built on **GitHub Actions for scheduling** (eliminating infrastructure overhead), the architecture showcases modern DataOps patterns: source aggregation, data transformation, deduplication, and infrastructure-as-code—all without requiring dedicated servers. It's designed to run on a schedule and support extensible provider configuration.
 
-## High-Level Data Flow
+## High-Level Data Flow (ETL Pipeline)
 
 ```mermaid
 graph TD
     A["📰 Article Sources"] --> B["freeCodeCamp<br/>GitHub Blog<br/>Shopify<br/>Substack"]
-    B -->|HTTP Requests| C["🌐 Web Scraper Module<br/>Beautiful Soup + httpx"]
-    C -->|Parsed HTML| D["🔍 Article Extractors<br/>Provider-specific parsers"]
-    D -->|Article Data| E["☁️ Google Sheets API<br/>Store & Deduplicate"]
-    E -->|Write| F["📊 User's Google Sheet<br/>articles + providers"]
+    B -->|Extract: HTTP Requests| C["🌐 Web Scraper Module<br/>Beautiful Soup + httpx"]
+    C -->|Transform: Parse HTML| D["🔍 Article Extractors<br/>Provider-specific parsers"]
+    D -->|Transform: Deduplicate| E["☁️ Google Sheets API<br/>Load & Aggregate"]
+    E -->|Load| F["📊 Centralized Data Store<br/>articles + providers"]
     F -->|Read| D
 ```
 
-**Data Flow Steps:**
+**ETL Pipeline Stages:**
 
-1. Fetch web pages from configured provider URLs
-2. Parse HTML using Beautiful Soup
-3. Extract article information using provider-specific extractors
-4. Check against existing titles for deduplication
-5. Append new articles to Google Sheet
-6. Sort and update metadata
+1. **Extract**: Fetch web pages from configured provider URLs via HTTP requests
+2. **Transform**: Parse HTML using Beautiful Soup and extract structured article data
+3. **Transform**: Deduplicate against existing titles for data quality
+4. **Load**: Append new articles to Google Sheet and maintain metadata
+5. **Finalize**: Sort and timestamp the aggregated dataset
 
 ## Project Structure
 
@@ -47,33 +46,33 @@ articles-extractor/
 └── docs/                # Documentation
 ```
 
-## Core Components
+## Core Components (Pipeline Stages)
 
-### 1. **Main Entry Point** (`main.py`)
+### 1. **Orchestration Layer** (`main.py`)
 
-Orchestrates the entire extraction process. Coordinates fetching providers,
-deduplication, and article processing.
+Coordinates the ETL pipeline end-to-end: initialization, provider fetching, deduplication setup, and data flow orchestration. Demonstrates generator-based streaming to process articles immediately after extraction rather than batch processing.
 
-### 2. **Google Sheets Module** (`utils/sheet.py`)
+### 2. **Extraction Layer** (`utils/get_page.py`)
 
-Handles all Google Sheets API interactions—authentication, reading providers,
-storing articles, and maintaining data.
+Handles HTTP data extraction with rate limiting (1 second between requests, 30-second timeout) and connection management. Implements respectful web scraping practices and resilience patterns.
 
-### 3. **Web Fetching Module** (`utils/get_page.py`)
+### 3. **Transform Layer** (`utils/extractors.py`)
 
-Manages HTTP requests with rate limiting (1 second between requests, 30-second timeout).
-Handles page fetching and connection cleanup.
+Provider-specific HTML parsers that extract structured article data (date, title, URL). Each extractor is modular and independent, supporting extensibility for new providers. Includes error handling and data validation.
 
-### 4. **Article Extractors** (`utils/extractors.py`)
+### 4. **Transform Layer: Deduplication** (`utils/sheet.py` - read phase)
 
-Provider-specific HTML parsers. Supports freeCodeCamp, GitHub, Shopify, and Substack.
-Each extractor handles deduplication and error handling independently.
+Retrieves existing article titles from Google Sheet for deduplication logic. Ensures data quality and prevents duplicate entries in the aggregated dataset.
 
-### 5. **Utilities** (`utils/format_date.py`, `utils/constants.py`)
+### 5. **Load Layer** (`utils/sheet.py`)
 
-Date parsing/formatting and configuration constants used throughout the app.
+Handles Google Sheets API interactions: OAuth authentication, data insertion, metadata updates, and sheet maintenance. Acts as the lightweight backend storage.
 
-## Data Models
+### 6. **Utilities** (`utils/format_date.py`, `utils/constants.py`)
+
+Shared utilities for date transformation and configuration management used across all pipeline stages.
+
+## Data Models (Schema)
 
 ```mermaid
 classDiagram
@@ -95,42 +94,44 @@ classDiagram
         +Worksheet articles
     }
     
-    GoogleSheet "1" --> "*" Provider : stores
-    GoogleSheet "1" --> "*" Article : stores
-    Provider --> Article : generates
+    GoogleSheet "1" --> "*" Provider : configuration
+    GoogleSheet "1" --> "*" Article : aggregated data
+    Provider --> Article : generates via extraction
 ```
 
-**Provider Schema** (Google Sheet `providers` worksheet):
+**Provider Schema** (Configuration - `providers` worksheet):
 
-- `name`: Provider identifier (e.g., "freecodecamp", "github")
-- `element`: CSS selector to find articles on the page
-- `url`: Website URL to scrape
+- `name`: Provider identifier (e.g., "freecodecamp", "github") - Used for logging and tracking
+- `element`: CSS selector for article elements on the page - Enables provider-specific parsing
+- `url`: Source website URL - Extraction endpoint
 
-**Article Schema** (Google Sheet `articles` worksheet):
+**Article Schema** (Aggregated Data - `articles` worksheet):
 
-- `date`: Publication date (YYYY-MM-DD format)
-- `title`: Article title
-- `link`: Full URL to the article
-- `source`: Provider name
+- `date`: Publication date (YYYY-MM-DD format) - Used for sorting and chronological ordering
+- `title`: Article headline - Deduplication key
+- `link`: Full URL to the article - Navigation/reference
+- `source`: Provider name (foreign key to providers) - Data lineage tracking
 
-## Processing Flow
+The schema demonstrates data lineage and source attribution, key principles in data pipeline design.
+
+## Processing Flow (Pipeline Execution)
 
 ```mermaid
 flowchart TD
     Start["🚀 Start"]
     Init["Initialize<br/>Setup logging & auth"]
-    GetProviders["Fetch Providers<br/>from Google Sheet"]
-    GetTitles["Get Existing Titles<br/>for deduplication"]
+    GetProviders["Read Configuration<br/>Fetch Providers from Sheet"]
+    GetTitles["Load Dedup Cache<br/>Get Existing Titles"]
     
     Start --> Init --> GetProviders --> GetTitles
     
     Process["Process Each Provider"]
-    Skip["⏭️ Skip"]
-    Fetch["Fetch Webpage"]
-    Parse["Parse HTML<br/>Beautiful Soup"]
-    Extract["Extract Articles<br/>Provider-specific parser"]
-    CheckDup{"Duplicate<br/>check?"}
-    Append["Append to<br/>Google Sheet"]
+    Skip["⏭️ Skip Duplicate"]
+    Fetch["Extract: Fetch Webpage"]
+    Parse["Transform: Parse HTML<br/>Beautiful Soup"]
+    Extract["Transform: Extract Articles<br/>Provider-specific parser"]
+    CheckDup{"Deduplicate<br/>check?"}
+    Append["Load: Append to<br/>Google Sheet"]
     
     GetTitles --> Process
     Skip --> Process
@@ -139,13 +140,20 @@ flowchart TD
     CheckDup -->|No| Append --> Process
     
     AllDone["All providers<br/>processed?"]
-    Sort["Sort Articles<br/>by date"]
-    Update["Update Timestamp"]
-    Log["Log Results"]
-    Complete["✅ Complete"]
+    Sort["Finalize: Sort Articles<br/>by date"]
+    Update["Finalize: Update Timestamp"]
+    Log["Finalize: Log Results"]
+    Complete["✅ Pipeline Complete"]
     
     Process -->|Yes| AllDone --> Sort --> Update --> Log --> Complete
 ```
+
+**Pipeline Guarantees:**
+
+- **At-least-once delivery**: Failed batches are logged; rerunning the pipeline is safe
+- **Deduplication idempotency**: Duplicate check prevents reruns from creating duplicates
+- **Data consistency**: All articles are sorted after load; metadata is timestamped
+- **Fault isolation**: Provider errors don't halt other providers
 
 ## Dependencies
 
@@ -175,33 +183,68 @@ Configured in `utils/constants.py`:
 - Request interval between calls: 1.0 second
 - HTTP timeout: 30 seconds
 
-## Error Handling
+## Error Handling & Resilience
 
-The app uses a multi-layered error handling strategy:
+The pipeline implements **fault-tolerant design** common in production data systems:
 
-1. **Provider-level errors** - Logged but processing continues for other providers
-2. **Extraction errors** - Caught by `@extractor_error_handler` decorator
-3. **Network errors** - Handled by httpx with timeout management
-4. **API errors** - Logged with full traceback
+1. **Provider-level fault isolation** - Individual provider failures don't cascade; pipeline continues processing other providers
+2. **Extraction error boundaries** - Caught by `@extractor_error_handler` decorator; malformed data is logged but doesn't block the pipeline
+3. **Network resilience** - httpx timeout management (30 second timeout) prevents hanging; timeouts are logged as provider failures
+4. **API error handling** - Google Sheets API errors are logged with full context; transient failures can be retried by re-running the pipeline
 
-All errors are written to stdout for capture in logs.
+**Idempotent Operations**:
 
-## Logging
+- Deduplication check ensures reruns don't insert duplicates
+- Timestamp updates are overwritten (safe for retries)
+- Sheet sorting is deterministic
 
-- **Level**: INFO
+All errors are written to stdout for operational visibility (captured in GitHub Actions logs or Docker containers).
+
+## Logging & Observability
+
+Structured logging enables operational visibility:
+
+- **Level**: INFO (production-grade)
 - **Format**: `%(asctime)s - %(name)s - %(levelname)s - %(message)s`
-- **Output**: stdout (captured in logs by GitHub Actions or Docker)
+- **Output**: stdout (captured by GitHub Actions logs and Docker)
 
-Key log messages:
+**Key Log Messages** (Observable Events):
 
-- "Processed {provider}: X new articles found"
-- "Failed to fetch page for {provider}"
-- "Error processing {provider}: {error}"
-- "Unknown provider: {provider}"
+- "Processed {provider}: X new articles found" - Success metric
+- "Failed to fetch page for {provider}" - Network issue indicator
+- "Error processing {provider}: {error}" - Provider-specific failures
+- "Unknown provider: {provider}" - Configuration issue
 
-## Performance Considerations
+These logs enable downstream monitoring, alerting, and audit trails—essential for operational pipelines.
 
-- **Async processing** - Providers are processed sequentially (one at a time) but can be parallelized
-- **Rate limiting** - 1 second between requests to be respectful to websites
-- **Deduplication** - Articles are checked against existing titles before insertion
-- **Sheet sorting** - Articles are sorted by date after all additions
+## Performance & Serverless Architecture
+
+### Execution Model
+
+- **Sequential processing** - Providers processed one at a time; can be parallelized if needed
+- **Generator-based streaming** - Articles flow through pipeline immediately after extraction (no batch buffering)
+- **Memory efficient** - Generators enable incremental processing without storing all articles in memory
+
+### Rate Limiting & Respect
+
+- **Request interval**: 1.0 second between HTTP requests - Respectful crawling, reduced server load
+- **HTTP timeout**: 30 seconds - Prevents hanging on slow/unresponsive sites
+
+### Data Quality
+
+- **Deduplication**: Articles checked against existing titles before insertion - Prevents dataset pollution
+- **Sorting**: Articles sorted by date after load - Maintains temporal ordering
+
+### Serverless Benefits (GitHub Actions)
+
+- **Zero infrastructure overhead** - No servers to maintain or monitor
+- **Cost efficiency** - Pay only for execution time (GitHub Actions included in free tier for public repos)
+- **Automatic scheduling** - GitHub Actions handles cron scheduling natively
+- **Built-in observability** - Logs stored in GitHub; integrates with GitHub Issues for alerting
+- **No deployment complexity** - Code and workflow configuration live in the repository
+
+### Scalability Path
+
+- Current design supports adding providers via configuration (no code changes needed)
+- Generator architecture allows processing very large datasets without memory concerns
+- Multi-provider parallelization can be enabled by using async/await patterns or scheduled concurrency

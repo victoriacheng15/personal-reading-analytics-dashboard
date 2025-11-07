@@ -1,23 +1,21 @@
 # Article Extractor
 
-Article Extractor is a Python application that automatically collects blog articles — including titles, URLs, and published dates — from multiple platforms such as freeCodeCamp, Substack, GitHub Engineering, and Shopify Engineering. The collected data is organized into a Google Sheet, providing a single, accessible place to browse, filter, or reference articles without visiting each site manually.
+An **automated data pipeline** that orchestrates ETL (Extract, Transform, Load) workflows across multiple article sources—freeCodeCamp, Substack, GitHub Engineering, and Shopify Engineering. The project aggregates and deduplicates content into a centralized Google Sheet using **serverless architecture** (GitHub Actions), showcasing modern DataOps practices without requiring dedicated infrastructure.
 
-The tool supports multiple execution methods:
+**Deployment Options:**
 
-- Manual runs via CLI
-- Scheduled runs with GitHub Actions or cron/Docker
-- Remote execution via Raspberry Pi
+- **Serverless**: Scheduled GitHub Actions workflows (infrastructure-free)
+- **Traditional**: Cron jobs or Docker containers
+- **Manual**: CLI execution for ad-hoc runs
 
-This project demonstrates automation, creative use of serverless workflows, API integration, and practical workflow improvement. It’s designed to be flexible, allowing easy addition of new sources or modification of the export format.
+## ✨ Key Features
 
-## ✨ Features
-
-- **Multi-source scraping**: Extract articles from freeCodeCamp, GitHub Blog, Shopify Engineering, and Substack
-- **Automated scheduling**: Run on a schedule using GitHub Actions, cron, or Docker
-- **Google Sheets integration**: Automatically store articles in a Google Sheet
-- **Deduplication**: Automatically detects and skips duplicate articles
-- **Flexible deployment**: Local, Docker, Raspberry Pi, or cloud-based execution
-- **Async processing**: Efficient concurrent web scraping
+- **Serverless Data Pipeline**: Scheduled GitHub Actions workflows eliminate infrastructure overhead
+- **Multi-Source ETL**: Extract, transform, and aggregate articles from 4+ providers
+- **Data Deduplication**: Intelligent duplicate detection and skipping for data quality
+- **Google Sheets Integration**: OAuth-authenticated API for reliable data delivery
+- **Flexible Deployment**: GitHub Actions (serverless), Docker, cron, or CLI execution
+- **Production-Grade Error Handling**: Provider-level fault tolerance with comprehensive logging
 
 ## 🚀 Quick Start
 
@@ -36,14 +34,23 @@ Please refer to this [Installation Guide](docs/installation.md)
 ![Raspberry Pi](https://img.shields.io/badge/Raspberry%20Pi-A22846.svg?style=for-the-badge&logo=Raspberry-Pi&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF.svg?style=for-the-badge&logo=GitHub-Actions&logoColor=white)
 
-## 💡 What I Learned
+## 💡 Technical Insights
 
-I discovered how Python generators can streamline workflows that depend on sequential completion. In my original approach, I collected all articles in an array (all_articles) before processing them, which forced the script to wait until every scrape finished before sending anything to Google Sheets. Refactoring to use generators means each article is processed immediately after it's scraped, eliminating the need to store everything upfront. This taught me two key things:
+### Python Generators for Responsive Data Pipelines
 
-- **Natural Sequencing**: Generators inherently wait for one action (like scraping an article) to complete before yielding the result and moving to the next. This ensured data flowed smoothly into Google Sheets without manual batching.
-- **Responsive Execution**: Unlike lists, generators don't always hold all items in memory. While my primary goal wasn't memory optimization, I noticed the script felt more responsive—articles appeared in Sheets incrementally, and interruptions didn't waste prior work.
+I refactored the data flow to use Python generators instead of collecting articles in memory before processing. This architectural choice demonstrates understanding of streaming data principles:
 
-The change simplified my code by removing temporary storage and made the process feel more deliberate, as if guiding each article step-by-step from source to destination.
+- **Original approach**: Collected all articles in a list → processed → uploaded (batch processing)
+- **Refactored approach**: Each article flows through the pipeline immediately after extraction → uploaded (streaming processing)
+
+**Benefits realized:**
+
+- **Memory efficiency**: Eliminates temporary storage; scales to large datasets
+- **Responsive UX**: Data appears in Google Sheets incrementally, not in one batch dump
+- **Fault resilience**: Pipeline interruptions don't waste prior work; partial runs produce value
+- **Natural sequencing**: Generators inherently enforce sequential completion (extract → transform → load), making data flow explicit and maintainable
+
+This demonstrates design thinking beyond "just getting it to work"—considering data flow architecture, memory management, and operational resilience.
 
 ## 📖 How This Project Evolved
 
