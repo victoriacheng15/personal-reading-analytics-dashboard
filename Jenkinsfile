@@ -9,6 +9,12 @@ pipeline {
     }
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                deleteDir()
+            }
+        }
+
         stage('Sanity Check') {
             steps {
                 echo 'Starting Jenkins pipeline...'
