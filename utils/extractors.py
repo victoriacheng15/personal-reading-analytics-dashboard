@@ -25,9 +25,9 @@ def extractor_error_handler(site_name):
                 # Try to get a snippet of the article HTML for context
                 snippet = None
                 try:
-                    snippet = str(article)[:300].replace('\n', ' ')
+                    snippet = str(article)[:300].replace("\n", " ")
                 except Exception:
-                    snippet = '<unavailable>'
+                    snippet = "<unavailable>"
                 tb = traceback.format_exc()
                 logger.error(
                     f"Error extracting {site_name} article: {e}\n"
@@ -35,7 +35,9 @@ def extractor_error_handler(site_name):
                     f"Traceback: {tb}"
                 )
                 raise
+
         return wrapper
+
     return decorator
 
 
@@ -81,7 +83,10 @@ def extract_shopify_articles(article):
     """
     title_div = article.find(
         "div",
-        class_=lambda x: x and "tracking-[-.02em]" in x and "pb-4" in x and "hover:underline" in x,
+        class_=lambda x: x
+        and "tracking-[-.02em]" in x
+        and "pb-4" in x
+        and "hover:underline" in x,
     )
     title_a = title_div.find("a")
     title = title_a.get_text().strip()
