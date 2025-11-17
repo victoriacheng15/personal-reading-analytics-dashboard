@@ -1,5 +1,6 @@
 pipeline {
-    agent any
+
+    agent none
 
     environment {
         GITHUB_USER = "victoriacheng15"
@@ -9,48 +10,57 @@ pipeline {
     }
 
     stages {
-        stage('Clean Workspace') {
+
+        stage('Clean & Checkout') {
+            agent any
             steps {
                 deleteDir()
+                checkout scm
             }
         }
 
-        stage('Sanity Check') {
-            steps {
-                echo 'Starting Jenkins pipeline...'
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+        stage('Code Formatting Check') {
+            agent {
+                docker {
+                    image 'python:3.12-alpine'
+                    args '-u root:root'
                 }
             }
-        }
-
-        stage('Login to GHCR') {
             steps {
-                script {
-                    sh "echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USER --password-stdin"
-                }
+                sh 'pip install ruff'
+
+                sh '''
+                    echo "Running ruff format check..."
+                    if ruff format --check --diff main.py utils/ 2>/dev/null; then
+                        echo "✓ Code is properly formatted"
+                    else
+                        echo "✗ Code formatting issues detected"
+                        ruff format --check --diff main.py utils/
+                        exit 1
+                    fi
+                '''
             }
         }
 
-        stage('Push Image') {
+        stage('Build, Tag, Push (Docker)') {
+            agent any
             steps {
-                script {
-                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-                    sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
-                    sh "docker push ${IMAGE_NAME}:latest"
-                }
-            }
-        }
-    }
+                echo "Building Docker image..."
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
 
-    post {
-        always {
-            sh "docker logout ghcr.io"
+                echo "Logging into GHCR..."
+                sh "echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USER --password-stdin"
+
+                echo "Pushing tagged image..."
+                sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+
+                echo "Updating latest tag..."
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
+                sh "docker push ${IMAGE_NAME}:latest"
+
+                echo "Logging out of GHCR..."
+                sh "docker logout ghcr.io || true"
+            }
         }
     }
 }
