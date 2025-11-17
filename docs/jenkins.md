@@ -105,3 +105,12 @@ For the complete Docker Compose setup, refer to the [`docker-compose.yml`](https
 - **Python commands fail**:
   - The Code Formatting Check stage runs inside a Python Docker agent (python:3.12-alpine).
   - Ensure the Docker daemon is running and the host can pull/run the Python image.
+
+---
+
+## Lessons Learned
+
+- Jenkins requires more setup and manual configuration compared to GitHub Actions, but provides a hands-on view of pipeline agents, stages, and containerized builds.
+- Using a Python Docker agent simplified environment consistency for formatting and dependency management.
+- Comparing GitHub Actions and Jenkins helped deepen understanding of CI/CD workflows, container-based builds, and credential management.
+- Even manual pipelines are valuable for learning the differences in triggers, agents, and stage orchestration.
