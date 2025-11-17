@@ -11,11 +11,10 @@ pipeline {
 
     stages {
 
-        stage('Clean & Checkout') {
+        stage('Clean Workspace') {
             agent any
             steps {
                 deleteDir()
-                checkout scm
             }
         }
 
