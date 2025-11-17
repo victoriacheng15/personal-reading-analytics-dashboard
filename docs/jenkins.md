@@ -4,33 +4,47 @@ This document explains the Jenkins pipeline used to automate Docker image builds
 
 ## Overview
 
-The project uses **Jenkins** for CI/CD automation. The pipeline is defined in the `Jenkinsfile` at the project root and is typically run on a self-hosted Jenkins server (often via Docker Compose).
+Jenkins was added to this project mainly out of curiosity—to see how Jenkins CI/CD compares to GitHub Actions for automating Docker image builds and publishing to GHCR. The pipeline is defined in the [`Jenkinsfile`](../Jenkinsfile) at the project root and is typically run on a self-hosted Jenkins server (often via Docker Compose). This setup is not strictly required, but provides a hands-on comparison of two popular automation platforms.
 
 ## Pipeline Workflow
 
-### 1. Build & Publish Docker Image
-
-**Purpose**: Build the project Docker image and publish it to GHCR for deployment or use elsewhere.
-
-**File**: [`Jenkinsfile`](../Jenkinsfile)
-
-**Trigger Events**:
+**Trigger Events:**
 
 - Manual build via Jenkins UI
-- SCM polling: **Every Tuesday** (`H H * * 2`)
 
-**Scope**: Builds the Docker image from the repository and pushes both a versioned and `latest` tag to GHCR.
+### Pipeline Stages
 
-**Key Steps**:
+- **Clean Workspace**
+  - Deletes all files in the Jenkins workspace to ensure a clean build environment and prevent conflicts from previous runs.
 
-- Clean the workspace before each build to prevent leftover or stale files from interfering with the pipeline
-  - Reason: Jenkins can sometimes reuse old workspace files, causing unexpected conflicts or build errors. A cleanup step ensures every run starts from a known good state.
-- Run a simple sanity check log message
-- Build Docker image and tag with Jenkins build number
-- Authenticate to GHCR using a GitHub PAT
-- Push both versioned and `latest` tags to GHCR
+- **Code Formatting Check**
+  - Runs in a Python 3.12 Docker container.
+  - Installs `ruff` and checks code formatting for `main.py` and all files in `utils/`.
+  - Fails the build if formatting issues are detected (shows a diff in the logs).
 
-**Key Benefit**: Ensures a reproducible, versioned Docker image is always available in the registry for deployment or local use
+- **Build, Tag, Push (Docker)**
+  - Builds the Docker image and tags it with the Jenkins build number.
+  - Logs into GitHub Container Registry (GHCR) using a GitHub PAT stored as `GHCR_PAT` in Jenkins credentials.
+  - Pushes the versioned image (`ghcr.io/victoriacheng15/articles-extractor:<build_number>`) to GHCR.
+  - Tags the same image as `latest` and pushes that tag as well.
+  - Logs out of GHCR at the end of the stage.
+
+**Key Benefit:** Ensures a reproducible, versioned Docker image is always available in the registry for deployment or local use.
+
+### Visualize the Workflow
+
+```mermaid
+graph TD
+    Start["🚀 Start"] --> Clean["Clean Workspace<br/>Delete old files"]
+    Clean --> Format["Code Formatting Check<br/>ruff format check"]
+    Format -->|Pass| Build["Build Docker Image<br/>Tag with BUILD_NUMBER"]
+    Format -->|Fail| End1["❌ Build Failed"]
+    Build --> Login["Login to GHCR<br/>Authenticate with PAT"]
+    Login --> PushVersion["Push Versioned Image<br/>ghcr.io/.../article-extractor:N"]
+    PushVersion --> PushLatest["Push Latest Tag<br/>ghcr.io/.../articles-extractor:latest"]
+    PushLatest --> Logout["Logout from GHCR<br/>Cleanup credentials"]
+    Logout --> End2["✅ Pipeline Complete"]
+```
 
 ---
 
@@ -88,3 +102,6 @@ For the complete Docker Compose setup, refer to the [`docker-compose.yml`](https
 - **`docker: not found`**: Ensure `/usr/bin/docker` is mounted and Docker is installed on the host
 - **Permission errors**: Ensure Jenkins runs as `root` and has access to the Docker socket
 - **Credential errors**: Ensure the GitHub PAT is stored as `GHCR_PAT` in Jenkins credentials
+- **Python commands fail**:
+  - The Code Formatting Check stage runs inside a Python Docker agent (python:3.12-alpine).
+  - Ensure the Docker daemon is running and the host can pull/run the Python image.

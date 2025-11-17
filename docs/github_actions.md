@@ -8,13 +8,13 @@ The project uses **GitHub Actions** for continuous automation. All workflows are
 
 ## Workflows
 
-### 1. Format Workflow
+### Format Workflow
 
 **Purpose**: Automatically check and fix Python code style consistency.
 
 **File**: [`.github/workflows/format.yml`](../.github/workflows/format.yml)
 
-**Trigger Events**:
+**Trigger Events:**
 
 - Pull requests to `main` branch (with changes to `main.py` or `utils/`)
 - Direct pushes to `main` branch (with changes to `main.py` or `utils/`)
@@ -23,7 +23,7 @@ The project uses **GitHub Actions** for continuous automation. All workflows are
 
 **Tool**: Ruff (Python code formatter)
 
-**Steps**:
+**Steps:**
 
 1. Check out code from repository
 2. Set up Python 3.10
@@ -32,22 +32,39 @@ The project uses **GitHub Actions** for continuous automation. All workflows are
 5. Configure Git user (github-actions bot)
 6. Auto-commit and push changes back to PR/branch (only if modifications were made)
 
-**Key Benefit**: Ensures consistent code style without manual enforcement
+**Key Benefit:** Ensures consistent code style without manual enforcement
+
+#### Visualize the Workflow
+
+```mermaid
+graph TD
+    Start["🚀 Start"] --> Trigger{"Trigger Event<br/>PR or Push to main?"}
+    Trigger -->|Changed Files| Checkout["Checkout Code"]
+    Trigger -->|No Changes| End1["⏭️ Skip"]
+    Checkout --> Setup["Setup Python 3.10"]
+    Setup --> Install["Install Ruff"]
+    Install --> Format["Run Ruff Formatter"]
+    Format --> ConfigGit["Configure Git User"]
+    ConfigGit --> Commit{"Changes<br/>Made?"}
+    Commit -->|Yes| AutoCommit["Auto-commit & Push"]
+    Commit -->|No| End2["✅ Complete"]
+    AutoCommit --> End2
+```
 
 ---
 
-### 2. Scheduled Extraction Workflow
+### Scheduled Extraction Workflow 1
 
 **Purpose**: Automatically extract and store articles on a schedule.
 
 **File**: [`.github/workflows/scheduled_extraction.yml`](../.github/workflows/scheduled_extraction.yml)
 
-**Trigger Events**:
+**Trigger Events:**
 
 - **Schedule**: Every day at 6:00 AM UTC (configurable via cron expression)
 - **Manual**: Anytime via GitHub UI "Run workflow" button
 
-**Configuration**:
+**Configuration:**
 
 ```yaml
 on:
@@ -56,7 +73,7 @@ on:
   workflow_dispatch:     # Manual trigger
 ```
 
-**Steps**:
+**Steps:**
 
 1. Check out repository code
 2. Set up Python 3.10
@@ -67,13 +84,32 @@ on:
 7. Clean up (delete temporary `credentials.json`)
 8. Upload log file as GitHub Action artifact
 
-**Environment Variables**:
+**Environment Variables:**
 
 - `SHEET_ID`: Set from GitHub secrets
 
-**Artifacts**: Extraction logs are available in the Actions tab for review and debugging (named `extraction-log-YYYY-MM-DD.txt`)
+**Artifacts:** Extraction logs are available in the Actions tab for review and debugging (named `extraction-log-YYYY-MM-DD.txt`)
 
-**Key Benefit**: Fully automated, zero-downtime article collection
+**Key Benefit:** Fully automated, zero-downtime article collection
+
+#### Visualize the Workflow 2
+
+```mermaid
+graph TD
+    Start["🚀 Start"] --> Trigger{"Trigger Event<br/>Schedule or Manual?"}
+    Trigger -->|6 AM UTC Daily| Begin["Begin Extraction"]
+    Trigger -->|Manual Dispatch| Begin
+    Begin --> Checkout["Checkout Code"]
+    Checkout --> Setup["Setup Python 3.10"]
+    Setup --> Install["Install Dependencies"]
+    Install --> Secrets["Create credentials.json<br/>from GitHub Secrets"]
+    Secrets --> Verify["Verify Credentials<br/>File Exists"]
+    Verify -->|Valid| Extract["Run Extraction Script<br/>main.py"]
+    Verify -->|Invalid| End1["❌ Failed"]
+    Extract --> Cleanup["Cleanup Credentials<br/>Delete temporary file"]
+    Cleanup --> Upload["Upload Log Artifact<br/>extraction-log-YYYY-MM-DD.txt"]
+    Upload --> End2["✅ Complete"]
+```
 
 ---
 
