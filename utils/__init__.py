@@ -11,7 +11,8 @@ from .sheet import (
     get_worksheet,
     get_all_providers,
     get_all_titles,
-    append_article,
+    # append_article,
+    batch_append_articles,
     SHEET_ID,
 )
 
@@ -46,7 +47,8 @@ __all__ = [
     "get_worksheet",
     "get_all_providers",
     "get_all_titles",
-    "append_article",
+    # "append_article",
+    "batch_append_articles",
     "SHEET_ID",
     # Web scraping
     "init_fetcher_state",

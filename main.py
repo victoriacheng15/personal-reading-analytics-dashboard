@@ -1,13 +1,14 @@
 import logging
 import sys
 import asyncio
+import time
 from utils import (
     # Sheet operations
     get_client,
     get_worksheet,
     get_all_providers,
     get_all_titles,
-    append_article,
+    batch_append_articles,
     SHEET_ID,
     # Web scraping
     init_fetcher_state,
@@ -32,8 +33,8 @@ logging.basicConfig(
 )
 
 
-async def process_provider(fetcher_state, provider, articles_sheet, existing_titles):
-    """Process a single provider asynchronously"""
+async def process_provider(fetcher_state, provider, existing_titles):
+    """Process a single provider asynchronously and return articles"""
     provider_name = provider["name"]
     provider_url = provider["url"]
     provider_element = provider["element"]
@@ -43,13 +44,13 @@ async def process_provider(fetcher_state, provider, articles_sheet, existing_tit
 
     if not handler:
         logger.info(f"Unknown provider: {provider_name}")
-        return
+        return [], fetcher_state
 
     try:
         soup, fetcher_state = await fetch_page(fetcher_state, provider_url)
         if not soup:
             logger.warning(f"Failed to fetch page for {provider_name}")
-            return fetcher_state
+            return [], fetcher_state
 
         element_args = handler["element"]()
         elements = (
@@ -58,19 +59,13 @@ async def process_provider(fetcher_state, provider, articles_sheet, existing_tit
             else soup.find_all(element_args)
         )
 
-        articles_found = 0
-        for article_info in get_articles(
-            elements, handler["extractor"], existing_titles
-        ):
-            append_article(articles_sheet, article_info)
-            articles_found += 1
-
-        logger.info(f"Processed {provider_name}: {articles_found} new articles found")
+        articles_found = list(get_articles(elements, handler["extractor"], existing_titles))
+        logger.info(f"Processed {provider_name}: {len(articles_found)} new articles found")
+        return articles_found, fetcher_state
 
     except Exception as e:
         logger.error(f"Error processing {provider_name}: {str(e)}", exc_info=True)
-
-    return fetcher_state
+        return [], fetcher_state
 
 
 async def async_main(timestamp):
@@ -82,9 +77,20 @@ async def async_main(timestamp):
     providers = get_all_providers(providers_sheet)
 
     fetcher_state = init_fetcher_state()
+    all_articles = []
 
     for provider in providers:
-        await process_provider(fetcher_state, provider, articles_sheet, existing_titles)
+        articles, fetcher_state = await process_provider(fetcher_state, provider, existing_titles)
+        all_articles.extend(articles)
+
+    # Batch write all articles at once
+    if all_articles:
+        batch_start = time.time()
+        batch_append_articles(articles_sheet, all_articles)
+        batch_time = time.time() - batch_start
+        logger.info(f"Batch write complete: {len(all_articles)} articles written in {batch_time:.2f}s")
+    else:
+        logger.info("\n✅ No new articles found\n")
 
     articles_sheet.sort((1, "des"))
     articles_sheet.update_cell(1, 6, f"Updated at\n{timestamp}")
@@ -97,8 +103,8 @@ def main(timestamp):
 
 
 if __name__ == "__main__":
-    date, time = current_time()
-    timestamp = f"{date} - {time}"
+    date, time_str = current_time()
+    timestamp = f"{date} - {time_str}"
     print(f"The process is starting at {timestamp}\n")
     main(timestamp)
     print("\nThe process is completed")
