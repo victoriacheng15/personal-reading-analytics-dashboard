@@ -59,8 +59,12 @@ async def process_provider(fetcher_state, provider, existing_titles):
             else soup.find_all(element_args)
         )
 
-        articles_found = list(get_articles(elements, handler["extractor"], existing_titles))
-        logger.info(f"Processed {provider_name}: {len(articles_found)} new articles found")
+        articles_found = list(
+            get_articles(elements, handler["extractor"], existing_titles)
+        )
+        logger.info(
+            f"Processed {provider_name}: {len(articles_found)} new articles found"
+        )
         return articles_found, fetcher_state
 
     except Exception as e:
@@ -80,7 +84,9 @@ async def async_main(timestamp):
     all_articles = []
 
     for provider in providers:
-        articles, fetcher_state = await process_provider(fetcher_state, provider, existing_titles)
+        articles, fetcher_state = await process_provider(
+            fetcher_state, provider, existing_titles
+        )
         all_articles.extend(articles)
 
     # Batch write all articles at once
@@ -88,7 +94,9 @@ async def async_main(timestamp):
         batch_start = time.time()
         batch_append_articles(articles_sheet, all_articles)
         batch_time = time.time() - batch_start
-        logger.info(f"Batch write complete: {len(all_articles)} articles written in {batch_time:.2f}s")
+        logger.info(
+            f"Batch write complete: {len(all_articles)} articles written in {batch_time:.2f}s"
+        )
     else:
         logger.info("\n✅ No new articles found\n")
 

@@ -107,14 +107,14 @@ def batch_append_articles(
     """
     if not articles:
         return
-    
+
     # Log all articles
     for article_info in articles:
         date = article_info[0]
         title = article_info[1]
         link = article_info[2]
         log_func(f"==> {title} - {date}\n{link}\n")
-    
+
     # Batch append all rows at once
     rows = [list(article) for article in articles]
     # log_func(f"\n📋 Batch rows to append:\n{rows}\n")
