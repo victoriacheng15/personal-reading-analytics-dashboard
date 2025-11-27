@@ -5,7 +5,6 @@ pipeline {
         GITHUB_USER   = "victoriacheng15"
         GITHUB_TOKEN  = credentials('GHCR_PAT')
         IMAGE_NAME    = "ghcr.io/victoriacheng15/articles-extractor"
-        IMAGE_TAG     = ""  // set dynamically
     }
 
     stages {
@@ -14,18 +13,14 @@ pipeline {
             steps {
                 deleteDir()
                 checkout scm
-                // debugging git for sha retrieval
-                sh 'ls -la'                  // Should show .git/
-                sh 'git status'              // Should show branch & status
                 script {
-                    def sha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    echo "Raw SHA output: '${sha}'"
-                    if (sha.empty) {
-                        error('❌ Git SHA is empty — checkout may have failed')
+                    IMAGE_TAG = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    echo "Raw SHA output: '${IMAGE_TAG}'"
+                    if (IMAGE_TAG.empty) {
+                        error('Failed to get Git SHA')
                     }
-                    env.IMAGE_TAG = sha
                 }
-                echo "✅ Using Git SHA as image tag: ${env.IMAGE_TAG}"
+                echo "✅ Using Git SHA as image tag: ${IMAGE_TAG}"
             }
         }
 
