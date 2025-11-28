@@ -1,0 +1,31 @@
+name: Go Format Checking
+
+on:
+  pull_request:
+    branches: [main]
+    paths: [cmd/**]
+  push:
+    branches: [main]
+    paths: [cmd/**]
+
+jobs:
+  gofmt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6.0.0
+      - uses: actions/setup-go@v6.1.0
+        with:
+          go-version: '1.23'
+
+      - name: Check gofmt
+        run: |
+          gofmt -l ./cmd/
+          if [ $(gofmt -l ./cmd/ | wc -l) -gt 0 ]; then
+            echo "❌ Go code not formatted. Run: gofmt -w ./cmd/"
+            exit 1
+          fi
+          echo "✅ Go code is properly formatted"
+
+      - name: Run go vet
+        run: go vet ./cmd/...
