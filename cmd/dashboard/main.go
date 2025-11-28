@@ -14,16 +14,17 @@ import (
 )
 
 type Metrics struct {
-	TotalArticles       int               `json:"total_articles"`
-	BySource            map[string]int    `json:"by_source"`
-	BySourceReadStatus  map[string][2]int `json:"by_source_read_status"`
-	ByYear              map[string]int    `json:"by_year"`
-	ByMonthOnly         map[string]int    `json:"by_month"`
-	ReadCount           int               `json:"read_count"`
-	UnreadCount         int               `json:"unread_count"`
-	ReadRate            float64           `json:"read_rate"`
-	AvgArticlesPerMonth float64           `json:"avg_articles_per_month"`
-	LastUpdated         time.Time         `json:"last_updated"`
+	TotalArticles       int                      `json:"total_articles"`
+	BySource            map[string]int           `json:"by_source"`
+	BySourceReadStatus  map[string][2]int        `json:"by_source_read_status"`
+	ByYear              map[string]int           `json:"by_year"`
+	ByMonthOnly         map[string]int           `json:"by_month"`
+	ByMonthAndSource    map[string]map[string]int `json:"by_month_and_source"`
+	ReadCount           int                      `json:"read_count"`
+	UnreadCount         int                      `json:"unread_count"`
+	ReadRate            float64                  `json:"read_rate"`
+	AvgArticlesPerMonth float64                  `json:"avg_articles_per_month"`
+	LastUpdated         time.Time                `json:"last_updated"`
 }
 
 func fetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath string) (Metrics, error) {
@@ -92,6 +93,7 @@ func fetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 		BySourceReadStatus: make(map[string][2]int),
 		ByYear:             make(map[string]int),
 		ByMonthOnly:        make(map[string]int),
+		ByMonthAndSource:   make(map[string]map[string]int),
 	}
 
 	// Skip header row (row 0)
@@ -111,6 +113,15 @@ func fetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 				month := t.Format("01")
 				metrics.ByYear[year]++
 				metrics.ByMonthOnly[month]++
+
+				// Track by month and source
+				if len(row) > 3 {
+					category := fmt.Sprintf("%v", row[3])
+					if metrics.ByMonthAndSource[month] == nil {
+						metrics.ByMonthAndSource[month] = make(map[string]int)
+					}
+					metrics.ByMonthAndSource[month][category]++
+				}
 			}
 		}
 
@@ -262,14 +273,13 @@ func main() {
 
 	// Save metrics as JSON with timestamp
 	os.MkdirAll("metrics", 0755)
-	os.MkdirAll("site", 0755)
 
 	metricsJSON, err := json.MarshalIndent(metrics, "", "  ")
 	if err != nil {
 		log.Fatalf("Failed to marshal metrics: %v", err)
 	}
 
-	// Save to metrics folder with date filename
+	// Save to metrics folder with date filename (YYYY-MM-DD.json)
 	dateFilename := metrics.LastUpdated.Format("2006-01-02") + ".json"
 	metricsFilePath := fmt.Sprintf("metrics/%s", dateFilename)
 	err = os.WriteFile(metricsFilePath, metricsJSON, 0644)
@@ -277,13 +287,6 @@ func main() {
 		log.Fatalf("Failed to write metrics file: %v", err)
 	}
 
-	// Also save current metrics to site for dashboard
-	err = os.WriteFile("site/metrics.json", metricsJSON, 0644)
-	if err != nil {
-		log.Fatalf("Failed to write site/metrics.json: %v", err)
-	}
-
 	log.Printf("✅ Metrics saved to metrics/%s\n", dateFilename)
-	log.Println("✅ Metrics saved to site/metrics.json")
 	log.Println("✅ Successfully processed metrics from Google Sheets")
 }
