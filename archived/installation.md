@@ -5,8 +5,8 @@ The app is currently capable of extracting articles from:
 - freeCodeCamp
 - Substack
 - The GitHub Blog
-- Shopify Engineering Blog
-- Stripe
+- Shopify (Added 2025-03-05)
+- Stripe (Added 2025-11-19)
 
 Support for additional sites may be added in the future.
 
