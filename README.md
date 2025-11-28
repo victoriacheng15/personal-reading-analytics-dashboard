@@ -37,7 +37,7 @@ Currently extracting articles from:
 
 ## 🔗 Live Dashboard
 
-👉 [https://victoriacheng15.github.io/personal-reading-analytics/](https://victoriacheng15.github.io/personal-reading-analytics/)
+👉 [Live Demo](https://victoriacheng15.github.io/personal-reading-analytics-dashboard/)
 
 ---
 
