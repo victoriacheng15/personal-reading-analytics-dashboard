@@ -1,0 +1,50 @@
+name: Generate Weekly Metrics
+
+on:
+  schedule:
+    - cron: '0 1 * * 5'  # Every Friday at 1am UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.0
+      - uses: actions/setup-go@v6.1.0
+        with:
+          go-version: '1.23'
+
+      - name: Create credentials file
+        run: echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credentials.json
+
+      - name: Create .env file
+        run: |
+          echo "SHEET_ID=${{ secrets.SHEET_ID }}" > .env
+          echo "CREDENTIALS_PATH=./credentials.json" >> .env
+
+      - name: Build dashboard generator
+        run: go build -o dashboard ./cmd/dashboard
+
+      - name: Generate metrics and dashboard
+        run: ./dashboard
+
+      - name: Commit and push to branch
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b metrics/weekly-update
+          git add metrics/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: weekly metrics update" && git push origin metrics/weekly-update)
+
+      - name: Create pull request
+        run: |
+          gh pr create \
+            --base main \
+            --head metrics/weekly-update \
+            --title "chore: weekly metrics update" \
+            --body "Automated weekly metrics generation and dashboard update" || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
