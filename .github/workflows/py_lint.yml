@@ -1,4 +1,4 @@
-name: Python Ruff Formatting
+name: Python Ruff Checking
 
 on:
   pull_request:
