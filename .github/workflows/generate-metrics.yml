@@ -37,9 +37,7 @@ jobs:
           echo "CREDENTIALS_PATH=./credentials.json" >> .env
 
       - name: Build and generate metrics
-        run: |
-          make build-metrics
-          ./metricsjson
+        run: make run-metrics
 
       - name: Clean up credentials.json
         run: rm -f credentials.json

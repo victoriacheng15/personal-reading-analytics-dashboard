@@ -8,11 +8,8 @@ help:
 	@echo "  make format           - Format Python files with ruff"
 	@echo "  make gofmt            - Format Go files with gofmt"
 #  go build binary
-	@echo "  make build-metrics    - Build metrics binary (metricsjson)"
-	@echo "  make build-dashboard  - Build dashboard binary"
-# run binaries
-	@echo "  make run-dashboard    - Run dashboard binary"
-	@echo "  make run-metrics      - Run metrics binary"
+	@echo "  make run-metrics      - Build and run metrics binary (metricsjson)"
+	@echo "  make run-dashboard    - Build and run dashboard binary"
 # Run python script
 	@echo "  make run              - Run Python main script"
 # docker compose
@@ -33,17 +30,11 @@ format:
 gofmt:
 	gofmt -w ./cmd
 
-build-metrics:
-	go build -o ./metricsjson ./cmd/metrics
-
-build-dashboard:
-	go build -o ./dashboard ./cmd/dashboard
+run-metrics:
+	go build -o ./metricsjson ./cmd/metrics && ./metricsjson
 
 run-dashboard:
-    ./dashboard
-
-run-metrics:
-    ./metricsjson
+	go build -o ./dashboard ./cmd/dashboard && ./dashboard
 
 run:
 	cd script && python main.py
