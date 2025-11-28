@@ -3,6 +3,7 @@ credentials.json
 
 # Go binaries
 /dashboard
+/metricsjson
 *.exe
 *.dll
 *.so
