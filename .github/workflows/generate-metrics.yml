@@ -48,9 +48,10 @@ jobs:
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b metrics/weekly-update
+          git switch -c metrics/weekly-update
           git add metrics/
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: weekly metrics update" && git push origin metrics/weekly-update)
+          git commit -m "chore: weekly metrics update" || echo "No changes to commit"
+          git push --force-with-lease origin metrics/weekly-update || echo "No changes to push"
 
       - name: Create pull request
         run: |
