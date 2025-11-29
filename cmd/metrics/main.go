@@ -12,26 +12,8 @@ import (
 	"github.com/joho/godotenv"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
-)
 
-// Metrics represents the calculated reading analytics
-type Metrics struct {
-	TotalArticles       int                       `json:"total_articles"`
-	BySource            map[string]int            `json:"by_source"`
-	BySourceReadStatus  map[string][2]int         `json:"by_source_read_status"`
-	ByYear              map[string]int            `json:"by_year"`
-	ByMonthOnly         map[string]int            `json:"by_month"`
-	ByMonthAndSource    map[string]map[string]int `json:"by_month_and_source"`
-	ReadCount           int                       `json:"read_count"`
-	UnreadCount         int                       `json:"unread_count"`
-	ReadRate            float64                   `json:"read_rate"`
-	AvgArticlesPerMonth float64                   `json:"avg_articles_per_month"`
-	LastUpdated         time.Time                 `json:"last_updated"`
-}
-
-const (
-	articlesCols   = 5  // Expected number of columns: date, title, link, category, read
-	monthsInPeriod = 36 // 3 years of data for average calculation
+	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
 )
 
 // normalizeSourceName converts source names to proper capitalization
@@ -55,17 +37,17 @@ func normalizeSourceName(name string) string {
 }
 
 // fetchMetricsFromSheets retrieves and calculates metrics from Google Sheets
-func fetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath string) (Metrics, error) {
+func fetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath string) (schema.Metrics, error) {
 	// Create Sheets service
 	client, err := sheets.NewService(ctx, option.WithCredentialsFile(credentialsPath))
 	if err != nil {
-		return Metrics{}, fmt.Errorf("unable to create sheets client: %w", err)
+		return schema.Metrics{}, fmt.Errorf("unable to create sheets client: %w", err)
 	}
 
 	// Get all sheets to find sheet names
 	spreadsheet, err := client.Spreadsheets.Get(spreadsheetID).Do()
 	if err != nil {
-		return Metrics{}, fmt.Errorf("unable to retrieve spreadsheet: %w", err)
+		return schema.Metrics{}, fmt.Errorf("unable to retrieve spreadsheet: %w", err)
 	}
 
 	// Find Articles and Providers sheets
@@ -101,15 +83,15 @@ func fetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 	readRange = fmt.Sprintf("%s!A:E", articlesSheet)
 	resp, err = client.Spreadsheets.Values.Get(spreadsheetID, readRange).Do()
 	if err != nil {
-		return Metrics{}, fmt.Errorf("unable to retrieve data from sheet: %w", err)
+		return schema.Metrics{}, fmt.Errorf("unable to retrieve data from sheet: %w", err)
 	}
 
 	if len(resp.Values) == 0 {
-		return Metrics{}, fmt.Errorf("no data found in sheet")
+		return schema.Metrics{}, fmt.Errorf("no data found in sheet")
 	}
 
 	// Parse articles: columns are date, title, link, category, read?
-	metrics := Metrics{
+	metrics := schema.Metrics{
 		BySource:           make(map[string]int),
 		BySourceReadStatus: make(map[string][2]int),
 		ByYear:             make(map[string]int),

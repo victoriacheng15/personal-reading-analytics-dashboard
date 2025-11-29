@@ -7,64 +7,13 @@ import (
 	"log"
 	"os"
 	"sort"
-	"time"
+
+	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
 )
-
-// Metrics represents the calculated reading analytics
-type Metrics struct {
-	TotalArticles       int                       `json:"total_articles"`
-	BySource            map[string]int            `json:"by_source"`
-	BySourceReadStatus  map[string][2]int         `json:"by_source_read_status"`
-	ByYear              map[string]int            `json:"by_year"`
-	ByMonthOnly         map[string]int            `json:"by_month"`
-	ByMonthAndSource    map[string]map[string]int `json:"by_month_and_source"`
-	ReadCount           int                       `json:"read_count"`
-	UnreadCount         int                       `json:"unread_count"`
-	ReadRate            float64                   `json:"read_rate"`
-	AvgArticlesPerMonth float64                   `json:"avg_articles_per_month"`
-	LastUpdated         time.Time                 `json:"last_updated"`
-}
-
-// SourceInfo represents statistics for a single source
-type SourceInfo struct {
-	Name        string
-	Count       int
-	Read        int
-	Unread      int
-	ReadPct     float64
-	AuthorCount int
-}
-
-// MonthInfo represents aggregated data for a month
-type MonthInfo struct {
-	Name    string
-	Month   string
-	Total   int
-	Sources map[string]int
-}
-
-// YearInfo represents aggregated data for a year
-type YearInfo struct {
-	Year  string
-	Count int
-}
 
 const (
-	articlesCols   = 5  // Expected number of columns: date, title, link, category, read
-	monthsInPeriod = 36 // 3 years of data for average calculation
 	dashboardTitle = "📚 Personal Reading Analytics"
 )
-
-var monthNames = []string{"", "January", "February", "March", "April", "May", "June",
-	"July", "August", "September", "October", "November", "December"}
-
-var sourceColors = map[string]string{
-	"Substack":     "#667eea",
-	"freeCodeCamp": "#764ba2",
-	"GitHub":       "#f093fb",
-	"Shopify":      "#4facfe",
-	"Stripe":       "#00f2fe",
-}
 
 // hash generates a simple hash for generating colors
 func hash(s string) uint32 {
@@ -76,14 +25,14 @@ func hash(s string) uint32 {
 }
 
 // loadLatestMetrics reads the most recent metrics JSON file from metrics/ folder
-func loadLatestMetrics() (Metrics, error) {
+func loadLatestMetrics() (schema.Metrics, error) {
 	entries, err := os.ReadDir("metrics")
 	if err != nil {
-		return Metrics{}, fmt.Errorf("unable to read metrics directory: %w", err)
+		return schema.Metrics{}, fmt.Errorf("unable to read metrics directory: %w", err)
 	}
 
 	if len(entries) == 0 {
-		return Metrics{}, fmt.Errorf("no metrics files found in metrics/ folder")
+		return schema.Metrics{}, fmt.Errorf("no metrics files found in metrics/ folder")
 	}
 
 	// Find the latest metrics file (they are named YYYY-MM-DD.json)
@@ -95,7 +44,7 @@ func loadLatestMetrics() (Metrics, error) {
 	}
 
 	if latestFile == "" {
-		return Metrics{}, fmt.Errorf("no valid metrics files found")
+		return schema.Metrics{}, fmt.Errorf("no valid metrics files found")
 	}
 
 	log.Printf("Loading metrics from: metrics/%s\n", latestFile)
@@ -103,22 +52,22 @@ func loadLatestMetrics() (Metrics, error) {
 	// Read and parse the JSON file
 	data, err := os.ReadFile(fmt.Sprintf("metrics/%s", latestFile))
 	if err != nil {
-		return Metrics{}, fmt.Errorf("unable to read metrics file: %w", err)
+		return schema.Metrics{}, fmt.Errorf("unable to read metrics file: %w", err)
 	}
 
-	var metrics Metrics
+	var metrics schema.Metrics
 	err = json.Unmarshal(data, &metrics)
 	if err != nil {
-		return Metrics{}, fmt.Errorf("unable to parse metrics JSON: %w", err)
+		return schema.Metrics{}, fmt.Errorf("unable to parse metrics JSON: %w", err)
 	}
 
 	return metrics, nil
 }
 
 // generateHTMLDashboard creates and saves the HTML dashboard file
-func generateHTMLDashboard(metrics Metrics) {
+func generateHTMLDashboard(metrics schema.Metrics) {
 	// Sort sources by count
-	var sources []SourceInfo
+	var sources []schema.SourceInfo
 	for name, count := range metrics.BySource {
 		readStatus := metrics.BySourceReadStatus[name]
 		read := readStatus[0]
@@ -133,7 +82,7 @@ func generateHTMLDashboard(metrics Metrics) {
 			authorCount = metrics.BySourceReadStatus["substack_author_count"][0]
 		}
 
-		sources = append(sources, SourceInfo{
+		sources = append(sources, schema.SourceInfo{
 			Name:        name,
 			Count:       count,
 			Read:        read,
@@ -151,11 +100,11 @@ func generateHTMLDashboard(metrics Metrics) {
 	// Build month info
 	monthNames := []string{"", "January", "February", "March", "April", "May", "June",
 		"July", "August", "September", "October", "November", "December"}
-	var months []MonthInfo
+	var months []schema.MonthInfo
 	for month := 1; month <= 12; month++ {
 		monthStr := fmt.Sprintf("%02d", month)
 		if total, exists := metrics.ByMonthOnly[monthStr]; exists && total > 0 {
-			months = append(months, MonthInfo{
+			months = append(months, schema.MonthInfo{
 				Name:    monthNames[month],
 				Month:   monthStr,
 				Total:   total,
@@ -165,9 +114,9 @@ func generateHTMLDashboard(metrics Metrics) {
 	}
 
 	// Build year info
-	var years []YearInfo
+	var years []schema.YearInfo
 	for year, count := range metrics.ByYear {
-		years = append(years, YearInfo{Year: year, Count: count})
+		years = append(years, schema.YearInfo{Year: year, Count: count})
 	}
 	sort.Slice(years, func(i, j int) bool {
 		return years[i].Year > years[j].Year
