@@ -109,6 +109,46 @@ func calculateThisMonthArticles(metrics schema.Metrics, currentMonth string) int
 	return 0
 }
 
+// prepareReadUnreadByYear creates JSON data for read/unread yearly breakdown chart
+func prepareReadUnreadByYear(metrics schema.Metrics) template.JS {
+	// Get sorted years in descending order (latest first)
+	var years []string
+	for year := range metrics.ByYear {
+		years = append(years, year)
+	}
+	sort.Sort(sort.Reverse(sort.StringSlice(years)))
+
+	readByYearArray := make([]int, 0)
+	unreadByYearArray := make([]int, 0)
+
+	for _, year := range years {
+		yearRead := 0
+		yearUnread := 0
+
+		// Sum up read/unread from all months in this year
+		if yearMonthData, exists := metrics.ByYearAndMonth[year]; exists {
+			for month, count := range yearMonthData {
+				yearRead += count
+				// Get unread for this month (if available, otherwise calculate from total)
+				if monthUnread, unreadExists := metrics.UnreadByMonth[month]; unreadExists {
+					yearUnread += monthUnread
+				}
+			}
+		}
+
+		readByYearArray = append(readByYearArray, yearRead)
+		unreadByYearArray = append(unreadByYearArray, yearUnread)
+	}
+
+	data := map[string]interface{}{
+		"labels":     years,
+		"readData":   readByYearArray,
+		"unreadData": unreadByYearArray,
+	}
+	jsonData, _ := json.Marshal(data)
+	return template.JS(jsonData)
+}
+
 // prepareReadUnreadByMonth creates JSON data for read/unread monthly breakdown chart
 func prepareReadUnreadByMonth(metrics schema.Metrics) template.JS {
 	readByMonthArray := make([]int, 12)
@@ -298,6 +338,7 @@ func generateHTMLDashboard(metrics schema.Metrics) error {
 	// Prepare read/unread data for both month and source views using helper functions
 	readUnreadByMonthJSON := prepareReadUnreadByMonth(metrics)
 	readUnreadBySourceJSON := prepareReadUnreadBySource(sources)
+	readUnreadByYearJSON := prepareReadUnreadByYear(metrics)
 
 	// Marshal AllYears and AllSources to JSON for JavaScript
 	allYearsJSON, _ := json.Marshal(allYears)
@@ -343,6 +384,7 @@ func generateHTMLDashboard(metrics schema.Metrics) error {
 		"MonthTotalData":         template.JS(monthChartData.TotalDataJSON),
 		"ReadUnreadByMonthJSON":  template.JS(readUnreadByMonthJSON),
 		"ReadUnreadBySourceJSON": template.JS(readUnreadBySourceJSON),
+		"ReadUnreadByYearJSON":   template.JS(readUnreadByYearJSON),
 	}
 
 	err = tmpl.Execute(file, data)
