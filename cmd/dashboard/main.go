@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"sort"
+	"strings"
 
 	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
 	dashboard "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal/dashboard"
@@ -15,12 +16,6 @@ import (
 const (
 	dashboardTitle = "📚 Personal Reading Analytics"
 )
-
-// KeyMetric is a simple title/value pair used to render the header metric cards
-type KeyMetric struct {
-	Title string
-	Value string
-}
 
 // loadLatestMetrics reads the most recent metrics JSON file from metrics/ folder
 func loadLatestMetrics() (schema.Metrics, error) {
@@ -34,16 +29,20 @@ func loadLatestMetrics() (schema.Metrics, error) {
 	}
 
 	// Find the latest metrics file (they are named YYYY-MM-DD.json)
-	var latestFile string
+	var jsonFiles []string
 	for _, entry := range entries {
-		if !entry.IsDir() && entry.Name() > latestFile {
-			latestFile = entry.Name()
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
+			jsonFiles = append(jsonFiles, entry.Name())
 		}
 	}
 
-	if latestFile == "" {
+	if len(jsonFiles) == 0 {
 		return schema.Metrics{}, fmt.Errorf("no valid metrics files found")
 	}
+
+	// Sort descending (latest first, since YYYY-MM-DD.json is lexicographically ordered)
+	sort.Sort(sort.Reverse(sort.StringSlice(jsonFiles)))
+	latestFile := jsonFiles[0]
 
 	log.Printf("Loading metrics from: metrics/%s\n", latestFile)
 
@@ -229,8 +228,6 @@ func generateHTMLDashboard(metrics schema.Metrics) error {
 		return fmt.Errorf("failed to parse HTML template: %w", err)
 	}
 
-	log.Println("✅ Template parsed successfully")
-
 	// Create site directory
 	os.MkdirAll("site", 0755)
 
@@ -293,7 +290,7 @@ func generateHTMLDashboard(metrics schema.Metrics) error {
 	allSourcesJSON, _ := json.Marshal(allSources)
 
 	// Prepare key metrics (formatted strings) for template loop
-	keyMetrics := []KeyMetric{
+	keyMetrics := []schema.KeyMetric{
 		{Title: "Total Articles", Value: fmt.Sprintf("%d", metrics.TotalArticles)},
 		{Title: "Read Rate", Value: fmt.Sprintf("%.1f%%", metrics.ReadRate)},
 		{Title: "Read", Value: fmt.Sprintf("%d", metrics.ReadCount)},
@@ -301,10 +298,17 @@ func generateHTMLDashboard(metrics schema.Metrics) error {
 		{Title: "Avg/Month", Value: fmt.Sprintf("%.0f", metrics.AvgArticlesPerMonth)},
 	}
 
+	highlightMetrics := []schema.HightlightMetric{
+		{Title: "🎯 Top Read Rate Source", Value: topReadRateSource},
+		{Title: "📚 Most Unread Source", Value: mostUnreadSource},
+		{Title: "✅ This Month's Articles", Value: fmt.Sprintf("%d", thisMonthArticles)},
+	}
+
 	// Execute template
 	data := map[string]interface{}{
 		"DashboardTitle":         dashboardTitle,
 		"KeyMetrics":             keyMetrics,
+		"highlightMetrics":       highlightMetrics,
 		"TotalArticles":          metrics.TotalArticles,
 		"ReadCount":              metrics.ReadCount,
 		"UnreadCount":            metrics.UnreadCount,
@@ -325,12 +329,7 @@ func generateHTMLDashboard(metrics schema.Metrics) error {
 		"MonthTotalData":         template.JS(monthChartData.TotalDataJSON),
 		"ReadUnreadByMonthJSON":  template.JS(readUnreadByMonthJSON),
 		"ReadUnreadBySourceJSON": template.JS(readUnreadBySourceJSON),
-		"TopReadRateSource":      topReadRateSource,
-		"MostUnreadSource":       mostUnreadSource,
-		"ThisMonthArticles":      thisMonthArticles,
 	}
-
-	log.Println("📊 Starting template execution...")
 
 	err = tmpl.Execute(file, data)
 	if err != nil {

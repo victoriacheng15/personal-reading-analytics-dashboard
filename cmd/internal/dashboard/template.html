@@ -272,7 +272,7 @@
                     {{range .KeyMetrics}}
                     <article class="metric-card">
                         <h2>{{.Title}}</h2>
-                        <div class="metric-value">{{.Value}}</div>
+                        <p class="metric-value">{{.Value}}</p>
                     </article>
                     {{end}}
                 </div>
@@ -281,22 +281,10 @@
             <section aria-label="Highlights & Badges">
                 <h2>🏆 Highlights</h2>
                 <div class="badges-grid">
-                    {{if .TopReadRateSource}}
+                    {{range .highlightMetrics}}
                     <article class="badge-card">
-                        <div class="badge-title">🎯 Top Read Rate Source</div>
-                        <div class="badge-value">{{.TopReadRateSource}}</div>
-                    </article>
-                    {{end}}
-                    {{if .MostUnreadSource}}
-                    <article class="badge-card">
-                        <div class="badge-title">📚 Most Unread Source</div>
-                        <div class="badge-value">{{.MostUnreadSource}}</div>
-                    </article>
-                    {{end}}
-                    {{if gt .ThisMonthArticles 0}}
-                    <article class="badge-card">
-                        <div class="badge-title">✅ Read This Month</div>
-                        <div class="badge-value">{{.ThisMonthArticles}}</div>
+                        <h3 class="badge-title">{{.Title}}</h3>
+                        <p class="badge-value">{{.Value}}</p>
                     </article>
                     {{end}}
                 </div>

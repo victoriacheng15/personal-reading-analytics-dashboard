@@ -61,3 +61,13 @@ type YearInfo struct {
 	Year  string
 	Count int
 }
+
+type KeyMetric struct {
+	Title string
+	Value string
+}
+
+type HightlightMetric struct {
+	Title string
+	Value string
+}
