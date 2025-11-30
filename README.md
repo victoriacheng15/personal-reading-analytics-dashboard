@@ -1,6 +1,6 @@
 # 📚 Personal Reading Analytics Dashboard
 
-A self-built, fully automated dashboard tracking my engineering reading since 2022—**zero infrastructure, 100% GitHub**.
+A self-built fully automated reading analytics dashboard with zero infrastructure, refreshed automatically to turn personal data into actionable insights.
 
 ---
 
@@ -21,7 +21,7 @@ This project is built to reflect how I believe small, personal tools should work
 - Total articles read (3000+ and counting)  
 - Read vs. unread by source (Shopify, FCC, Stripe, etc.)  
 - Yearly/monthly trends  
-- Interactive charts with dark-mode support  
+- Interactive charts
 
 ### Supported Sources
 
@@ -29,7 +29,7 @@ Currently extracting articles from:
 
 - freeCodeCamp
 - Substack
-- The GitHub Blog
+- GitHub (Added 2024-03-18)
 - Shopify (Added 2025-03-05)
 - Stripe (Added 2025-11-19)  
 
@@ -43,12 +43,11 @@ Currently extracting articles from:
 
 ## 🛠 Tech Stacks
 
-![Python](https://img.shields.io/badge/Python-3776AB.svg?style=for-the-badge&logo=Python&logoColor=white)
 ![Go](https://img.shields.io/badge/Go-00ADD8.svg?style=for-the-badge&logo=Go&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB.svg?style=for-the-badge&logo=Python&logoColor=white)
 ![Google Sheets API](https://img.shields.io/badge/Google%20Sheets-34A853.svg?style=for-the-badge&logo=Google-Sheets&logoColor=white)
 ![Chart.js](https://img.shields.io/badge/Chart.js-FF6384.svg?style=for-the-badge&logo=Chart.js&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF.svg?style=for-the-badge&logo=GitHub-Actions&logoColor=white)
-![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-222222.svg?style=for-the-badge&logo=GitHub-Pages&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED.svg?style=for-the-badge&logo=Docker&logoColor=white)
 
 ---
@@ -69,7 +68,7 @@ graph TD
 
 **Article Extraction**: Python web scrapers extract articles from engineering sources, deduplicate, and store in Google Sheets
 
-**Metrics Calculation**: Go program reads articles from Google Sheets, calculates 11 metrics (count, read/unread, by-source, trends), outputs JSON
+**Metrics Calculation**: Go program reads articles from Google Sheets, calculates metrics, outputs JSON
 
 **Dashboard Generation**: Go program reads metrics JSON, generates interactive HTML with Chart.js visualizations, deploys to GitHub Pages
 
