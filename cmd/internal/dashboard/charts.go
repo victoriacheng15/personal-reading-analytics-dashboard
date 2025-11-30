@@ -51,6 +51,7 @@ func PrepareYearChartData(years []schema.YearInfo) *YearChartData {
 func PrepareMonthChartData(months []schema.MonthInfo, sources []schema.SourceInfo) *MonthChartData {
 	monthLabels := make([]string, 0)
 	for _, month := range months {
+		// Just use the month name for aggregated monthly view (no year)
 		monthLabels = append(monthLabels, month.Name)
 	}
 	monthLabelsJSON, _ := json.Marshal(monthLabels)
@@ -65,19 +66,18 @@ func PrepareMonthChartData(months []schema.MonthInfo, sources []schema.SourceInf
 	}
 
 	datasetsMap := make(map[string][]int)
-	for _, month := range months {
-		for source, count := range month.Sources {
-			if _, exists := datasetsMap[source]; !exists {
-				datasetsMap[source] = make([]int, 0)
-			}
-			datasetsMap[source] = append(datasetsMap[source], count)
-		}
+
+	// Initialize all sources with data for each month
+	for _, source := range sources {
+		datasetsMap[source.Name] = make([]int, len(months))
 	}
 
-	// Ensure all sources have data for all months (fill with 0)
-	for source := range datasetsMap {
-		if len(datasetsMap[source]) < len(months) {
-			datasetsMap[source] = append(datasetsMap[source], make([]int, len(months)-len(datasetsMap[source]))...)
+	// Populate data from month.Sources
+	for monthIdx, month := range months {
+		for sourceName, articleCount := range month.Sources {
+			if _, exists := datasetsMap[sourceName]; exists {
+				datasetsMap[sourceName][monthIdx] = articleCount
+			}
 		}
 	}
 

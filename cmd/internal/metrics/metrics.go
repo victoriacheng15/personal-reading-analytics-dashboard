@@ -33,6 +33,15 @@ const (
 	SubstackProvider = "Substack"
 )
 
+// SourceMetadataMap holds the addition dates for all known sources
+var SourceMetadataMap = map[string]string{
+	"freeCodeCamp": "initial",
+	"Substack":     "initial",
+	"GitHub":       "2024-03-18",
+	"Shopify":      "2025-03-05",
+	"Stripe":       "2025-11-19",
+}
+
 // calculateMonthsDifference calculates the number of months between two dates
 func calculateMonthsDifference(earliest, latest time.Time) int {
 	years := latest.Year() - earliest.Year()
@@ -131,6 +140,43 @@ func parseArticleRow(row []interface{}) (*ParsedArticle, error) {
 	return article, nil
 }
 
+// parseArticleRowWithDetails extracts all details from a single article row
+func parseArticleRowWithDetails(row []interface{}) (*schema.ArticleMeta, error) {
+	if len(row) < ColRead+1 {
+		return nil, fmt.Errorf("incomplete row: expected at least %d columns, got %d", ColRead+1, len(row))
+	}
+
+	article := &schema.ArticleMeta{}
+
+	// Parse date (Column A)
+	if len(row) > ColDate {
+		article.Date = fmt.Sprintf("%v", row[ColDate])
+	}
+
+	// Parse title (Column B)
+	if len(row) > ColTitle {
+		article.Title = fmt.Sprintf("%v", row[ColTitle])
+	}
+
+	// Parse link (Column C)
+	if len(row) > ColLink {
+		article.Link = fmt.Sprintf("%v", row[ColLink])
+	}
+
+	// Parse category/source (Column D)
+	if len(row) > ColCategory {
+		article.Category = NormalizeSourceName(fmt.Sprintf("%v", row[ColCategory]))
+	}
+
+	// Parse read status (Column E)
+	if len(row) > ColRead {
+		readStatus := fmt.Sprintf("%v", row[ColRead])
+		article.Read = (readStatus == "TRUE" || readStatus == "true")
+	}
+
+	return article, nil
+}
+
 // updateMetricsByDate updates yearly and monthly aggregate metrics
 func updateMetricsByDate(metrics *schema.Metrics, article *ParsedArticle, earliestDate, latestDate *time.Time) {
 	if article.Date.IsZero() {
@@ -148,14 +194,26 @@ func updateMetricsByDate(metrics *schema.Metrics, article *ParsedArticle, earlie
 	year := article.Date.Format("2006")
 	month := article.Date.Format("01")
 	metrics.ByYear[year]++
-	metrics.ByMonthOnly[month]++
+	metrics.ByMonth[month]++
 
-	// Track by month and source
+	// Track by year and month
+	if metrics.ByYearAndMonth[year] == nil {
+		metrics.ByYearAndMonth[year] = make(map[string]int)
+	}
+	metrics.ByYearAndMonth[year][month]++
+
+	// Track by month and source (with read/unread counts)
 	if article.Category != "" {
 		if metrics.ByMonthAndSource[month] == nil {
-			metrics.ByMonthAndSource[month] = make(map[string]int)
+			metrics.ByMonthAndSource[month] = make(map[string][2]int)
 		}
-		metrics.ByMonthAndSource[month][article.Category]++
+		status := metrics.ByMonthAndSource[month][article.Category]
+		if article.IsRead {
+			status[0]++
+		} else {
+			status[1]++
+		}
+		metrics.ByMonthAndSource[month][article.Category] = status
 	}
 }
 
@@ -163,6 +221,24 @@ func updateMetricsByDate(metrics *schema.Metrics, article *ParsedArticle, earlie
 func updateMetricsBySource(metrics *schema.Metrics, category string) {
 	if category != "" {
 		metrics.BySource[category]++
+	}
+}
+
+// updateMetricsByCategory updates category-level aggregate metrics
+func updateMetricsByCategory(metrics *schema.Metrics, article *ParsedArticle) {
+	if article.Category != "" {
+		status := metrics.ByCategory[article.Category]
+		if article.IsRead {
+			status[0]++
+		} else {
+			status[1]++
+		}
+		metrics.ByCategory[article.Category] = status
+
+		// Track unread by category
+		if !article.IsRead {
+			metrics.UnreadByCategory[article.Category]++
+		}
 	}
 }
 
@@ -183,6 +259,11 @@ func updateMetricsReadStatus(metrics *schema.Metrics, article *ParsedArticle) {
 			status[1]++ // unread
 		}
 		metrics.BySourceReadStatus[article.Category] = status
+
+		// Track unread by source
+		if !article.IsRead {
+			metrics.UnreadBySource[article.Category]++
+		}
 	}
 }
 
@@ -232,14 +313,22 @@ func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 
 	// Parse articles: columns are date, title, link, category, read?
 	metrics := schema.Metrics{
-		BySource:           make(map[string]int),
-		BySourceReadStatus: make(map[string][2]int),
-		ByYear:             make(map[string]int),
-		ByMonthOnly:        make(map[string]int),
-		ByMonthAndSource:   make(map[string]map[string]int),
+		BySource:            make(map[string]int),
+		BySourceReadStatus:  make(map[string][2]int),
+		ByYear:              make(map[string]int),
+		ByMonth:             make(map[string]int),
+		ByYearAndMonth:      make(map[string]map[string]int),
+		ByMonthAndSource:    make(map[string]map[string][2]int),
+		ByCategory:          make(map[string][2]int),
+		ByCategoryAndSource: make(map[string]map[string][2]int),
+		UnreadByMonth:       make(map[string]int),
+		UnreadByCategory:    make(map[string]int),
+		UnreadBySource:      make(map[string]int),
+		SourceMetadata:      make(map[string]schema.SourceMeta),
 	}
 
 	var earliestDate, latestDate time.Time
+	var oldestUnreadArticle *schema.ArticleMeta
 
 	// Skip header row (row 0) and process each article
 	for i := 1; i < len(resp.Values); i++ {
@@ -260,8 +349,30 @@ func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 		// Update source-level aggregates
 		updateMetricsBySource(&metrics, article.Category)
 
+		// Update category-level aggregates
+		updateMetricsByCategory(&metrics, article)
+
 		// Update read/unread counts and by-source read status
 		updateMetricsReadStatus(&metrics, article)
+
+		// Track unread by month
+		if !article.IsRead {
+			month := article.Date.Format("01")
+			metrics.UnreadByMonth[month]++
+
+			// Track oldest unread article
+			articleDetail, _ := parseArticleRowWithDetails(row)
+			if articleDetail != nil && oldestUnreadArticle == nil {
+				oldestUnreadArticle = articleDetail
+			} else if articleDetail != nil && oldestUnreadArticle != nil {
+				// Compare dates to find oldest
+				oldestDate, _ := time.Parse("2006-01-02", oldestUnreadArticle.Date)
+				currentDate, _ := time.Parse("2006-01-02", articleDetail.Date)
+				if currentDate.Before(oldestDate) {
+					oldestUnreadArticle = articleDetail
+				}
+			}
+		}
 	}
 
 	// Calculate derived metrics
@@ -276,8 +387,21 @@ func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 	}
 	metrics.AvgArticlesPerMonth = float64(metrics.TotalArticles) / float64(monthsSpan)
 
+	// Populate read/unread totals
+	metrics.ReadUnreadTotals = [2]int{metrics.ReadCount, metrics.UnreadCount}
+
+	// Populate oldest unread article
+	if oldestUnreadArticle != nil {
+		metrics.OldestUnreadArticle = oldestUnreadArticle
+	}
+
 	// Store substack count for later use in display
 	metrics.BySourceReadStatus["substack_author_count"] = [2]int{substackCount, 0}
+
+	// Populate source metadata
+	for source, addedDate := range SourceMetadataMap {
+		metrics.SourceMetadata[source] = schema.SourceMeta{Added: addedDate}
+	}
 
 	// Set timestamp
 	metrics.LastUpdated = time.Now()
