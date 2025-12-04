@@ -38,19 +38,20 @@ jobs:
       - name: Run Python script
         id: generate-log
         run: |
-          LOG_FILE="extraction-log-$(date +%Y-%m-%d).txt"
-          make run > "$LOG_FILE" 2>&1
-          # python3 script/main.py
-          echo "Log saved to $LOG_FILE"
-          echo "LOG_FILE=$LOG_FILE" >> "$GITHUB_OUTPUT"
+          # LOG_FILE="extraction-log-$(date +%Y-%m-%d).txt"
+          # make run > "$LOG_FILE" 2>&1
+          # seems like LOg_FILE is casuing the exit code 2 isse...?
+          python3 script/main.py
+          # echo "Log saved to $LOG_FILE"
+          # echo "LOG_FILE=$LOG_FILE" >> "$GITHUB_OUTPUT"
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
 
       - name: Clean up credentials.json
         run: rm -f credentials.json
 
-      - name: Upload log file
-        uses: actions/upload-artifact@v5.0.0
-        with:
-          name: extraction-log
-          path: ${{ steps.generate-log.outputs.LOG_FILE }}
+      # - name: Upload log file
+      #   uses: actions/upload-artifact@v5.0.0
+      #   with:
+      #     name: extraction-log
+      #     path: ${{ steps.generate-log.outputs.LOG_FILE }}
