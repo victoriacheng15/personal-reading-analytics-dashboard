@@ -28,11 +28,6 @@ from .extractors import (
     get_articles,
 )
 
-# GitHub issue creation
-# from .github_issues import (
-#     create_github_issue,
-# )
-
 # Date and time utilities
 from .format_date import current_time
 
@@ -60,8 +55,6 @@ __all__ = [
     # Article extraction
     "provider_dict",
     "get_articles",
-    # GitHub issues
-    # "create_github_issue",
     # Date utilities
     "current_time",
     # Constants
