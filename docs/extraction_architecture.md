@@ -192,9 +192,10 @@ flowchart TD
 The pipeline implements **fault-tolerant design** common in production data systems:
 
 1. **Provider-level fault isolation** - Individual provider failures don't cascade; pipeline continues processing other providers
-2. **Extraction error boundaries** - Caught by `@extractor_error_handler` decorator; malformed data is logged but doesn't block the pipeline
-3. **Network resilience** - httpx timeout management (30 second timeout) prevents hanging; timeouts are logged as provider failures
-4. **API error handling** - Google Sheets API errors are logged with full context; transient failures can be retried by re-running the pipeline
+2. **Extraction error boundaries** - Caught by `@extractor_error_handler` decorator; malformed data is silently skipped without blocking the pipeline
+3. **Network resilience** - httpx timeout management (30 second timeout) prevents hanging; HTTP errors silently return None for graceful degradation
+4. **API error handling** - Google Sheets API errors are logged with full context at the application level; transient failures can be retried by re-running the pipeline
+5. **Graceful degradation** - Failed articles are silently skipped (exception caught), allowing the pipeline to process successfully extracted articles
 
 **Idempotent Operations**:
 
@@ -202,7 +203,11 @@ The pipeline implements **fault-tolerant design** common in production data syst
 - Timestamp updates are overwritten (safe for retries)
 - Sheet sorting is deterministic
 
-All errors are written to stdout for operational visibility (captured in GitHub Actions logs or Docker containers).
+**Logging Strategy**:
+
+- High-level events (provider processing, batch writes) logged in `main.py`
+- Low-level errors (HTTP failures, extraction errors) handled silently in utility modules
+- This reduces log noise while maintaining operational visibility at the application level
 
 ## Logging & Observability
 
@@ -210,16 +215,21 @@ Structured logging enables operational visibility:
 
 - **Level**: INFO (production-grade)
 - **Format**: `%(asctime)s - %(name)s - %(levelname)s - %(message)s`
+- **Date Format**: `%Y-%m-%d %H:%M:%S` (without milliseconds)
 - **Output**: stdout (captured by GitHub Actions logs and Docker)
+- **httpx Logging**: Suppressed to CRITICAL level to reduce noise from HTTP requests
+- **Centralized Setup**: All logging configured in `main.py` for consistency
 
 **Key Log Messages** (Observable Events):
 
-- "Processed {provider}: X new articles found" - Success metric
-- "Failed to fetch page for {provider}" - Network issue indicator
-- "Error processing {provider}: {error}" - Provider-specific failures
-- "Unknown provider: {provider}" - Configuration issue
+- "Processing {provider_url} - X new articles found" - Success metric per provider
+- "Failed to fetch page for {provider_name} from {provider_url}" - Network issue indicator
+- "Error processing {provider_name}: {error}" - Provider-specific failures
+- "Unknown provider: {provider_name}" - Configuration issue
+- "Batch write complete: X articles added to the sheet." - Load completion metric
+- "✅ No new articles found" - No-op scenario indicator
 
-These logs enable downstream monitoring, alerting, and audit trails—essential for operational pipelines.
+These logs enable downstream monitoring, alerting, and audit trails—essential for operational pipelines. Utility modules (`get_page.py`, `extractors.py`) delegate logging to `main.py` for a unified view.
 
 ## Performance & Architecture
 
@@ -228,6 +238,7 @@ These logs enable downstream monitoring, alerting, and audit trails—essential 
 - **Sequential processing** - Providers processed one at a time; can be parallelized if needed
 - **Generator-based streaming** - Articles flow through pipeline immediately after extraction (no batch buffering)
 - **Memory efficient** - Generators enable incremental processing without storing all articles in memory
+- **Centralized logging** - Single logging source in `main.py` provides unified observability across all pipeline stages
 
 ### Rate Limiting & Respect
 

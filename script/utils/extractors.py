@@ -1,18 +1,11 @@
 import re
 import logging
-import sys
 import traceback
 from datetime import datetime
 from utils.format_date import clean_and_convert_date
 
 
 logger = logging.getLogger(__name__)
-# Configure logging to write to stdout for log file capture
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    stream=sys.stdout,
-)
 
 
 # Error handling decorator for extractors
@@ -152,7 +145,7 @@ def get_articles(elements, extract_func, existing_titles):
             if normalized_title not in normalized_existing_titles:
                 yield article_info
         except Exception as e:
-            logger.error(f"Skipping an article due to error: {e}")
+            pass
 
 
 def provider_dict(provider_element):

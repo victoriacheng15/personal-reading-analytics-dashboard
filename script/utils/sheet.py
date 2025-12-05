@@ -76,9 +76,7 @@ def get_all_providers(providers_sheet: Worksheet) -> List[Dict[str, Any]]:
     return providers_sheet.get_all_records()
 
 
-def batch_append_articles(
-    sheet: Worksheet, articles: List[tuple], log_func: Callable = print
-) -> None:
+def batch_append_articles(sheet: Worksheet, articles: List[tuple]) -> None:
     """
     Appends multiple article rows to the given sheet in a single batch operation.
 
@@ -89,13 +87,6 @@ def batch_append_articles(
     """
     if not articles:
         return
-
-    # Log all articles
-    for article_info in articles:
-        date = article_info[0]
-        title = article_info[1]
-        link = article_info[2]
-        log_func(f"==> {title} - {date}\n{link}\n")
 
     # Batch append all rows at once
     rows = [list(article) for article in articles]

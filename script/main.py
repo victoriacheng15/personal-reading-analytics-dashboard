@@ -29,8 +29,10 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
     stream=sys.stdout,
 )
+logging.getLogger("httpx").setLevel(logging.CRITICAL)
 
 
 async def process_provider(fetcher_state, provider, existing_titles):
@@ -64,7 +66,7 @@ async def process_provider(fetcher_state, provider, existing_titles):
             get_articles(elements, handler["extractor"], existing_titles)
         )
         logger.info(
-            f"Processed {provider_name}: {len(articles_found)} new articles found"
+            f"Processing {provider_url} - {len(articles_found)} new articles found"
         )
         return articles_found, fetcher_state
 
@@ -92,11 +94,9 @@ async def async_main(timestamp):
 
     # Batch write all articles at once
     if all_articles:
-        batch_start = time.time()
         batch_append_articles(articles_sheet, all_articles)
-        batch_time = time.time() - batch_start
         logger.info(
-            f"Batch write complete: {len(all_articles)} articles written in {batch_time:.2f}s"
+            f"Batch write complete: {len(all_articles)} articles added to the sheet."
         )
     else:
         logger.info("\n✅ No new articles found\n")

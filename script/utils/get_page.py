@@ -1,18 +1,11 @@
 import httpx
 import asyncio
 import logging
-import sys
 import time
 from bs4 import BeautifulSoup
 from .constants import DEFAULT_REQUEST_INTERVAL, DEFAULT_TIMEOUT
 
 logger = logging.getLogger(__name__)
-# Configure logging to write to stdout for log file capture
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    stream=sys.stdout,
-)
 
 
 def init_fetcher_state():
@@ -52,11 +45,9 @@ async def fetch_page(state, url):
             soup = BeautifulSoup(response.text, "html.parser")
             return soup, state
 
-        logger.error(f"HTTP {response.status_code} from {url}")
         return None, state
 
     except Exception as e:
-        logger.error(f"Error fetching {url}: {str(e)}")
         return None, state
 
 
