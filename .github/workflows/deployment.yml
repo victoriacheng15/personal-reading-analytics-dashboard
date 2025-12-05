@@ -8,8 +8,6 @@ on:
       - 'metrics/**'
       - 'cmd/**'
       - '.github/workflows/deployment.yml'
-  schedule:
-    - cron: '0 1 * * 1'  # Every Monday at 1am UTC
   workflow_dispatch:
 
 permissions:
