@@ -13,10 +13,11 @@ type Metrics struct {
 	ByCategory          map[string][2]int            `json:"by_category"`                     // category -> [read, unread]
 	ByCategoryAndSource map[string]map[string][2]int `json:"by_category_and_source"`          // category -> source -> [read, unread]
 	ReadUnreadTotals    [2]int                       `json:"read_unread_totals"`              // [read, unread]
-	UnreadByMonth       map[string]int               `json:"unread_by_month"`
-	UnreadByCategory    map[string]int               `json:"unread_by_category"`
-	UnreadBySource      map[string]int               `json:"unread_by_source"`
-	OldestUnreadArticle *ArticleMeta                 `json:"oldest_unread_article,omitempty"`
+	UnreadByMonth            map[string]int               `json:"unread_by_month"`
+	UnreadByCategory         map[string]int               `json:"unread_by_category"`
+	UnreadBySource           map[string]int               `json:"unread_by_source"`
+	UnreadArticleAgeDistribution map[string]int `json:"unread_article_age_distribution"`
+	OldestUnreadArticle      *ArticleMeta                 `json:"oldest_unread_article,omitempty"`
 	SourceMetadata      map[string]SourceMeta        `json:"source_metadata"`
 	ReadCount           int                          `json:"read_count"`
 	UnreadCount         int                          `json:"unread_count"`
