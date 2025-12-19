@@ -360,6 +360,15 @@
                     </div>
                 </div>
             </section>
+
+            <section aria-label="Unread Articles Age Distribution">
+                <h2>⏰ Unread Articles Age Distribution</h2>
+                <div class="chart-container">
+                    <div class="chart-wrapper">
+                        <canvas id="ageDistributionChart"></canvas>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <footer>
@@ -377,6 +386,7 @@
         const readUnreadByMonthData = {{.ReadUnreadByMonthJSON }};
         const readUnreadBySourceData = {{.ReadUnreadBySourceJSON }};
         const readUnreadByYearData = {{.ReadUnreadByYearJSON }};
+        const unreadArticleAgeDistributionData = {{.UnreadArticleAgeDistributionJSON }};
 
         // Helper functions
         const updateLabel = (el, val) => el.textContent = `Last ${val} year${val > 1 ? 's' : ''}`;
@@ -558,6 +568,35 @@
             updateLabel(rLabel, e.target.value);
             updateReadUnreadChart('byYear');
         });
+
+        // Initialize age distribution chart
+        let ageDistributionChart = null;
+        function updateAgeDistributionChart() {
+            if (ageDistributionChart) ageDistributionChart.destroy();
+            const aCtx = document.getElementById('ageDistributionChart').getContext('2d');
+            ageDistributionChart = new Chart(aCtx, createChartConfig('pie', unreadArticleAgeDistributionData.labels, [{
+                label: 'Number of Unread Articles',
+                data: unreadArticleAgeDistributionData.data,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)',
+                    'rgba(54, 162, 235, 0.6)',
+                    'rgba(255, 206, 86, 0.6)',
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(153, 102, 255, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 2
+            }], {
+                plugins: { legend: { display: true, labels: { font: { size: 12 }, usePointStyle: true } } }
+            }));
+        }
+        updateAgeDistributionChart();
     </script>
 </body>
 

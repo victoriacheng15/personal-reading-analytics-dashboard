@@ -267,6 +267,36 @@ func updateMetricsReadStatus(metrics *schema.Metrics, article *ParsedArticle) {
 	}
 }
 
+// calculateArticleAgeBucket determines which age bucket an article falls into
+func calculateArticleAgeBucket(articleDate, referenceDate time.Time) string {
+	if articleDate.After(referenceDate) {
+		return "less_than_1_month" // Handle future dates just in case
+	}
+
+	daysDiff := referenceDate.Sub(articleDate).Hours() / 24
+	monthsDiff := daysDiff / 30.44 // Average days per month
+	yearsDiff := daysDiff / 365.25 // Average days per year
+
+	if yearsDiff >= 1 {
+		return "older_than_1year"
+	} else if monthsDiff >= 6 {
+		return "6_to_12_months"
+	} else if monthsDiff >= 3 {
+		return "3_to_6_months"
+	} else if monthsDiff >= 1 {
+		return "1_to_3_months"
+	}
+	return "less_than_1_month"
+}
+
+// updateUnreadArticleAgeDistribution updates the age distribution for unread articles
+func updateUnreadArticleAgeDistribution(metrics *schema.Metrics, article *ParsedArticle, referenceDate time.Time) {
+	if !article.IsRead && !article.Date.IsZero() {
+		bucket := calculateArticleAgeBucket(article.Date, referenceDate)
+		metrics.UnreadArticleAgeDistribution[bucket]++
+	}
+}
+
 // FetchMetricsFromSheets retrieves and calculates metrics from Google Sheets
 func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath string) (schema.Metrics, error) {
 	// Create Sheets service
@@ -313,18 +343,19 @@ func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 
 	// Parse articles: columns are date, title, link, category, read?
 	metrics := schema.Metrics{
-		BySource:            make(map[string]int),
-		BySourceReadStatus:  make(map[string][2]int),
-		ByYear:              make(map[string]int),
-		ByMonth:             make(map[string]int),
-		ByYearAndMonth:      make(map[string]map[string]int),
-		ByMonthAndSource:    make(map[string]map[string][2]int),
-		ByCategory:          make(map[string][2]int),
-		ByCategoryAndSource: make(map[string]map[string][2]int),
-		UnreadByMonth:       make(map[string]int),
-		UnreadByCategory:    make(map[string]int),
-		UnreadBySource:      make(map[string]int),
-		SourceMetadata:      make(map[string]schema.SourceMeta),
+		BySource:                     make(map[string]int),
+		BySourceReadStatus:           make(map[string][2]int),
+		ByYear:                       make(map[string]int),
+		ByMonth:                      make(map[string]int),
+		ByYearAndMonth:               make(map[string]map[string]int),
+		ByMonthAndSource:             make(map[string]map[string][2]int),
+		ByCategory:                   make(map[string][2]int),
+		ByCategoryAndSource:          make(map[string]map[string][2]int),
+		UnreadByMonth:                make(map[string]int),
+		UnreadByCategory:             make(map[string]int),
+		UnreadBySource:               make(map[string]int),
+		UnreadArticleAgeDistribution: make(map[string]int),
+		SourceMetadata:               make(map[string]schema.SourceMeta),
 	}
 
 	var earliestDate, latestDate time.Time
@@ -355,10 +386,13 @@ func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 		// Update read/unread counts and by-source read status
 		updateMetricsReadStatus(&metrics, article)
 
-		// Track unread by month
+		// Track unread by month and age distribution
 		if !article.IsRead {
 			month := article.Date.Format("01")
 			metrics.UnreadByMonth[month]++
+
+			// Update age distribution for unread articles
+			updateUnreadArticleAgeDistribution(&metrics, article, time.Now())
 
 			// Track oldest unread article
 			articleDetail, _ := parseArticleRowWithDetails(row)

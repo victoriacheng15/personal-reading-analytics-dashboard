@@ -198,6 +198,37 @@ func prepareReadUnreadBySource(sources []schema.SourceInfo) template.JS {
 	return template.JS(jsonData)
 }
 
+// prepareUnreadArticleAgeDistribution creates JSON data for unread articles by age chart
+func prepareUnreadArticleAgeDistribution(metrics schema.Metrics) template.JS {
+	// Define age bucket labels in display order
+	bucketLabels := []struct {
+		key   string
+		label string
+	}{
+		{"less_than_1_month", "Less than 1 month"},
+		{"1_to_3_months", "1-3 months"},
+		{"3_to_6_months", "3-6 months"},
+		{"6_to_12_months", "6-12 months"},
+		{"older_than_1year", "Older than 1 year"},
+	}
+
+	labels := make([]string, 0)
+	data := make([]int, 0)
+
+	for _, bucket := range bucketLabels {
+		labels = append(labels, bucket.label)
+		count := metrics.UnreadArticleAgeDistribution[bucket.key]
+		data = append(data, count)
+	}
+
+	chartData := map[string]interface{}{
+		"labels": labels,
+		"data":   data,
+	}
+	jsonData, _ := json.Marshal(chartData)
+	return template.JS(jsonData)
+}
+
 // generateHTMLDashboard creates and saves the HTML dashboard file
 func generateHTMLDashboard(metrics schema.Metrics) error {
 	// Sort sources by count
@@ -339,6 +370,7 @@ func generateHTMLDashboard(metrics schema.Metrics) error {
 	readUnreadByMonthJSON := prepareReadUnreadByMonth(metrics)
 	readUnreadBySourceJSON := prepareReadUnreadBySource(sources)
 	readUnreadByYearJSON := prepareReadUnreadByYear(metrics)
+	unreadArticleAgeDistributionJSON := prepareUnreadArticleAgeDistribution(metrics)
 
 	// Marshal AllYears and AllSources to JSON for JavaScript
 	allYearsJSON, _ := json.Marshal(allYears)
@@ -361,30 +393,31 @@ func generateHTMLDashboard(metrics schema.Metrics) error {
 
 	// Execute template
 	data := map[string]interface{}{
-		"DashboardTitle":         dashboardTitle,
-		"KeyMetrics":             keyMetrics,
-		"highlightMetrics":       highlightMetrics,
-		"TotalArticles":          metrics.TotalArticles,
-		"ReadCount":              metrics.ReadCount,
-		"UnreadCount":            metrics.UnreadCount,
-		"ReadRate":               metrics.ReadRate,
-		"AvgArticlesPerMonth":    metrics.AvgArticlesPerMonth,
-		"LastUpdated":            metrics.LastUpdated,
-		"Sources":                sources,
-		"Months":                 monthlyAggregated,
-		"Years":                  years,
-		"AllYears":               allYears,
-		"AllSources":             allSources,
-		"AllYearsJSON":           template.JS(allYearsJSON),
-		"AllSourcesJSON":         template.JS(allSourcesJSON),
-		"YearChartLabels":        template.JS(yearChartData.LabelsJSON),
-		"YearChartData":          template.JS(yearChartData.DataJSON),
-		"MonthChartLabels":       template.JS(monthChartData.LabelsJSON),
-		"MonthChartDatasets":     template.JS(monthChartData.DatasetsJSON),
-		"MonthTotalData":         template.JS(monthChartData.TotalDataJSON),
-		"ReadUnreadByMonthJSON":  template.JS(readUnreadByMonthJSON),
-		"ReadUnreadBySourceJSON": template.JS(readUnreadBySourceJSON),
-		"ReadUnreadByYearJSON":   template.JS(readUnreadByYearJSON),
+		"DashboardTitle":                   dashboardTitle,
+		"KeyMetrics":                       keyMetrics,
+		"highlightMetrics":                 highlightMetrics,
+		"TotalArticles":                    metrics.TotalArticles,
+		"ReadCount":                        metrics.ReadCount,
+		"UnreadCount":                      metrics.UnreadCount,
+		"ReadRate":                         metrics.ReadRate,
+		"AvgArticlesPerMonth":              metrics.AvgArticlesPerMonth,
+		"LastUpdated":                      metrics.LastUpdated,
+		"Sources":                          sources,
+		"Months":                           monthlyAggregated,
+		"Years":                            years,
+		"AllYears":                         allYears,
+		"AllSources":                       allSources,
+		"AllYearsJSON":                     template.JS(allYearsJSON),
+		"AllSourcesJSON":                   template.JS(allSourcesJSON),
+		"YearChartLabels":                  template.JS(yearChartData.LabelsJSON),
+		"YearChartData":                    template.JS(yearChartData.DataJSON),
+		"MonthChartLabels":                 template.JS(monthChartData.LabelsJSON),
+		"MonthChartDatasets":               template.JS(monthChartData.DatasetsJSON),
+		"MonthTotalData":                   template.JS(monthChartData.TotalDataJSON),
+		"ReadUnreadByMonthJSON":            template.JS(readUnreadByMonthJSON),
+		"ReadUnreadBySourceJSON":           template.JS(readUnreadBySourceJSON),
+		"ReadUnreadByYearJSON":             template.JS(readUnreadByYearJSON),
+		"UnreadArticleAgeDistributionJSON": template.JS(unreadArticleAgeDistributionJSON),
 	}
 
 	err = tmpl.Execute(file, data)
