@@ -361,6 +361,29 @@
                 </div>
             </section>
 
+            <section aria-label="Unread Articles by Year">
+                <div
+                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <h2>📅 Unread Articles by Year</h2>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                        <input type="range" id="unreadYearChartRangeSlider" min="5" max="50" value="5"
+                            style="width: 150px; cursor: pointer;"
+                            title="Adjust how many recent years to display">
+                        <span id="unreadYearChartRangeLabel" style="font-size: 0.9rem; color: #718096; min-width: 60px;">Last 5 years</span>
+                    </div>
+                    <select id="unreadYearViewToggle"
+                        style="padding: 0.5rem 1rem; border-radius: 6px; border: 2px solid var(--card1); background: white; color: #2d3748; font-weight: 600; cursor: pointer; font-size: 0.95rem;">
+                        <option value="bar">Bar Chart</option>
+                        <option value="line">Line Chart</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-wrapper">
+                        <canvas id="unreadByYearChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
             <section aria-label="Unread Articles Age Distribution">
                 <h2>⏰ Unread Articles Age Distribution</h2>
                 <div class="chart-container">
@@ -387,6 +410,7 @@
         const readUnreadBySourceData = {{.ReadUnreadBySourceJSON }};
         const readUnreadByYearData = {{.ReadUnreadByYearJSON }};
         const unreadArticleAgeDistributionData = {{.UnreadArticleAgeDistributionJSON }};
+        const unreadByYearData = {{.UnreadByYearJSON }};
 
         // Helper functions
         const updateLabel = (el, val) => el.textContent = `Last ${val} year${val > 1 ? 's' : ''}`;
@@ -538,15 +562,25 @@
                 };
             }
             
+            // Scatter plot for all views
+            const readScatterData = data.labels.map((label, index) => ({
+                x: label,
+                y: data.readData[index]
+            }));
+            const unreadScatterData = data.labels.map((label, index) => ({
+                x: label,
+                y: data.unreadData[index]
+            }));
+            
             const datasets = [
-                { label: 'Read', data: data.readData, backgroundColor: '#2b6cb0', borderColor: '#2d3748', borderWidth: 1 },
-                { label: 'Unread', data: data.unreadData, backgroundColor: '#fb923c', borderColor: '#2d3748', borderWidth: 1 }
+                { label: 'Read', data: readScatterData, backgroundColor: '#2b6cb0', borderColor: '#2b6cb0', borderWidth: 3, pointRadius: 6, pointHoverRadius: 8, showLine: true, fill: false, tension: 0.4 },
+                { label: 'Unread', data: unreadScatterData, backgroundColor: '#fb923c', borderColor: '#fb923c', borderWidth: 3, pointRadius: 6, pointHoverRadius: 8, showLine: true, fill: false, tension: 0.4 }
             ];
             
-            readUnreadChart = new Chart(rCtx, createChartConfig('bar', data.labels, datasets, {
+            readUnreadChart = new Chart(rCtx, createChartConfig('scatter', data.labels, datasets, {
                 scales: {
-                    x: { stacked: true, ticks: { font: { size: 11 } } },
-                    y: { stacked: true, beginAtZero: true, ticks: { font: { size: 12 } } }
+                    x: { type: 'category', ticks: { font: { size: 11 } } },
+                    y: { beginAtZero: true, ticks: { font: { size: 12 } } }
                 },
                 plugins: { legend: { display: true, labels: { font: { size: 12 }, usePointStyle: true } } }
             }));
@@ -567,6 +601,70 @@
         rSlider.addEventListener('input', e => {
             updateLabel(rLabel, e.target.value);
             updateReadUnreadChart('byYear');
+        });
+
+        // Initialize unread by year chart
+        let unreadByYearChart = null;
+        let currentUnreadYearViewMode = 'bar';
+        function updateUnreadByYearChart(viewMode) {
+            if (unreadByYearChart) unreadByYearChart.destroy();
+            const yearRange = parseInt(document.getElementById('unreadYearChartRangeSlider').value);
+            const labels = unreadByYearData.labels.slice(0, yearRange);
+            const data = unreadByYearData.data.slice(0, yearRange);
+            const uCtx = document.getElementById('unreadByYearChart').getContext('2d');
+
+            const baseConfig = {
+                label: 'Unread Articles',
+                data,
+                borderColor: '#fb923c',
+                borderWidth: viewMode === 'bar' ? 1 : 3
+            };
+
+            const chartConfigs = {
+                bar: {
+                    ...baseConfig,
+                    backgroundColor: '#fb923c',
+                    borderRadius: 8,
+                    type: 'bar'
+                },
+                line: {
+                    ...baseConfig,
+                    backgroundColor: 'rgba(249, 115, 22, 0.08)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#fb923c',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 8,
+                    type: 'line'
+                }
+            };
+
+            const config = chartConfigs[viewMode];
+            unreadByYearChart = new Chart(uCtx, createChartConfig(config.type, labels, [config], {
+                plugins: { legend: { display: viewMode === 'line', labels: { font: { size: 12 }, usePointStyle: true } } },
+                scales: {
+                    x: { ticks: { font: { size: 12 } } },
+                    y: { beginAtZero: true, ticks: { font: { size: 12 } } }
+                }
+            }));
+        }
+        
+        // Initialize unread by year chart
+        updateUnreadByYearChart('bar');
+        const uSlider = document.getElementById('unreadYearChartRangeSlider'), uLabel = document.getElementById('unreadYearChartRangeLabel');
+        uSlider.max = unreadByYearData.labels.length;
+        uSlider.value = Math.min(5, unreadByYearData.labels.length);
+        updateLabel(uLabel, uSlider.value);
+        document.getElementById('unreadYearViewToggle').addEventListener('change', e => {
+            currentUnreadYearViewMode = e.target.value;
+            updateUnreadByYearChart(currentUnreadYearViewMode);
+        });
+        uSlider.addEventListener('input', e => {
+            updateLabel(uLabel, e.target.value);
+            updateUnreadByYearChart(currentUnreadYearViewMode);
         });
 
         // Initialize age distribution chart

@@ -354,6 +354,7 @@ func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 		UnreadByMonth:                make(map[string]int),
 		UnreadByCategory:             make(map[string]int),
 		UnreadBySource:               make(map[string]int),
+		UnreadByYear:                 make(map[string]int),
 		UnreadArticleAgeDistribution: make(map[string]int),
 		SourceMetadata:               make(map[string]schema.SourceMeta),
 	}
@@ -390,6 +391,10 @@ func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 		if !article.IsRead {
 			month := article.Date.Format("01")
 			metrics.UnreadByMonth[month]++
+
+			// Track unread by year
+			year := article.Date.Format("2006")
+			metrics.UnreadByYear[year]++
 
 			// Update age distribution for unread articles
 			updateUnreadArticleAgeDistribution(&metrics, article, time.Now())

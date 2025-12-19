@@ -229,6 +229,28 @@ func prepareUnreadArticleAgeDistribution(metrics schema.Metrics) template.JS {
 	return template.JS(jsonData)
 }
 
+// prepareUnreadByYear creates JSON data for unread articles by year chart
+func prepareUnreadByYear(metrics schema.Metrics) template.JS {
+	// Get sorted years in descending order (latest first)
+	var years []string
+	for year := range metrics.UnreadByYear {
+		years = append(years, year)
+	}
+	sort.Sort(sort.Reverse(sort.StringSlice(years)))
+
+	unreadData := make([]int, 0)
+	for _, year := range years {
+		unreadData = append(unreadData, metrics.UnreadByYear[year])
+	}
+
+	data := map[string]interface{}{
+		"labels": years,
+		"data":   unreadData,
+	}
+	jsonData, _ := json.Marshal(data)
+	return template.JS(jsonData)
+}
+
 // generateHTMLDashboard creates and saves the HTML dashboard file
 func generateHTMLDashboard(metrics schema.Metrics) error {
 	// Sort sources by count
@@ -371,6 +393,7 @@ func generateHTMLDashboard(metrics schema.Metrics) error {
 	readUnreadBySourceJSON := prepareReadUnreadBySource(sources)
 	readUnreadByYearJSON := prepareReadUnreadByYear(metrics)
 	unreadArticleAgeDistributionJSON := prepareUnreadArticleAgeDistribution(metrics)
+	unreadByYearJSON := prepareUnreadByYear(metrics)
 
 	// Marshal AllYears and AllSources to JSON for JavaScript
 	allYearsJSON, _ := json.Marshal(allYears)
@@ -418,6 +441,7 @@ func generateHTMLDashboard(metrics schema.Metrics) error {
 		"ReadUnreadBySourceJSON":           template.JS(readUnreadBySourceJSON),
 		"ReadUnreadByYearJSON":             template.JS(readUnreadByYearJSON),
 		"UnreadArticleAgeDistributionJSON": template.JS(unreadArticleAgeDistributionJSON),
+		"UnreadByYearJSON":                 template.JS(unreadByYearJSON),
 	}
 
 	err = tmpl.Execute(file, data)

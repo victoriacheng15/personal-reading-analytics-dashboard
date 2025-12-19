@@ -16,6 +16,7 @@ type Metrics struct {
 	UnreadByMonth                map[string]int               `json:"unread_by_month"`
 	UnreadByCategory             map[string]int               `json:"unread_by_category"`
 	UnreadBySource               map[string]int               `json:"unread_by_source"`
+	UnreadByYear                 map[string]int               `json:"unread_by_year"`
 	UnreadArticleAgeDistribution map[string]int               `json:"unread_article_age_distribution"`
 	OldestUnreadArticle          *ArticleMeta                 `json:"oldest_unread_article,omitempty"`
 	SourceMetadata               map[string]SourceMeta        `json:"source_metadata"`
