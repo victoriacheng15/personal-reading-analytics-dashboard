@@ -30,6 +30,15 @@ format:
 gofmt:
 	gofmt -w ./cmd
 
+test:
+	go test ./cmd/...
+
+coverage:
+	go test -cover ./cmd/...
+
+coverage-html:
+	go test -coverprofile=coverage.out ./cmd/... && go tool cover -html=coverage.out
+
 run-metrics:
 	go build -o ./metricsjson ./cmd/metrics && ./metricsjson
 
