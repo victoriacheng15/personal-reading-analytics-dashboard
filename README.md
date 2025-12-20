@@ -79,7 +79,7 @@ For deep technical details, see the architecture docs:
 - [Extraction Pipeline Design](docs/extraction_architecture.md)  
 - [Dashboard Pipeline Design](docs/dashboard_architecture.md)  
 - [GitHub Actions Workflows](docs/github_actions.md)  
-- [Jenkins CI/CD](docs/jenkins.md) - Comparison with GitHub Actions
+- [Jenkins CI/CD (Learning Experiment)](docs/jenkins.md) - Educational implementation only; production relies entirely on GitHub Actions.
 
 ---
 
