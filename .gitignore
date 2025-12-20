@@ -1,5 +1,6 @@
 credentials.json
 *.txt
+planning*.md
 
 # Go binaries
 site
