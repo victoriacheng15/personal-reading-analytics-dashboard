@@ -690,10 +690,10 @@ func TestSaveMetricsEmptyMetrics(t *testing.T) {
 
 	// Create minimal metrics
 	emptyMetrics := schema.Metrics{
-		TotalArticles:    0,
-		ReadCount:        0,
-		UnreadCount:      0,
-		LastUpdated:      time.Date(2025, 12, 21, 10, 30, 0, 0, time.UTC),
+		TotalArticles: 0,
+		ReadCount:     0,
+		UnreadCount:   0,
+		LastUpdated:   time.Date(2025, 12, 21, 10, 30, 0, 0, time.UTC),
 	}
 
 	err = saveMetrics(emptyMetrics)
@@ -1203,26 +1203,26 @@ func TestRunIntegrationWithMockedFetcher(t *testing.T) {
 
 	// Create comprehensive mock fetcher with full metrics
 	fullMetrics := schema.Metrics{
-		TotalArticles:       100,
-		BySource:            map[string]int{"Source1": 50, "Source2": 50},
-		BySourceReadStatus:  map[string][2]int{"Source1": {40, 10}, "Source2": {45, 5}},
-		ByYear:              map[string]int{"2025": 100},
-		ByMonth:             map[string]int{"2025-12": 100},
-		ByYearAndMonth:      map[string]map[string]int{"2025": {"12": 100}},
-		ByMonthAndSource:    map[string]map[string][2]int{"2025-12": {"Source1": {40, 10}, "Source2": {45, 5}}},
-		ByCategory:          map[string][2]int{"Category1": {70, 15}},
-		ByCategoryAndSource: map[string]map[string][2]int{"Category1": {"Source1": {40, 10}, "Source2": {30, 5}}},
-		ReadUnreadTotals:    [2]int{85, 15},
-		UnreadByMonth:       map[string]int{"2025-12": 15},
-		UnreadByCategory:    map[string]int{"Category1": 15},
-		UnreadBySource:      map[string]int{"Source1": 10, "Source2": 5},
-		UnreadByYear:        map[string]int{"2025": 15},
+		TotalArticles:                100,
+		BySource:                     map[string]int{"Source1": 50, "Source2": 50},
+		BySourceReadStatus:           map[string][2]int{"Source1": {40, 10}, "Source2": {45, 5}},
+		ByYear:                       map[string]int{"2025": 100},
+		ByMonth:                      map[string]int{"2025-12": 100},
+		ByYearAndMonth:               map[string]map[string]int{"2025": {"12": 100}},
+		ByMonthAndSource:             map[string]map[string][2]int{"2025-12": {"Source1": {40, 10}, "Source2": {45, 5}}},
+		ByCategory:                   map[string][2]int{"Category1": {70, 15}},
+		ByCategoryAndSource:          map[string]map[string][2]int{"Category1": {"Source1": {40, 10}, "Source2": {30, 5}}},
+		ReadUnreadTotals:             [2]int{85, 15},
+		UnreadByMonth:                map[string]int{"2025-12": 15},
+		UnreadByCategory:             map[string]int{"Category1": 15},
+		UnreadBySource:               map[string]int{"Source1": 10, "Source2": 5},
+		UnreadByYear:                 map[string]int{"2025": 15},
 		UnreadArticleAgeDistribution: map[string]int{"new": 5, "old": 10},
-		ReadCount:           85,
-		UnreadCount:         15,
-		ReadRate:            85.0,
-		AvgArticlesPerMonth: 100.0,
-		LastUpdated:         time.Date(2025, 12, 21, 10, 30, 0, 0, time.UTC),
+		ReadCount:                    85,
+		UnreadCount:                  15,
+		ReadRate:                     85.0,
+		AvgArticlesPerMonth:          100.0,
+		LastUpdated:                  time.Date(2025, 12, 21, 10, 30, 0, 0, time.UTC),
 	}
 
 	fetcher := &MockMetricsFetcher{
