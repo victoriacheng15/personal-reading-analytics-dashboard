@@ -1,23 +1,35 @@
-.PHONY: help install update format run up logs down gofmt build-metrics build-dashboard
+.PHONY: help install update format gofmt \
+        run-metrics run-dashboard cleanup \
+        run clean test coverage coverage-html \
+        up down logs
 
+# === Help ===
 help:
 	@echo "Available commands:"
 	@echo "  make install          - Install Python dependencies"
 	@echo "  make update           - Update Python dependencies"
-# formatting
+	@echo ""
 	@echo "  make format           - Format Python files with ruff"
 	@echo "  make gofmt            - Format Go files with gofmt"
-#  go build binary
+	@echo ""
 	@echo "  make run-metrics      - Build and run metrics binary (metricsjson)"
 	@echo "  make run-dashboard    - Build and run dashboard binary"
-# Run python script
+	@echo "  make cleanup          - Remove Go binaries"
+	@echo ""
 	@echo "  make run              - Run Python main script"
-# docker compose
+	@echo "  make clean            - Remove Python __pycache__ and .pyc files"
+	@echo ""
+	@echo "  make test             - Run Go tests"
+	@echo "  make coverage         - Run Go tests with coverage"
+	@echo "  make coverage-html    - Generate HTML coverage report"
+	@echo ""
 	@echo "  make up               - Start Docker containers"
 	@echo "  make down             - Stop Docker containers"
-	@echo "  make logs             - Export Docker logs"
+	@echo "  make logs             - Export Docker logs to logs.txt"
+	@echo ""
 	@echo "  make help             - Show this help message"
 
+# === Python ===
 install:
 	python -m pip install -r requirements.txt
 
@@ -27,6 +39,14 @@ update:
 format:
 	ruff format script/
 
+run:
+	cd script && python main.py
+
+clean:
+	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null
+	find . -type f -name "*.py[co]" -delete 2>/dev/null
+
+# === Go ===
 gofmt:
 	gofmt -w ./cmd
 
@@ -48,9 +68,7 @@ run-dashboard:
 cleanup:
 	rm -f ./metricsjson ./dashboard
 
-run:
-	cd script && python main.py
-
+# === Docker ===
 up:
 	docker compose up --build
 
