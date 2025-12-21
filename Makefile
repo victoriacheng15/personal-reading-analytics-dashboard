@@ -1,28 +1,34 @@
-.PHONY: help install update format gofmt \
+.PHONY: help install freeze update format gofmt \
+        go-test go-coverage go-coverage-html go-coverage-log \
+        py-test py-coverage \
         run-metrics run-dashboard cleanup \
-        run clean test coverage coverage-html \
+        run clean \
         up down logs
 
 # === Help ===
 help:
 	@echo "Available commands:"
-	@echo "  make install          - Install Python dependencies"
+	@echo "  make install          - Create .venv and install Python dependencies"
+	@echo "  make freeze           - Freeze Python dependencies to requirements.txt"
 	@echo "  make update           - Update Python dependencies"
 	@echo ""
 	@echo "  make format           - Format Python files with ruff"
 	@echo "  make gofmt            - Format Go files with gofmt"
 	@echo ""
+	@echo "  make go-test          - Run Go tests"
+	@echo "  make go-coverage      - Run Go tests with coverage summary"
+	@echo "  make go-coverage-html - Generate Go HTML coverage report (coverage.html)"
+	@echo "  make go-coverage-log  - Show uncovered Go functions in terminal"
+	@echo ""
+	@echo "  make py-test          - Run Python tests"
+	@echo "  make py-coverage      - Run Python coverage with missing-line report"
+	@echo ""
 	@echo "  make run-metrics      - Build and run metrics binary (metricsjson)"
 	@echo "  make run-dashboard    - Build and run dashboard binary"
-	@echo "  make cleanup          - Remove Go binaries"
+	@echo "  make cleanup          - Remove Go binaries and coverage files"
 	@echo ""
-	@echo "  make run              - Run Python main script"
+	@echo "  make run              - Run Python main script (via .venv)"
 	@echo "  make clean            - Remove Python __pycache__ and .pyc files"
-	@echo ""
-	@echo "  make test             - Run Go tests"
-	@echo "  make coverage         - Run Go tests with coverage"
-	@echo "  make coverage-html    - Generate HTML coverage report"
-	@echo "  make coverage-log     - Show coverage summary in console"
 	@echo ""
 	@echo "  make up               - Start Docker containers"
 	@echo "  make down             - Stop Docker containers"
@@ -32,16 +38,30 @@ help:
 
 # === Python ===
 install:
-	python -m pip install -r requirements.txt
+	@if [ ! -d .venv ]; then \
+		echo "Creating virtual environment..."; \
+		python3 -m venv .venv; \
+	fi
+	.venv/bin/pip install --upgrade pip
+	.venv/bin/pip install -r requirements.txt
+
+freeze:
+	.venv/bin/pip freeze > requirements.txt
 
 update:
-	pur -r requirements.txt
+	.venv/bin/pip install --upgrade -r requirements.txt
 
 format:
-	ruff format script/
+	.venv/bin/python -m ruff format script/
+
+py-test:
+	.venv/bin/python -m pytest script/
+
+py-coverage:
+	.venv/bin/python -m pytest --cov=script --cov-report=term-missing
 
 run:
-	cd script && python main.py
+	.venv/bin/python script/main.py
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null
@@ -51,18 +71,19 @@ clean:
 gofmt:
 	gofmt -w ./cmd
 
-test:
+go-test:
 	go test ./cmd/...
 
-coverage:
+go-coverage:
 	go test -cover ./cmd/...
 
-coverage-html:
-	go test -coverprofile=coverage.out ./cmd/... && go tool cover -html=coverage.out
-
-coverage-log:
+go-coverage-html:
 	go test -coverprofile=coverage.out ./cmd/... && \
-	go tool cover -func=coverage.out | grep -v '100.0%'
+	go tool cover -html=coverage.out -o coverage.html
+
+go-coverage-log:
+	go test -coverprofile=coverage.out ./cmd/... && \
+	go tool cover -func=coverage.out | awk '$$3 != "100.0%"'
 
 run-metrics:
 	go build -o ./metricsjson ./cmd/metrics && ./metricsjson
@@ -71,7 +92,7 @@ run-dashboard:
 	go build -o ./dashboard ./cmd/dashboard && ./dashboard
 
 cleanup:
-	rm -f ./metricsjson ./dashboard
+	rm -f ./metricsjson ./dashboard coverage.out coverage.html
 
 # === Docker ===
 up:

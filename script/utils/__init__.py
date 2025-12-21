@@ -7,6 +7,7 @@ and constants used throughout the application.
 
 # Sheet operations
 from .sheet import (
+    get_creds_path,
     get_client,
     get_worksheet,
     get_all_providers,
