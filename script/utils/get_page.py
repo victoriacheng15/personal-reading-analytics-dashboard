@@ -47,7 +47,7 @@ async def fetch_page(state, url):
 
         return None, state
 
-    except Exception as e:
+    except Exception as _:
         return None, state
 
 

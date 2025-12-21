@@ -1,7 +1,6 @@
 import logging
 import sys
 import asyncio
-import time
 from utils import (
     # Sheet operations
     get_client,

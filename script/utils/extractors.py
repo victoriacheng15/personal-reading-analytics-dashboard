@@ -144,7 +144,7 @@ def get_articles(elements, extract_func, existing_titles):
             # article_info tuple now: (date, title, link, source)
             if normalized_title not in normalized_existing_titles:
                 yield article_info
-        except Exception as e:
+        except Exception as _:
             pass
 
 

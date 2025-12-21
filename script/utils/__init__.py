@@ -43,6 +43,7 @@ from .constants import (
 
 __all__ = [
     # Sheet operations
+    "get_creds_path",
     "get_client",
     "get_worksheet",
     "get_all_providers",

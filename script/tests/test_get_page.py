@@ -1,4 +1,3 @@
-import pytest
 import asyncio
 from unittest.mock import patch, MagicMock, AsyncMock
 from utils import init_fetcher_state, fetch_page, close_fetcher
@@ -12,6 +11,7 @@ def test_init_fetcher_state_returns_dict():
     assert "client" in state
     # The client should be an httpx.AsyncClient
     import httpx
+
     assert isinstance(state["client"], httpx.AsyncClient)
 
 
