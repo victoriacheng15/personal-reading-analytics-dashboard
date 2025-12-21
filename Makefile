@@ -22,6 +22,7 @@ help:
 	@echo "  make test             - Run Go tests"
 	@echo "  make coverage         - Run Go tests with coverage"
 	@echo "  make coverage-html    - Generate HTML coverage report"
+	@echo "  make coverage-log     - Show coverage summary in console"
 	@echo ""
 	@echo "  make up               - Start Docker containers"
 	@echo "  make down             - Stop Docker containers"
@@ -58,6 +59,10 @@ coverage:
 
 coverage-html:
 	go test -coverprofile=coverage.out ./cmd/... && go tool cover -html=coverage.out
+
+coverage-log:
+	go test -coverprofile=coverage.out ./cmd/... && \
+	go tool cover -func=coverage.out | grep -v '100.0%'
 
 run-metrics:
 	go build -o ./metricsjson ./cmd/metrics && ./metricsjson
