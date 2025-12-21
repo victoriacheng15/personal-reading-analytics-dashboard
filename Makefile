@@ -45,6 +45,9 @@ run-metrics:
 run-dashboard:
 	go build -o ./dashboard ./cmd/dashboard && ./dashboard
 
+cleanup:
+	rm -f ./metricsjson ./dashboard
+
 run:
 	cd script && python main.py
 

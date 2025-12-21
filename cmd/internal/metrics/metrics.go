@@ -14,6 +14,21 @@ import (
 	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
 )
 
+// SheetsClient interface for dependency injection in testing
+type SheetsClient interface {
+	GetValues(spreadsheetID, readRange string) (*sheets.ValueRange, error)
+}
+
+// SheetsServiceClient wraps sheets.Service to implement SheetsClient
+type SheetsServiceClient struct {
+	service *sheets.Service
+}
+
+// GetValues retrieves values from a Google Sheet
+func (s *SheetsServiceClient) GetValues(spreadsheetID, readRange string) (*sheets.ValueRange, error) {
+	return s.service.Spreadsheets.Values.Get(spreadsheetID, readRange).Do()
+}
+
 // Constants for Google Sheets column indices
 const (
 	// Column indices in the Articles sheet
@@ -58,10 +73,10 @@ func calculateMonthsDifference(earliest, latest time.Time) int {
 }
 
 // countSubstackProviders counts the number of Substack providers from the Providers sheet
-func countSubstackProviders(client *sheets.Service, spreadsheetID, providersSheet string) (int, error) {
+func countSubstackProviders(client SheetsClient, spreadsheetID, providersSheet string) (int, error) {
 	count := 0
 	readRange := fmt.Sprintf("%s!A:B", providersSheet)
-	resp, err := client.Spreadsheets.Values.Get(spreadsheetID, readRange).Do()
+	resp, err := client.GetValues(spreadsheetID, readRange)
 	if err != nil {
 		// Log error but don't fail - provider counting is optional
 		log.Printf("Warning: Unable to read providers sheet: %v\n", err)
@@ -301,75 +316,14 @@ func updateUnreadArticleAgeDistribution(metrics *schema.Metrics, article *Parsed
 	}
 }
 
-// FetchMetricsFromSheets retrieves and calculates metrics from Google Sheets
-func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath string) (schema.Metrics, error) {
-	// Create Sheets service
-	client, err := sheets.NewService(ctx, option.WithCredentialsFile(credentialsPath))
-	if err != nil {
-		return schema.Metrics{}, fmt.Errorf("unable to create sheets client: %w", err)
-	}
-
-	// Get all sheets to find sheet names
-	spreadsheet, err := client.Spreadsheets.Get(spreadsheetID).Do()
-	if err != nil {
-		return schema.Metrics{}, fmt.Errorf("unable to retrieve spreadsheet: %w", err)
-	}
-
-	// Find Articles and Providers sheets
-	articlesSheet := DefaultArticlesSheet
-	providersSheet := DefaultProvidersSheet
-	for _, sheet := range spreadsheet.Sheets {
-		title := sheet.Properties.Title
-		if title == "Articles" || title == "articles" {
-			articlesSheet = title
-		}
-		if title == "Providers" || title == "providers" {
-			providersSheet = title
-		}
-	}
-
-	// Count Substack providers
-	substackCount, err := countSubstackProviders(client, spreadsheetID, providersSheet)
-	if err != nil {
-		return schema.Metrics{}, fmt.Errorf("unable to count providers: %w", err)
-	}
-
-	// Read all articles data
-	readRange := fmt.Sprintf("%s!A:E", articlesSheet)
-	resp, err := client.Spreadsheets.Values.Get(spreadsheetID, readRange).Do()
-	if err != nil {
-		return schema.Metrics{}, fmt.Errorf("unable to retrieve data from sheet: %w", err)
-	}
-
-	if len(resp.Values) == 0 {
-		return schema.Metrics{}, fmt.Errorf("no data found in sheet")
-	}
-
-	// Parse articles: columns are date, title, link, category, read?
-	metrics := schema.Metrics{
-		BySource:                     make(map[string]int),
-		BySourceReadStatus:           make(map[string][2]int),
-		ByYear:                       make(map[string]int),
-		ByMonth:                      make(map[string]int),
-		ByYearAndMonth:               make(map[string]map[string]int),
-		ByMonthAndSource:             make(map[string]map[string][2]int),
-		ByCategory:                   make(map[string][2]int),
-		ByCategoryAndSource:          make(map[string]map[string][2]int),
-		UnreadByMonth:                make(map[string]int),
-		UnreadByCategory:             make(map[string]int),
-		UnreadBySource:               make(map[string]int),
-		UnreadByYear:                 make(map[string]int),
-		UnreadArticleAgeDistribution: make(map[string]int),
-		SourceMetadata:               make(map[string]schema.SourceMeta),
-	}
-
-	var earliestDate, latestDate time.Time
-	var oldestUnreadArticle *schema.ArticleMeta
+// processArticleRows processes all article rows and updates metrics
+func processArticleRows(rows [][]interface{}, metrics *schema.Metrics, earliestDate, latestDate *time.Time) ([]schema.ArticleMeta, *schema.ArticleMeta) {
 	var unreadArticles []schema.ArticleMeta
+	var oldestUnreadArticle *schema.ArticleMeta
 
 	// Skip header row (row 0) and process each article
-	for i := 1; i < len(resp.Values); i++ {
-		row := resp.Values[i]
+	for i := 1; i < len(rows); i++ {
+		row := rows[i]
 
 		// Parse the article row into structured data
 		article, err := parseArticleRow(row)
@@ -381,16 +335,16 @@ func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 		metrics.TotalArticles++
 
 		// Update metrics by date (year, month, month+source aggregates)
-		updateMetricsByDate(&metrics, article, &earliestDate, &latestDate)
+		updateMetricsByDate(metrics, article, earliestDate, latestDate)
 
 		// Update source-level aggregates
-		updateMetricsBySource(&metrics, article.Category)
+		updateMetricsBySource(metrics, article.Category)
 
 		// Update category-level aggregates
-		updateMetricsByCategory(&metrics, article)
+		updateMetricsByCategory(metrics, article)
 
 		// Update read/unread counts and by-source read status
-		updateMetricsReadStatus(&metrics, article)
+		updateMetricsReadStatus(metrics, article)
 
 		// Track unread by month and age distribution
 		if !article.IsRead {
@@ -402,7 +356,7 @@ func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 			metrics.UnreadByYear[year]++
 
 			// Update age distribution for unread articles
-			updateUnreadArticleAgeDistribution(&metrics, article, time.Now())
+			updateUnreadArticleAgeDistribution(metrics, article, time.Now())
 
 			// Collect unread article details
 			articleDetail, _ := parseArticleRowWithDetails(row)
@@ -424,54 +378,190 @@ func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 		}
 	}
 
-	// Calculate derived metrics
+	return unreadArticles, oldestUnreadArticle
+}
+
+// calculateDerivedMetrics computes read rate and average articles per month
+func calculateDerivedMetrics(metrics *schema.Metrics, earliestDate, latestDate time.Time) {
 	if metrics.TotalArticles > 0 {
 		metrics.ReadRate = (float64(metrics.ReadCount) / float64(metrics.TotalArticles)) * 100
 	}
+
 	// Calculate average articles per month based on actual data span
 	monthsSpan := 1
 	if !earliestDate.IsZero() && !latestDate.IsZero() {
-		monthsSpan = calculateMonthsDifference(earliestDate, latestDate) + 1 // +1 to include both start and end month
+		monthsSpan = calculateMonthsDifference(earliestDate, latestDate) + 1
 		log.Printf("📊 Data span: %s to %s (%d months)\n", earliestDate.Format("2006-01-02"), latestDate.Format("2006-01-02"), monthsSpan)
 	}
 	metrics.AvgArticlesPerMonth = float64(metrics.TotalArticles) / float64(monthsSpan)
+}
 
-	// Populate read/unread totals
-	metrics.ReadUnreadTotals = [2]int{metrics.ReadCount, metrics.UnreadCount}
+// populateTopArticles stores the top oldest unread articles and the oldest unread article
+func populateTopArticles(metrics *schema.Metrics, unreadArticles []schema.ArticleMeta, oldestUnreadArticle *schema.ArticleMeta) {
+	// Store oldest unread article
+	metrics.OldestUnreadArticle = oldestUnreadArticle
 
-	// Sort unread articles by date (oldest first) and store top N
+	// Sort by date (oldest first) and store only top TopUnreadArticlesCount
 	if len(unreadArticles) > 0 {
+		// Sort articles by date (oldest first)
 		sort.Slice(unreadArticles, func(i, j int) bool {
-			// Parse dates for comparison (YYYY-MM-DD format)
-			iDate, errI := time.Parse("2006-01-02", unreadArticles[i].Date)
-			jDate, errJ := time.Parse("2006-01-02", unreadArticles[j].Date)
-
-			// Handle parsing errors - put unparseable dates at the end
-			if errI != nil && errJ != nil {
-				return false
-			}
-			if errI != nil {
-				return false
-			}
-			if errJ != nil {
-				return true
-			}
-
-			return iDate.Before(jDate)
+			dateI, _ := time.Parse("2006-01-02", unreadArticles[i].Date)
+			dateJ, _ := time.Parse("2006-01-02", unreadArticles[j].Date)
+			return dateI.Before(dateJ)
 		})
 
-		// Store top N oldest unread articles
+		// Store top N articles
 		if len(unreadArticles) > TopUnreadArticlesCount {
 			metrics.TopOldestUnreadArticles = unreadArticles[:TopUnreadArticlesCount]
 		} else {
 			metrics.TopOldestUnreadArticles = unreadArticles
 		}
 	}
+}
 
-	// Populate oldest unread article
-	if oldestUnreadArticle != nil {
-		metrics.OldestUnreadArticle = oldestUnreadArticle
+// SheetsFetcher interface abstracts sheet operations for testability
+type SheetsFetcher interface {
+	GetSpreadsheet(spreadsheetID string) (*sheets.Spreadsheet, error)
+	GetArticleRows(spreadsheetID, articlesSheet string) ([][]interface{}, error)
+	GetProvidersSheet(spreadsheetID, providersSheet string) ([][]interface{}, error)
+}
+
+// SheetServiceFetcher implements SheetsFetcher using sheets.Service
+type SheetServiceFetcher struct {
+	service *sheets.Service
+}
+
+// GetSpreadsheet retrieves spreadsheet metadata
+func (s *SheetServiceFetcher) GetSpreadsheet(spreadsheetID string) (*sheets.Spreadsheet, error) {
+	return s.service.Spreadsheets.Get(spreadsheetID).Do()
+}
+
+// GetArticleRows retrieves article data from the Articles sheet
+func (s *SheetServiceFetcher) GetArticleRows(spreadsheetID, articlesSheet string) ([][]interface{}, error) {
+	readRange := fmt.Sprintf("%s!A:E", articlesSheet)
+	resp, err := s.service.Spreadsheets.Values.Get(spreadsheetID, readRange).Do()
+	if err != nil {
+		return nil, err
 	}
+	return resp.Values, nil
+}
+
+// GetProvidersSheet retrieves provider data from the Providers sheet
+func (s *SheetServiceFetcher) GetProvidersSheet(spreadsheetID, providersSheet string) ([][]interface{}, error) {
+	readRange := fmt.Sprintf("%s!A:B", providersSheet)
+	resp, err := s.service.Spreadsheets.Values.Get(spreadsheetID, readRange).Do()
+	if err != nil {
+		return nil, err
+	}
+	return resp.Values, nil
+}
+
+// findSheetNames discovers Article and Provider sheet names from spreadsheet
+func findSheetNames(spreadsheet *sheets.Spreadsheet) (string, string) {
+	articlesSheet := DefaultArticlesSheet
+	providersSheet := DefaultProvidersSheet
+
+	for _, sheet := range spreadsheet.Sheets {
+		title := sheet.Properties.Title
+		if title == "Articles" || title == "articles" {
+			articlesSheet = title
+		}
+		if title == "Providers" || title == "providers" {
+			providersSheet = title
+		}
+	}
+
+	return articlesSheet, providersSheet
+}
+
+// getSubstackProviderCount retrieves the count of Substack providers
+func getSubstackProviderCount(fetcher SheetsFetcher, spreadsheetID, providersSheet string) int {
+	rows, err := fetcher.GetProvidersSheet(spreadsheetID, providersSheet)
+	if err != nil {
+		log.Printf("Warning: Unable to read providers sheet: %v\n", err)
+		return 0
+	}
+
+	count := 0
+	if len(rows) == 0 {
+		return 0
+	}
+
+	// Skip header row and count Substack entries in column A
+	for i := 1; i < len(rows); i++ {
+		if len(rows[i]) > ProvidersColName {
+			provider := fmt.Sprintf("%v", rows[i][ProvidersColName])
+			if strings.EqualFold(provider, SubstackProvider) {
+				count++
+			}
+		}
+	}
+
+	return count
+}
+
+// FetchMetricsFromSheetsWithService retrieves and calculates metrics using an existing Sheets service client.
+// This is now a thin orchestrator that delegates to smaller, testable functions.
+func FetchMetricsFromSheetsWithService(ctx context.Context, client *sheets.Service, spreadsheetID string) (schema.Metrics, error) {
+	fetcher := &SheetServiceFetcher{service: client}
+	return fetchMetricsWithFetcher(spreadsheetID, fetcher)
+}
+
+// fetchMetricsWithFetcher performs metrics calculation with a pluggable sheet fetcher for testability
+func fetchMetricsWithFetcher(spreadsheetID string, fetcher SheetsFetcher) (schema.Metrics, error) {
+	// Get spreadsheet metadata to find sheet names
+	spreadsheet, err := fetcher.GetSpreadsheet(spreadsheetID)
+	if err != nil {
+		return schema.Metrics{}, fmt.Errorf("unable to retrieve spreadsheet: %w", err)
+	}
+
+	// Find Article and Provider sheet names
+	articlesSheet, providersSheet := findSheetNames(spreadsheet)
+
+	// Get Substack provider count
+	substackCount := getSubstackProviderCount(fetcher, spreadsheetID, providersSheet)
+
+	// Read all articles data
+	articleRows, err := fetcher.GetArticleRows(spreadsheetID, articlesSheet)
+	if err != nil {
+		return schema.Metrics{}, fmt.Errorf("unable to retrieve data from sheet: %w", err)
+	}
+
+	if len(articleRows) == 0 {
+		return schema.Metrics{}, fmt.Errorf("no data found in sheet")
+	}
+
+	// Initialize metrics
+	metrics := schema.Metrics{
+		BySource:                     make(map[string]int),
+		BySourceReadStatus:           make(map[string][2]int),
+		ByYear:                       make(map[string]int),
+		ByMonth:                      make(map[string]int),
+		ByYearAndMonth:               make(map[string]map[string]int),
+		ByMonthAndSource:             make(map[string]map[string][2]int),
+		ByCategory:                   make(map[string][2]int),
+		ByCategoryAndSource:          make(map[string]map[string][2]int),
+		UnreadByMonth:                make(map[string]int),
+		UnreadByCategory:             make(map[string]int),
+		UnreadBySource:               make(map[string]int),
+		UnreadByYear:                 make(map[string]int),
+		UnreadArticleAgeDistribution: make(map[string]int),
+		SourceMetadata:               make(map[string]schema.SourceMeta),
+	}
+
+	var earliestDate, latestDate time.Time
+
+	// Process all articles
+	unreadArticles, oldestUnreadArticle := processArticleRows(articleRows, &metrics, &earliestDate, &latestDate)
+
+	// Calculate derived metrics
+	calculateDerivedMetrics(&metrics, earliestDate, latestDate)
+
+	// Populate read/unread totals
+	metrics.ReadUnreadTotals = [2]int{metrics.ReadCount, metrics.UnreadCount}
+
+	// Populate top articles
+	populateTopArticles(&metrics, unreadArticles, oldestUnreadArticle)
 
 	// Store substack count for later use in display
 	metrics.BySourceReadStatus["substack_author_count"] = [2]int{substackCount, 0}
@@ -485,4 +575,16 @@ func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath 
 	metrics.LastUpdated = time.Now()
 
 	return metrics, nil
+}
+
+// FetchMetricsFromSheets is a backward-compatible wrapper that creates a Sheets service
+// and delegates to FetchMetricsFromSheetsWithService.
+func FetchMetricsFromSheets(ctx context.Context, spreadsheetID, credentialsPath string) (schema.Metrics, error) {
+	// Create Sheets service
+	client, err := sheets.NewService(ctx, option.WithCredentialsFile(credentialsPath))
+	if err != nil {
+		return schema.Metrics{}, fmt.Errorf("unable to create sheets client: %w", err)
+	}
+
+	return FetchMetricsFromSheetsWithService(ctx, client, spreadsheetID)
 }
