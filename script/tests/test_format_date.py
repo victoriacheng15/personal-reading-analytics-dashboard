@@ -1,6 +1,5 @@
-import pytest
 from unittest.mock import patch, Mock
-from datetime import datetime, date
+from datetime import date
 from utils import clean_and_convert_date, current_time
 
 
@@ -41,7 +40,7 @@ def test_clean_and_convert_date_different_months():
         ("Wed Mar 10 2025", "2025-03-10"),
         ("Sat Nov 30 2024", "2024-11-30"),
     ]
-    
+
     for input_date, expected in test_cases:
         result = clean_and_convert_date(input_date)
         assert result == expected
@@ -55,9 +54,9 @@ def test_current_time_returns_tuple(mock_datetime):
     mock_now.date.return_value = date(2025, 12, 21)
     mock_now.time.return_value.strftime.return_value = "14:30"
     mock_datetime.now.return_value = mock_now
-    
+
     result = current_time()
-    
+
     assert isinstance(result, tuple)
     assert len(result) == 2
 
@@ -69,9 +68,9 @@ def test_current_time_returns_correct_format(mock_datetime):
     mock_now.date.return_value = date(2025, 12, 21)
     mock_now.time.return_value.strftime.return_value = "14:30"
     mock_datetime.now.return_value = mock_now
-    
+
     result_date, result_time = current_time()
-    
+
     assert result_date == date(2025, 12, 21)
     assert result_time == "14:30"
     assert isinstance(result_time, str)
@@ -84,9 +83,9 @@ def test_current_time_time_format_hh_mm(mock_datetime):
     mock_now.date.return_value = date(2025, 1, 1)
     mock_now.time.return_value.strftime.return_value = "09:05"
     mock_datetime.now.return_value = mock_now
-    
+
     result_date, result_time = current_time()
-    
+
     assert result_time == "09:05"
     # Verify strftime was called with the correct format
     mock_now.time.return_value.strftime.assert_called_with("%H:%M")
@@ -100,14 +99,14 @@ def test_current_time_different_times(mock_datetime):
         (date(2025, 6, 15), "12:30"),
         (date(2025, 12, 31), "23:59"),
     ]
-    
+
     for test_date, test_time in test_cases:
         mock_now = Mock()
         mock_now.date.return_value = test_date
         mock_now.time.return_value.strftime.return_value = test_time
         mock_datetime.now.return_value = mock_now
-        
+
         result_date, result_time = current_time()
-        
+
         assert result_date == test_date
         assert result_time == test_time
