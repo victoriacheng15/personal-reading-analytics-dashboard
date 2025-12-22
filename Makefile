@@ -51,6 +51,9 @@ freeze:
 update:
 	.venv/bin/pip install --upgrade -r requirements.txt
 
+check:
+	.venv/bin/python -m ruff check script/ --diff
+
 format:
 	.venv/bin/python -m ruff format script/
 
