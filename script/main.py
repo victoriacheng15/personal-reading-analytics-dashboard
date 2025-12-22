@@ -9,6 +9,9 @@ from utils import (
     get_all_titles,
     batch_append_articles,
     SHEET_ID,
+    # MongoDB operations
+    get_mongo_client,
+    batch_insert_articles_to_mongo,
     # Web scraping
     init_fetcher_state,
     fetch_page,
@@ -93,10 +96,17 @@ async def async_main(timestamp):
 
     # Batch write all articles at once
     if all_articles:
+        # Write to Google Sheets
         batch_append_articles(articles_sheet, all_articles)
         logger.info(
             f"Batch write complete: {len(all_articles)} articles added to the sheet."
         )
+
+        # Write to MongoDB
+        mongo_client = get_mongo_client()
+        if mongo_client:
+            batch_insert_articles_to_mongo(mongo_client, all_articles)
+            mongo_client.close()
     else:
         logger.info("\n✅ No new articles found\n")
 

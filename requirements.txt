@@ -4,6 +4,8 @@ cachetools==6.2.2
 certifi==2025.11.12
 charset-normalizer==3.4.4
 click==8.3.1
+coverage==7.13.0
+dnspython==1.16.0
 google-api-core==2.28.1
 google-api-python-client==2.187.0
 google-auth==2.41.0
@@ -29,8 +31,10 @@ pur==7.3.3
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
 Pygments==2.19.2
+pymongo==3.12.0
 pyparsing==3.2.5
 pytest==9.0.2
+pytest-cov==7.0.0
 python-dotenv==1.2.1
 requests==2.32.5
 requests-oauthlib==2.0.0

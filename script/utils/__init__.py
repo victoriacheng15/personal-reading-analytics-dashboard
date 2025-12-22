@@ -47,6 +47,11 @@ from .constants import (
     GOOGLE_SHEETS_SCOPES,
 )
 
+from .mongo import (
+    get_mongo_client,
+    batch_insert_articles_to_mongo,
+)
+
 __all__ = [
     # Sheet operations
     "get_creds_path",
@@ -78,4 +83,7 @@ __all__ = [
     "DEFAULT_REQUEST_INTERVAL",
     "DEFAULT_TIMEOUT",
     "GOOGLE_SHEETS_SCOPES",
+    # MongoDB operations
+    "get_mongo_client",
+    "batch_insert_articles_to_mongo",
 ]
