@@ -35,25 +35,23 @@ def test_get_mongo_client_with_mongodb_atlas_uri(mock_mongo_client):
 
 
 # Tests for batch_insert_articles_to_mongo function
+@patch("utils.mongo._get_collection")
 @patch("utils.mongo.datetime")
-def test_batch_insert_articles_to_mongo_success(mock_datetime):
+def test_batch_insert_articles_to_mongo_success(mock_datetime, mock_get_collection):
     """Test successful insertion of articles into MongoDB"""
     # Mock datetime
     mock_now = Mock()
     mock_now.isoformat.return_value = "2025-12-22T20:51:59.123456+00:00"
     mock_datetime.now.return_value = mock_now
 
-    # Mock MongoDB client using MagicMock for bracket notation support
+    # Mock MongoDB collection
     mock_collection = Mock()
     mock_result = Mock()
     mock_result.inserted_ids = [1, 2, 3]
     mock_collection.insert_many.return_value = mock_result
+    mock_get_collection.return_value = mock_collection
 
-    mock_db = MagicMock()
-    mock_db.__getitem__.return_value = mock_collection
-
-    mock_client = MagicMock()
-    mock_client.__getitem__.return_value = mock_db
+    mock_client = Mock()
 
     articles = [
         ("2025-12-20", "Test Article 1", "https://example.com/article1", "github"),
@@ -61,13 +59,10 @@ def test_batch_insert_articles_to_mongo_success(mock_datetime):
         ("2025-12-22", "Test Article 3", "https://substack.com/article3", "substack"),
     ]
 
-    with patch("utils.mongo.MONGO_DB_NAME", "test_db"):
-        with patch("utils.mongo.MONGO_COLLECTION_NAME", "articles"):
-            batch_insert_articles_to_mongo(mock_client, articles)
+    batch_insert_articles_to_mongo(mock_client, articles)
 
-    # Verify database and collection were accessed correctly
-    mock_client.__getitem__.assert_called_with("test_db")
-    mock_db.__getitem__.assert_called_with("articles")
+    # Verify _get_collection was called with client
+    mock_get_collection.assert_called_once_with(mock_client)
 
     # Verify insert_many was called with correct documents
     call_args = mock_collection.insert_many.call_args
@@ -77,8 +72,11 @@ def test_batch_insert_articles_to_mongo_success(mock_datetime):
     assert documents[0]["article"]["title"] == "Test Article 1"
     assert documents[0]["domain"] == "example.com"
     assert documents[0]["status"] == "ingested"
+    assert documents[0]["event_type"] == "extraction"
     assert documents[1]["domain"] == "stripe.com"
+    assert documents[1]["event_type"] == "extraction"
     assert documents[2]["domain"] == "substack.com"
+    assert documents[2]["event_type"] == "extraction"
 
 
 @patch("utils.mongo.logger")
@@ -104,9 +102,10 @@ def test_batch_insert_articles_to_mongo_empty_articles(mock_logger):
     mock_logger.error.assert_not_called()
 
 
+@patch("utils.mongo._get_collection")
 @patch("utils.mongo.logger")
 @patch("utils.mongo.datetime")
-def test_batch_insert_articles_to_mongo_insertion_error(mock_datetime, mock_logger):
+def test_batch_insert_articles_to_mongo_insertion_error(mock_datetime, mock_logger, mock_get_collection):
     """Test that function logs errors when insertion fails"""
     mock_now = Mock()
     mock_now.isoformat.return_value = "2025-12-22T20:51:59.123456+00:00"
@@ -114,28 +113,24 @@ def test_batch_insert_articles_to_mongo_insertion_error(mock_datetime, mock_logg
 
     mock_collection = Mock()
     mock_collection.insert_many.side_effect = Exception("Connection failed")
+    mock_get_collection.return_value = mock_collection
 
-    mock_db = MagicMock()
-    mock_db.__getitem__.return_value = mock_collection
-
-    mock_client = MagicMock()
-    mock_client.__getitem__.return_value = mock_db
+    mock_client = Mock()
 
     articles = [
         ("2025-12-20", "Test Article", "https://example.com/article", "github"),
     ]
 
-    with patch("utils.mongo.MONGO_DB_NAME", "test_db"):
-        with patch("utils.mongo.MONGO_COLLECTION_NAME", "articles"):
-            batch_insert_articles_to_mongo(mock_client, articles)
+    batch_insert_articles_to_mongo(mock_client, articles)
 
     # Verify error was logged
     mock_logger.error.assert_called_once()
     assert "Failed to insert articles into MongoDB" in str(mock_logger.error.call_args)
 
 
+@patch("utils.mongo._get_collection")
 @patch("utils.mongo.datetime")
-def test_batch_insert_articles_to_mongo_document_structure(mock_datetime):
+def test_batch_insert_articles_to_mongo_document_structure(mock_datetime, mock_get_collection):
     """Test that documents are created with correct structure"""
     mock_now = Mock()
     mock_now.isoformat.return_value = "2025-12-22T20:51:59.123456+00:00"
@@ -145,20 +140,15 @@ def test_batch_insert_articles_to_mongo_document_structure(mock_datetime):
     mock_result = Mock()
     mock_result.inserted_ids = [1]
     mock_collection.insert_many.return_value = mock_result
+    mock_get_collection.return_value = mock_collection
 
-    mock_db = MagicMock()
-    mock_db.__getitem__.return_value = mock_collection
-
-    mock_client = MagicMock()
-    mock_client.__getitem__.return_value = mock_db
+    mock_client = Mock()
 
     articles = [
         ("2025-12-20", "Why Observability Matters", "https://stripe.com/blog/observability", "stripe"),
     ]
 
-    with patch("utils.mongo.MONGO_DB_NAME", "test_db"):
-        with patch("utils.mongo.MONGO_COLLECTION_NAME", "articles"):
-            batch_insert_articles_to_mongo(mock_client, articles)
+    batch_insert_articles_to_mongo(mock_client, articles)
 
     call_args = mock_collection.insert_many.call_args
     documents = call_args[0][0]
@@ -172,11 +162,13 @@ def test_batch_insert_articles_to_mongo_document_structure(mock_datetime):
     assert doc["article"]["published_date"] == "2025-12-20"
     assert doc["domain"] == "stripe.com"
     assert doc["status"] == "ingested"
+    assert doc["event_type"] == "extraction"
 
 
 # Tests for insert_error_event_to_mongo function
+@patch("utils.mongo._get_collection")
 @patch("utils.mongo.datetime")
-def test_insert_error_event_to_mongo_success(mock_datetime):
+def test_insert_error_event_to_mongo_success(mock_datetime, mock_get_collection):
     """Test successful insertion of error event into MongoDB"""
     mock_now = Mock()
     mock_now.isoformat.return_value = "2025-12-23T10:30:00.000000+00:00"
@@ -186,24 +178,19 @@ def test_insert_error_event_to_mongo_success(mock_datetime):
     mock_result = Mock()
     mock_result.inserted_id = "error_id_123"
     mock_collection.insert_one.return_value = mock_result
+    mock_get_collection.return_value = mock_collection
 
-    mock_db = MagicMock()
-    mock_db.__getitem__.return_value = mock_collection
+    mock_client = Mock()
 
-    mock_client = MagicMock()
-    mock_client.__getitem__.return_value = mock_db
-
-    with patch("utils.mongo.MONGO_DB_NAME", "test_db"):
-        with patch("utils.mongo.MONGO_COLLECTION_NAME", "articles"):
-            insert_error_event_to_mongo(
-                client=mock_client,
-                source="freecodecamp",
-                error_type="fetch_failed",
-                error_message="Failed to fetch page",
-                url="https://freecodecamp.org/blog",
-                domain="freecodecamp.org",
-                metadata={"http_status": 503, "retry_count": 0}
-            )
+    insert_error_event_to_mongo(
+        client=mock_client,
+        source="freecodecamp",
+        error_type="fetch_failed",
+        error_message="Failed to fetch page",
+        url="https://freecodecamp.org/blog",
+        domain="freecodecamp.org",
+        metadata={"http_status": 503, "retry_count": 0}
+    )
 
     call_args = mock_collection.insert_one.call_args
     doc = call_args[0][0]
@@ -220,8 +207,9 @@ def test_insert_error_event_to_mongo_success(mock_datetime):
     assert doc["metadata"]["retry_count"] == 0
 
 
+@patch("utils.mongo._get_collection")
 @patch("utils.mongo.datetime")
-def test_insert_error_event_to_mongo_with_traceback(mock_datetime):
+def test_insert_error_event_to_mongo_with_traceback(mock_datetime, mock_get_collection):
     """Test error event insertion with traceback string"""
     mock_now = Mock()
     mock_now.isoformat.return_value = "2025-12-23T10:30:00.000000+00:00"
@@ -231,25 +219,20 @@ def test_insert_error_event_to_mongo_with_traceback(mock_datetime):
     mock_result = Mock()
     mock_result.inserted_id = "error_id_456"
     mock_collection.insert_one.return_value = mock_result
+    mock_get_collection.return_value = mock_collection
 
-    mock_db = MagicMock()
-    mock_db.__getitem__.return_value = mock_collection
-
-    mock_client = MagicMock()
-    mock_client.__getitem__.return_value = mock_db
+    mock_client = Mock()
 
     traceback_str = "Traceback (most recent call last):\n  File 'test.py', line 10\n    raise Exception"
 
-    with patch("utils.mongo.MONGO_DB_NAME", "test_db"):
-        with patch("utils.mongo.MONGO_COLLECTION_NAME", "articles"):
-            insert_error_event_to_mongo(
-                client=mock_client,
-                source="shopify",
-                error_type="extraction_failed",
-                error_message="AttributeError: 'NoneType' object has no attribute 'get_text'",
-                url="https://shopify.engineering/post123",
-                traceback_str=traceback_str
-            )
+    insert_error_event_to_mongo(
+        client=mock_client,
+        source="shopify",
+        error_type="extraction_failed",
+        error_message="AttributeError: 'NoneType' object has no attribute 'get_text'",
+        url="https://shopify.engineering/post123",
+        traceback_str=traceback_str
+    )
 
     call_args = mock_collection.insert_one.call_args
     doc = call_args[0][0]
@@ -259,8 +242,9 @@ def test_insert_error_event_to_mongo_with_traceback(mock_datetime):
     assert doc["event_type"] == "extraction_failed"
 
 
+@patch("utils.mongo._get_collection")
 @patch("utils.mongo.datetime")
-def test_insert_error_event_to_mongo_extracts_domain(mock_datetime):
+def test_insert_error_event_to_mongo_extracts_domain(mock_datetime, mock_get_collection):
     """Test that domain is extracted from URL when not provided"""
     mock_now = Mock()
     mock_now.isoformat.return_value = "2025-12-23T10:30:00.000000+00:00"
@@ -270,22 +254,17 @@ def test_insert_error_event_to_mongo_extracts_domain(mock_datetime):
     mock_result = Mock()
     mock_result.inserted_id = "error_id_789"
     mock_collection.insert_one.return_value = mock_result
+    mock_get_collection.return_value = mock_collection
 
-    mock_db = MagicMock()
-    mock_db.__getitem__.return_value = mock_collection
+    mock_client = Mock()
 
-    mock_client = MagicMock()
-    mock_client.__getitem__.return_value = mock_db
-
-    with patch("utils.mongo.MONGO_DB_NAME", "test_db"):
-        with patch("utils.mongo.MONGO_COLLECTION_NAME", "articles"):
-            insert_error_event_to_mongo(
-                client=mock_client,
-                source="stripe",
-                error_type="provider_failed",
-                error_message="KeyError: 'extractor'",
-                url="https://stripe.com/blog"
-            )
+    insert_error_event_to_mongo(
+        client=mock_client,
+        source="stripe",
+        error_type="provider_failed",
+        error_message="KeyError: 'extractor'",
+        url="https://stripe.com/blog"
+    )
 
     call_args = mock_collection.insert_one.call_args
     doc = call_args[0][0]
@@ -308,8 +287,9 @@ def test_insert_error_event_to_mongo_no_client(mock_logger):
     mock_logger.error.assert_not_called()
 
 
+@patch("utils.mongo._get_collection")
 @patch("utils.mongo.datetime")
-def test_insert_error_event_to_mongo_invalid_url(mock_datetime):
+def test_insert_error_event_to_mongo_invalid_url(mock_datetime, mock_get_collection):
     """Test that function handles invalid URLs gracefully"""
     mock_now = Mock()
     mock_now.isoformat.return_value = "2025-12-23T10:30:00.000000+00:00"
@@ -319,22 +299,17 @@ def test_insert_error_event_to_mongo_invalid_url(mock_datetime):
     mock_result = Mock()
     mock_result.inserted_id = "error_id_999"
     mock_collection.insert_one.return_value = mock_result
+    mock_get_collection.return_value = mock_collection
 
-    mock_db = MagicMock()
-    mock_db.__getitem__.return_value = mock_collection
+    mock_client = Mock()
 
-    mock_client = MagicMock()
-    mock_client.__getitem__.return_value = mock_db
-
-    with patch("utils.mongo.MONGO_DB_NAME", "test_db"):
-        with patch("utils.mongo.MONGO_COLLECTION_NAME", "articles"):
-            insert_error_event_to_mongo(
-                client=mock_client,
-                source="github",
-                error_type="fetch_failed",
-                error_message="Failed to fetch",
-                url="not-a-valid-url"
-            )
+    insert_error_event_to_mongo(
+        client=mock_client,
+        source="github",
+        error_type="fetch_failed",
+        error_message="Failed to fetch",
+        url="not-a-valid-url"
+    )
 
     call_args = mock_collection.insert_one.call_args
     doc = call_args[0][0]
@@ -344,9 +319,10 @@ def test_insert_error_event_to_mongo_invalid_url(mock_datetime):
     mock_collection.insert_one.assert_called_once()
 
 
+@patch("utils.mongo._get_collection")
 @patch("utils.mongo.logger")
 @patch("utils.mongo.datetime")
-def test_insert_error_event_to_mongo_insertion_error(mock_datetime, mock_logger):
+def test_insert_error_event_to_mongo_insertion_error(mock_datetime, mock_logger, mock_get_collection):
     """Test that function logs errors when insertion fails"""
     mock_now = Mock()
     mock_now.isoformat.return_value = "2025-12-23T10:30:00.000000+00:00"
@@ -354,22 +330,17 @@ def test_insert_error_event_to_mongo_insertion_error(mock_datetime, mock_logger)
 
     mock_collection = Mock()
     mock_collection.insert_one.side_effect = Exception("Connection timeout")
+    mock_get_collection.return_value = mock_collection
 
-    mock_db = MagicMock()
-    mock_db.__getitem__.return_value = mock_collection
+    mock_client = Mock()
 
-    mock_client = MagicMock()
-    mock_client.__getitem__.return_value = mock_db
-
-    with patch("utils.mongo.MONGO_DB_NAME", "test_db"):
-        with patch("utils.mongo.MONGO_COLLECTION_NAME", "articles"):
-            insert_error_event_to_mongo(
-                client=mock_client,
-                source="substack",
-                error_type="extraction_failed",
-                error_message="Parsing error",
-                url="https://substack.com/post"
-            )
+    insert_error_event_to_mongo(
+        client=mock_client,
+        source="substack",
+        error_type="extraction_failed",
+        error_message="Parsing error",
+        url="https://substack.com/post"
+    )
 
     mock_logger.error.assert_called_once()
     assert "Failed to insert error event into MongoDB" in str(mock_logger.error.call_args)
