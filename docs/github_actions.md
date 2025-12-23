@@ -6,30 +6,32 @@ This document describes all GitHub Actions workflows that automate the Personal 
 
 The project uses five automated workflows organized by development pipeline: **code quality validation** → **data collection** → **metrics calculation** → **visualization deployment**:
 
-1. **Go Format Checking** - Validates Go code formatting (on PR & push)
-2. **Python Ruff Checking** - Validates Python code quality (on PR & push)
+1. **Go Lint & Test Checking** - Validates Go code formatting and runs tests (on PR & push to main)
+2. **Python Ruff and Test Checking** - Validates Python code quality and runs tests (on PR & push to main)
 3. **Daily Extraction** - Extracts articles from web sources (daily at 6am UTC)
-4. **Generate Weekly Metrics** - Calculates metrics from Google Sheets (Friday at 1am UTC)
-5. **Deploy to GitHub Pages** - Generates and deploys dashboard (Monday at 1am UTC + on push)
+4. **Weekly Metrics Generation** - Calculates metrics from Google Sheets (Friday at 1am UTC)
+5. **Dashboard Deployment** - Generates and deploys dashboard (on push to main when metrics/** or cmd/** change)
 
-## 1. Go Format Checking Workflow
+## 1. Go Lint & Test Checking Workflow
 
 **File**: `.github/workflows/go_lint.yml`
 
 ### Purpose 1
 
-Validates Go code formatting, runs static analysis checks, and executes unit tests on pull requests and main branch pushes. First quality gate for Go code.
+Validates Go code formatting, runs static analysis checks, and executes unit tests on pull requests and main branch pushes. First quality gate for Go code. Uses **Go 1.24**.
 
 ### Trigger 1
 
-- **Pull request**: Triggered when PR includes changes to `cmd/**` paths
+- **Pull request**: Triggered when PR targets main branch with changes to `cmd/**` paths
 - **Push to main**: Triggered when code pushed to main with `cmd/**` changes
 
 ### Execution Steps 1
 
+**Two Jobs**: `lint` (runs first) → `test` (runs after lint passes)
+
 ```mermaid
 graph TD
-    A["Run Tests<br/>Unit tests"] --> B{"Pass?"}
+    A["Job: lint<br/>Run Tests"] --> B{"Pass?"}
     B -->|No| C["Fail"]
     B -->|Yes| D["Check gofmt<br/>Format check"]
     D --> E{"Issues?"}
@@ -37,7 +39,10 @@ graph TD
     E -->|No| F["Run go vet<br/>Static analysis"]
     F --> G{"Issues?"}
     G -->|Yes| C
-    G -->|No| H["Pass"]
+    G -->|No| H["Job: test<br/>Run Tests Again"]
+    H --> I{"Pass?"}
+    I -->|No| C
+    I -->|Yes| J["Pass"]
 ```
 
 ### Output 1
@@ -65,27 +70,33 @@ graph TD
 
 ---
 
-## 2. Python Ruff Checking Workflow
+## 2. Python Ruff and Test Checking Workflow
 
 **File**: `.github/workflows/py_lint.yml`
 
 ### Purpose 2
 
-Validates Python code quality using Ruff linter on pull requests and main branch pushes. Second quality gate for Python code.
+Validates Python code quality using Ruff linter and runs pytest tests on pull requests and main branch pushes. Second quality gate for Python code. Uses **Python 3.12**.
 
 ### Trigger 2
 
-- **Pull request**: Triggered when PR includes changes to `src/**` paths
-- **Push to main**: Triggered when code pushed to main with `src/**` changes
+- **Pull request**: Triggered when PR targets main branch with changes to `script/**` paths
+- **Push to main**: Triggered when code pushed to main with `script/**` changes
 
 ### Execution Steps 2
 
+**Two Jobs**: `ruff` (runs first) → `test` (runs after ruff passes)
+
 ```mermaid
 graph TD
-    A["Install Ruff<br/>Linter"] --> B["Check Quality<br/>Code check"]
+    A["Job: ruff<br/>Install Ruff"] --> B["Check Quality<br/>ruff check script/ --diff"]
     B --> C{"Issues?"}
     C -->|Yes| D["Fail<br/>Show diff"]
-    C -->|No| E["Pass"]
+    C -->|No| E["Job: test<br/>Install dependencies"]
+    E --> F["Run pytest<br/>script/ tests"]
+    F --> G{"Pass?"}
+    G -->|No| D
+    G -->|Yes| H["Pass"]
 ```
 
 ### Output 2
@@ -95,9 +106,10 @@ graph TD
 
 ### Validation Checks 2
 
-- **Code quality**: Unused imports, undefined names, syntax errors
-- **Style violations**: PEP 8 compliance issues
-- **Common pitfalls**: Potential bugs and anti-patterns
+- **Code quality** (Ruff): Unused imports, undefined names, syntax errors
+- **Style violations** (Ruff): PEP 8 compliance issues
+- **Common pitfalls** (Ruff): Potential bugs and anti-patterns
+- **Unit tests** (pytest): All tests in `script/tests/` must pass
 
 ### Key Features 2
 
@@ -110,11 +122,11 @@ graph TD
 
 ## 3. Daily Extraction Workflow
 
-**File**: `.github/workflows/scheduled_extraction.yml`
+**File**: `.github/workflows/extraction.yml`
 
 ### Purpose 3
 
-Runs Python web scraping script to extract articles from configured providers and load into Google Sheets. Keeps data fresh daily.
+Runs Python web scraping script to extract articles from configured providers and loads into dual stores (Google Sheets + MongoDB if configured). Keeps data fresh daily. Uses **Python 3.12**.
 
 ### Trigger 3
 
@@ -125,40 +137,51 @@ Runs Python web scraping script to extract articles from configured providers an
 
 ```mermaid
 graph TD
-    A["Install Deps<br/>requirements.txt"] --> B["Setup Auth<br/>credentials"]
-    B --> C["Run Extraction<br/>Web scraper"]
-    C --> D{"Success?"}
-    D -->|Yes| E["Update Sheets<br/>Google Sheets"]
-    D -->|No| F["Error"]
-    E --> G["Cleanup<br/>Delete secrets"]
-    F --> G
-    G --> H["Upload Log<br/>Artifacts"]
+    A["Install Deps<br/>requirements.txt"] --> B["Setup Auth<br/>credentials.json"]
+    B --> C["Verify Auth<br/>Check file exists"]
+    C --> D["Run Extraction<br/>python3 script/main.py"]
+    D --> E{"Success?"}
+    E -->|Yes| F["Update Sheets<br/>Google Sheets"]
+    E -->|No| G["Error"]
+    F --> H{"MongoDB<br/>configured?"}
+    H -->|Yes| I["Update MongoDB<br/>Batch insert"]
+    H -->|No| J["Cleanup<br/>Delete credentials.json"]
+    I --> J
+    G --> J
 ```
 
 ### Output 3
 
-- **Artifacts**: `extraction-log-YYYY-MM-DD.txt` (uploaded to workflow run)
-- **Google Sheets**: Updated with new articles
-- **Log format**: Timestamped with script output
+- **Google Sheets**: Updated with new articles (primary storage)
+- **MongoDB**: Updated with new article documents (if `MONGO_URI` configured)
+- **Logs**: Available in GitHub Actions workflow run logs (stdout)
+- **No artifacts**: Logs not uploaded as files, visible in workflow UI only
 
 ### Key Features 3
 
-- **Daily automation**: Runs without manual intervention
-- **Logging**: Captures stdout/stderr to log file
-- **Credentials cleanup**: Deletes sensitive files after use
-- **Artifact preservation**: Logs available for review for 90 days (GitHub default)
-- **Error visibility**: Script failures visible in GitHub UI
+- **Daily automation**: Runs without manual intervention at 6am UTC
+- **Dual-store writes**: Updates Google Sheets (always) and MongoDB (if configured)
+- **Async extraction**: Uses Python asyncio with HTTP/2 for efficient scraping
+- **Credentials cleanup**: Deletes credentials.json after use (never committed)
+- **Verification step**: Checks credentials.json exists before running script
+- **Error visibility**: Script failures visible in GitHub Actions workflow logs
 
 ### Environment Variables 3
 
-- `SHEET_ID` - From `secrets.SHEET_ID` (passed to Python script)
-- `CREDENTIALS` - From `secrets.CREDENTIALS` (written to file)
+Required:
+- `SHEET_ID` - From `secrets.SHEET_ID` (Google Sheet ID for articles)
+- `CREDENTIALS` - From `secrets.CREDENTIALS` (Google service account JSON, written to credentials.json)
+
+Optional (for MongoDB dual-store):
+- `MONGO_URI` - From `secrets.MONGO_URI` (MongoDB connection string, if set)
+- `MONGO_DB_NAME` - From `secrets.MONGO_DB_NAME` (MongoDB database name, if set)
+- `MONGO_COLLECTION_NAME` - From `secrets.MONGO_COLLECTION_NAME` (MongoDB collection name, if set)
 
 ---
 
-## 4. Generate Weekly Metrics Workflow
+## 4. Weekly Metrics Generation Workflow
 
-**File**: `.github/workflows/generate-metrics.yml`
+**File**: `.github/workflows/metrics_generation.yml`
 
 ### Purpose 4
 
@@ -182,14 +205,14 @@ permissions:
 
 ```mermaid
 graph TD
-    A["Setup Auth<br/>credentials"] --> B["Build Binary<br/>metricsjson"]
-    B --> C["Calculate Metrics<br/>API calls"]
-    C --> D{"Success?"}
-    D -->|Yes| E["Commit Data<br/>metrics JSON"]
-    D -->|No| F["Fail"]
-    E --> G["Push Branch<br/>weekly-update"]
-    G --> H["Create PR<br/>For review"]
-    H --> I["Cleanup<br/>Delete secrets"]
+    A["Setup Auth<br/>credentials.json"] --> B["Verify Auth<br/>Check file exists"]
+    B --> C["Create .env<br/>SHEET_ID + CREDENTIALS_PATH"]
+    C --> D["Build & Run<br/>make run-metrics"]
+    D --> E["Cleanup<br/>Delete credentials.json"]
+    E --> F["Git Config<br/>github-actions[bot]"]
+    F --> G["Create Branch<br/>metrics/weekly-update"]
+    G --> H["Commit & Push<br/>metrics/ folder"]
+    H --> I["Create PR<br/>gh pr create"]
 ```
 
 ### Output 4
@@ -216,19 +239,22 @@ Set as GitHub Secrets:
 
 ---
 
-## 5. Deploy to GitHub Pages Workflow
+## 5. Dashboard Deployment Workflow
 
-**File**: `.github/workflows/deploy_pages.yml`
+**File**: `.github/workflows/deployment.yml`
 
 ### Purpose 5
 
-Generates interactive HTML dashboard from latest metrics JSON and deploys to GitHub Pages. Final step in the pipeline—makes data publicly visible.
+Generates interactive HTML dashboard from latest metrics JSON and deploys to GitHub Pages. Final step in the pipeline—makes data publicly visible. Uses **Go 1.23**.
 
 ### Trigger 5
 
-- **Schedule**: Monday at 1:00 AM UTC (weekly)
-- **On push**: Triggers when code pushed to `main` branch
+- **On push to main**: Triggers when changes pushed to `main` branch affecting:
+  - `metrics/**` (new metrics files)
+  - `cmd/**` (dashboard code changes)
+  - `.github/workflows/deployment.yml` (workflow changes)
 - **Manual trigger**: `workflow_dispatch` button in GitHub UI
+- **No schedule**: Runs only on push, not on a weekly schedule
 
 ### Permissions 5
 
@@ -277,7 +303,7 @@ graph TD
 
 ### Deployment Requirements
 
-Dashboard only runs on Monday schedule **after** metrics have been generated and merged to main. This ensures latest data is visualized.
+Dashboard deployment triggers automatically when metrics PR is merged to main (which updates `metrics/**` files). This ensures latest data is visualized immediately after metrics are available.
 
 ---
 
@@ -287,25 +313,26 @@ Dashboard only runs on Monday schedule **after** metrics have been generated and
 graph TD
     DailyExt["☀️ Daily Extraction<br/>6am UTC daily"]
     WeeklyMetrics["📊 Weekly Metrics<br/>Friday 1am UTC"]
-    MondayDeploy["🚀 Deploy Dashboard<br/>Monday 1am UTC"]
-    CodeQA["✓ Code QA<br/>On PR & push"]
+    AutoDeploy["🚀 Deploy Dashboard<br/>On metrics/ push"]
+    CodeQA["✓ Code QA<br/>On PR & push to main"]
     
     DailyExt -->|Updates Google Sheets| WeeklyMetrics
-    WeeklyMetrics -->|Metrics PR| MondayDeploy
+    WeeklyMetrics -->|Creates PR| Review["Manual Review<br/>& Merge"]
+    Review -->|Merges to main| AutoDeploy
     CodeQA -->|Validates| WeeklyMetrics
     CodeQA -->|Validates| DailyExt
-    MondayDeploy -->|Live Dashboard| Pages["🌐 GitHub Pages"]
+    AutoDeploy -->|Live Dashboard| Pages["🌐 GitHub Pages"]
 ```
 
 ### Data Flow Timeline
 
 **Week cycle:**
 
-1. **Daily** (6am UTC): Articles extracted → Google Sheets updated
-2. **Friday 1am UTC**: Metrics calculated → PR created → awaits review
-3. **Friday-Sunday**: Manual approval/merge of metrics PR
-4. **Monday 1am UTC**: Dashboard generated from latest metrics → deployed to GitHub Pages
-5. **Monday onwards**: Live dashboard with latest data available at GitHub Pages URL
+1. **Daily** (6am UTC): Articles extracted → Google Sheets + MongoDB updated
+2. **Friday 1am UTC**: Metrics calculated → PR created (`metrics/weekly-update` branch) → awaits review
+3. **Manual review**: Developer reviews and merges metrics PR to main
+4. **Immediately on merge**: Dashboard deployment triggered automatically (push to main with `metrics/**` changes)
+5. **~2 minutes later**: Live dashboard with latest data available at GitHub Pages URL
 
 ### Failure Modes & Recovery
 
@@ -322,10 +349,13 @@ graph TD
 
 Required secrets in GitHub repository Settings → Secrets and variables → Actions:
 
-| Secret | Example | Purpose |
-|--------|---------|---------|
-| `CREDENTIALS` | `{"type": "service_account", ...}` | Google service account JSON (entire JSON as string) |
-| `SHEET_ID` | `1a2b3c4d5e6f7g8h` | Google Sheet ID for articles data |
+| Secret | Example | Purpose | Required |
+|--------|---------|---------|----------|
+| `CREDENTIALS` | `{"type": "service_account", ...}` | Google service account JSON (entire JSON as string) | Yes |
+| `SHEET_ID` | `1a2b3c4d5e6f7g8h` | Google Sheet ID for articles data | Yes |
+| `MONGO_URI` | `mongodb+srv://user:pass@cluster.mongodb.net/` | MongoDB connection string | Optional |
+| `MONGO_DB_NAME` | `reading_analytics` | MongoDB database name | Optional |
+| `MONGO_COLLECTION_NAME` | `articles` | MongoDB collection name | Optional |
 
 ### Setup Instructions
 
@@ -351,18 +381,28 @@ Required secrets in GitHub repository Settings → Secrets and variables → Act
 
 - Check `CREDENTIALS` and `SHEET_ID` secrets are set
 - Verify Google service account has Sheets API access
-- Check branch protection rules allow actions
+- Check branch protection rules allow github-actions[bot] to push
+- Ensure `make run-metrics` command works locally
 
 **Dashboard fails to deploy:**
 
-- Ensure metrics PR is merged to main before Monday 1am UTC
-- Check GitHub Pages is enabled in Settings → Pages
+- Ensure metrics PR is merged to main (triggers deployment automatically)
+- Check GitHub Pages is enabled in Settings → Pages → Source: GitHub Actions
 - Verify `site/index.html` was generated correctly
+- Check that `metrics/` folder has at least one JSON file
+
+**Extraction workflow runs but no data appears:**
+
+- Check workflow logs for "Failed to fetch page" warnings
+- Verify providers worksheet in Google Sheets has correct URLs
+- For MongoDB: Check `MONGO_URI`, `MONGO_DB_NAME`, `MONGO_COLLECTION_NAME` secrets if dual-store expected
 
 **Code QA fails:**
 
 - Go linting: Run `make gofmt` locally to format code
-- Python linting: Run `ruff check src/` locally to see violations
+- Go tests: Run `go test ./cmd/... -v` locally
+- Python linting: Run `ruff check script/` locally to see violations
+- Python tests: Run `python3 -m pytest script/` locally
 
 ### Logs Location
 
