@@ -41,6 +41,9 @@ jobs:
           python3 script/main.py
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
+          MONGO_COLLECTION_NAME: ${{ secrets.MONGO_COLLECTION_NAME }}
 
       - name: Clean up credentials.json
         run: rm -f credentials.json
