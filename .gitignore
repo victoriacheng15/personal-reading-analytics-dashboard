@@ -1,11 +1,8 @@
 credentials.json
 *.txt
-planning*.md
 
 # Go binaries
 site
-/dashboard
-/metricsjson
 *.exe
 *.dll
 *.so
