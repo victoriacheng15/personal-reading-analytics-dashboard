@@ -4,6 +4,12 @@ A self-built fully automated reading analytics dashboard with zero infrastructur
 
 ---
 
+## 🔗 Live Dashboard
+
+👉 [See Live Dashbaord](https://victoriacheng15.github.io/personal-reading-analytics-dashboard/)
+
+---
+
 ## 🌿 Design Philosophy
 
 This project is built to reflect how I believe small, personal tools should work:
@@ -14,44 +20,14 @@ This project is built to reflect how I believe small, personal tools should work
 
 ---
 
-## 📊 What It Shows
+## 📚 Documentation
 
-**Key Metrics Section:**
-- **Total articles**: Tracking total articles across currently supported sources
-- **Read rate**: Percentage of articles completed with visual highlighting
-- **Reading statistics**: Read count, unread count, and average articles per month
-- **Highlight badges**: Top read rate source, most unread source, current month's read articles
+For deep technical details, see the architecture docs:
 
-**7 Interactive Visualizations (Chart.js):**
-1. **Year Breakdown**: Bar chart showing article distribution by publication yearE
-2. **Read/Unread by Year**: Stacked bar chart with reading progress across years
-3. **Monthly Breakdown**: Toggle between total articles (line chart) and by-source distribution (stacked bar)
-4. **Read/Unread by Month**: Seasonal reading patterns across all months
-5. **Read/Unread by Source**: Horizontal stacked bars comparing progress per provider
-6. **Unread Age Distribution**: Age buckets (<1 month, 1-3 months, 3-6 months, 6-12 months, >1 year)
-7. **Unread by Year**: Identifies which years have the most unread backlog
-
-**Source Analytics:**
-- Per-source statistics with read/unread split and read percentages
-- Substack per-author average calculation (total articles ÷ author count)
-- Top 3 oldest unread articles with clickable links, dates, and age calculations
-- Source metadata showing when each provider was added to tracking
-
-### Supported Sources
-
-Currently extracting articles from:
-
-- freeCodeCamp
-- Substack
-- GitHub (Added 2024-03-18)
-- Shopify (Added 2025-03-05)
-- Stripe (Added 2025-11-19)  
-
----
-
-## 🔗 Live Dashboard
-
-👉 [Live Demo](https://victoriacheng15.github.io/personal-reading-analytics-dashboard/)
+- [Extraction Pipeline Design](docs/extraction_architecture.md)
+- [Dashboard Pipeline Design](docs/dashboard_architecture.md)
+- [Operations & CI/CD Guide](docs/operations.md)
+- [Jenkins CI/CD (Learning Experiment)](docs/jenkins.md) - Educational implementation only; production relies entirely on GitHub Actions.
 
 ---
 
@@ -67,36 +43,41 @@ Currently extracting articles from:
 
 ---
 
-## 🛠️ Technical Overview
+## 📊 What It Shows
 
-### Data Pipeline: Articles → Metrics → Dashboard
+**Key Metrics Section:**
 
-```mermaid
-graph TD
-    A["Article Extraction<br/>Python + asyncio + HTTP/2"] -->|Async Scrape & Deduplicate| B["Dual-Store Write"]
-    B -->|Batch Insert| C["Google Sheets<br/>(Primary)"]
-    B -->|Batch Insert| D["MongoDB<br/>(Optional Analytics)"]
-    C -->|Read Articles| E["Metrics Calculation<br/>Go"]
-    E -->|Generate JSON| F["metrics/YYYY-MM-DD.json"]
-    F -->|Read Latest| G["Dashboard Generation<br/>Go + html/template"]
-    G -->|Generate HTML| H["site/index.html<br/>Chart.js Visualizations"]
-    H -->|Deploy| I["GitHub Pages<br/>Live Dashboard"]
-```
+- **Total articles**: Tracking total articles across currently supported sources
+- **Read rate**: Percentage of articles completed with visual highlighting
+- **Reading statistics**: Read count, unread count, and average articles per month
+- **Highlight badges**: Top read rate source, most unread source, current month's read articles
 
-**Article Extraction**: Python async web scrapers (Beautiful Soup + httpx with HTTP/2) extract articles from 5 engineering blogs, normalize titles for deduplication, and write to dual stores (Google Sheets primary, MongoDB optional). Runs daily at 6am UTC.
+**7 Interactive Visualizations (Chart.js):**
 
-**Metrics Calculation**: Go program reads articles from Google Sheets API, calculates 23 comprehensive metrics (by source, by year/month, read/unread splits, age distribution, oldest unread articles), outputs timestamped JSON. Creates PR every Friday at 1am UTC.
+1. **Year Breakdown**: Bar chart showing article distribution by publication year
+2. **Read/Unread by Year**: Stacked bar chart with reading progress across years
+3. **Monthly Breakdown**: Toggle between total articles (line chart) and by-source distribution (stacked bar)
+4. **Read/Unread by Month**: Seasonal reading patterns across all months
+5. **Read/Unread by Source**: Horizontal stacked bars comparing progress per provider
+6. **Unread Age Distribution**: Age buckets (<1 month, 1-3 months, 3-6 months, 6-12 months, >1 year)
+7. **Unread by Year**: Identifies which years have the most unread backlog
 
-**Dashboard Generation**: Go program reads latest metrics JSON, uses `html/template` to generate responsive HTML with 7 Chart.js visualizations, embedded CSS, and self-contained JavaScript. Auto-deploys to GitHub Pages on merge.
+**Source Analytics:**
 
-### Documentation
+- Per-source statistics with read/unread split and read percentages
+- Substack per-author average calculation (total articles ÷ author count)
+- Top 3 oldest unread articles with clickable links, dates, and age calculations
+- Source metadata showing when each provider was added to tracking
 
-For deep technical details, see the architecture docs:  
+### Supported Sources
 
-- [Extraction Pipeline Design](docs/extraction_architecture.md)  
-- [Dashboard Pipeline Design](docs/dashboard_architecture.md)  
-- [GitHub Actions Workflows](docs/github_actions.md)  
-- [Jenkins CI/CD (Learning Experiment)](docs/jenkins.md) - Educational implementation only; production relies entirely on GitHub Actions.
+Currently extracting articles from:
+
+- freeCodeCamp
+- Substack
+- GitHub (Added 2024-03-18)
+- Shopify (Added 2025-03-05)
+- Stripe (Added 2025-11-19)
 
 ---
 
