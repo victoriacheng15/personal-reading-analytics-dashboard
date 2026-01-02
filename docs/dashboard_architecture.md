@@ -1,6 +1,6 @@
 # Dashboard Architecture
 
-The dashboard layer is a **metrics and visualization pipeline** that processes article data from Google Sheets and generates an interactive HTML dashboard. It operates without a persistent backend server, using a build-time generation approach.
+The dashboard layer is a **metrics and visualization pipeline** that processes article data from Google Sheets and generates a multi-page static site. It operates without a persistent backend server, using a build-time generation approach.
 
 ## High-Level System Design
 
@@ -9,7 +9,8 @@ graph TD
     A[Google Sheets] -->|Fetch API| B(Metrics Generator<br/>cmd/metrics)
     B -->|Calculate & Serialize| C[metrics/YYYY-MM-DD.json]
     C -->|Read Latest| D(Dashboard Generator<br/>cmd/dashboard)
-    D -->|Hydrate Template| E[site/index.html]
+    G[evolution.yml] -->|Read| D
+    D -->|Hydrate Templates| E[Static Site<br/>index, analytics, evolution]
     E -->|Deploy| F[GitHub Pages]
 ```
 
@@ -24,17 +25,25 @@ Fetches raw data from Google Sheets and performs all heavy aggregation logic.
 
 ### 2. Dashboard Generator (`cmd/dashboard`)
 
-Reads the latest metrics and renders the visualization.
+Reads the latest metrics and evolution data to render the static site.
 
-- **Responsibility:** Determining the latest data file, preparing Chart.js payloads, and executing the Go HTML template.
-- **Key Feature:** It is decoupled from the data source (Google Sheets). It can regenerate the dashboard from archived JSONs offline.
+- **Responsibility:**
+  - Identifying the latest metrics JSON file.
+  - Loading project history from `evolution.yml`.
+  - Preparing Chart.js payloads.
+  - Executing Go HTML templates to generate specific pages.
+- **Key Feature:** It is decoupled from the data source (Google Sheets). It can regenerate the site from archived JSONs offline.
 
-### 3. Visualization Layer (`site/index.html`)
+### 3. UI & Templates (`cmd/internal/dashboard/templates/`)
 
-A standalone HTML5 single-page dashboard.
+The source templates used by the Dashboard Generator to produce the final site.
 
-- **Technology:** Go `html/template`, CSS Grid, and Chart.js.
-- **Design:** Responsive, dark-themed metric cards, and interactive charts.
+- **Logical Structure:**
+  - `index.html`: Landing page template with project origin story and design principles.
+  - `analytics.html`: Dashboard template for reading metrics and interactive charts.
+  - `evolution.html`: Timeline template for visualizing technical growth.
+  - `base.html`, `header.html`, `footer.html`: Shared layout components.
+- **Technology:** Go `html/template`, CSS variables for theming, and Chart.js.
 - **Security:** No runtime external API calls; all data is embedded at build time.
 
 ## Dashboard Generation Flow
@@ -43,17 +52,18 @@ A standalone HTML5 single-page dashboard.
 sequenceDiagram
     participant Main as cmd/dashboard
     participant FS as File System
-    participant Tmpl as HTML Template
-    participant Output as site/index.html
+    participant Tmpl as HTML Templates
+    participant Output as site/*.html
 
     Main->>FS: Scan metrics/ directory
     FS-->>Main: List [2024-12-01.json, 2024-12-08.json...]
     Main->>Main: Sort & Select Latest
-    Main->>FS: Read Latest JSON
-    Main->>Main: Unmarshal to Metrics Struct
-    Main->>Main: Prepare Chart.js Data (JSON Marshaling)
-    Main->>Tmpl: Execute(Metrics + ChartData)
-    Tmpl-->>Output: Generate Static HTML
+    Main->>FS: Read Latest JSON & evolution.yml
+    Main->>Main: Unmarshal Data & Prepare Chart Payloads
+    loop For Each Page (Index, Analytics, Evolution)
+        Main->>Tmpl: Parse & Execute Template
+        Tmpl-->>Output: Generate HTML File
+    end
 ```
 
 ## References

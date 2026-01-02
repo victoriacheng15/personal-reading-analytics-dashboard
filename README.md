@@ -22,12 +22,7 @@ This project is built to reflect how I believe small, personal tools should work
 
 ## 📚 Documentation
 
-For deep technical details, see the architecture docs:
-
-- [Extraction Pipeline Design](docs/extraction_architecture.md)
-- [Dashboard Pipeline Design](docs/dashboard_architecture.md)
-- [Operations & CI/CD Guide](docs/operations.md)
-- [Jenkins CI/CD (Learning Experiment)](docs/jenkins.md) - Educational implementation only; production relies entirely on GitHub Actions.
+For deep technical details, architectural diagrams, and operational guides, please visit the **[Documentation Hub](docs/README.md)**.
 
 ---
 
@@ -88,3 +83,11 @@ Learn about the journey of this project: from local-only execution, to Docker co
 [Read Part 1: Article Extraction Pipeline](https://victoriacheng15.vercel.app/blog/from-pi-to-cloud-automation)
 
 **Part 2: Dashboard & Metrics Pipeline** (Coming soon) - The evolution to metrics calculation and interactive visualization on GitHub Pages
+
+---
+
+## 🚀 Ready to Explore?
+
+Don't just take my word for it—interact with the real data.
+
+👉 **[Launch Personal Reading Analytics](https://victoriacheng15.github.io/personal-reading-analytics-dashboard/)**

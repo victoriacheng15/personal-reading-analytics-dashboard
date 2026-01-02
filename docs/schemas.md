@@ -106,3 +106,20 @@ Structure used for archival and event logging in MongoDB.
   "status": "ingested"
 }
 ```
+
+## 4. Evolution Schema
+
+The `EvolutionData` struct defines the structure for `evolution.yml`, which powers the **Evolution Page**. Defined in `cmd/internal/schema.go`.
+
+```go
+type EvolutionData struct {
+    Events []Milestone `yaml:"events"`
+}
+
+type Milestone struct {
+    Date             string   `yaml:"date"`
+    Title            string   `yaml:"title"`
+    Description      string   `yaml:"description"` // Raw multiline string from YAML
+    DescriptionLines []string `yaml:"-"`           // Parsed into a slice for templates
+}
+```
