@@ -80,9 +80,9 @@ Currently extracting articles from:
 
 Learn about the journey of this project: from local-only execution, to Docker containerization, to fully automated GitHub Actions workflows.
 
-[Read Part 1: Article Extraction Pipeline](https://victoriacheng15.vercel.app/blog/from-pi-to-cloud-automation)
-
-**Part 2: Dashboard & Metrics Pipeline** (Coming soon) - The evolution to metrics calculation and interactive visualization on GitHub Pages
+- [Read Part 1: From Pi to Cloud Automation](https://victoriacheng15.vercel.app/blog/from-pi-to-cloud-automation)
+- **Part 2: From Links to Reading Insights** (Coming soon) - The evolution to metrics calculation and interactive visualization on GitHub Pages
+- **Part 3: From Metrics to Milestones** (Coming soon) - Visualizing technical growth and engineering milestones through a dynamic evolution timeline
 
 ---
 
