@@ -126,11 +126,17 @@ async def async_main(timestamp):
     fetcher_state = init_fetcher_state()
     all_articles = []
 
-    for provider in providers:
-        articles, fetcher_state = await process_provider(
-            fetcher_state, provider, existing_titles
-        )
-        all_articles.extend(articles)
+    # Create tasks for all providers to run concurrently
+    tasks = [
+        process_provider(fetcher_state, provider, existing_titles)
+        for provider in providers
+    ]
+    
+    # Execute all tasks concurrently
+    if tasks:
+        results = await asyncio.gather(*tasks)
+        for articles, _ in results:
+            all_articles.extend(articles)
 
     # Batch write all articles at once
     if all_articles:
