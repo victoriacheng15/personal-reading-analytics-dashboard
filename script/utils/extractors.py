@@ -3,7 +3,7 @@ import logging
 import traceback
 from datetime import datetime
 from utils.format_date import clean_and_convert_date
-from utils.mongo import insert_error_event_to_mongo
+from utils.mongo import insert_error_event_to_mongo, get_mongo_client
 
 
 logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ def extractor_error_handler(site_name):
                             },
                             traceback_str=tb
                         )
-                        mongo_client.close()
+                        # Client is now a singleton managed globally, do not close here
                 except Exception as mongo_error:
                     logger.warning(f"Failed to log extraction error to MongoDB: {mongo_error}")
                 

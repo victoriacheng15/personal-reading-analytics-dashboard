@@ -14,6 +14,7 @@ from utils import (
     get_mongo_client,
     batch_insert_articles_to_mongo,
     insert_error_event_to_mongo,
+    close_mongo_client,
     # Web scraping
     init_fetcher_state,
     fetch_page,
@@ -72,7 +73,7 @@ async def process_provider(fetcher_state, provider, existing_titles):
                         "retry_count": 0
                     }
                 )
-                mongo_client.close()
+                # Client is singleton, do not close
             
             return [], fetcher_state
 
@@ -110,7 +111,7 @@ async def process_provider(fetcher_state, provider, existing_titles):
                 },
                 traceback_str=traceback.format_exc()
             )
-            mongo_client.close()
+            # Client is singleton, do not close
         
         return [], fetcher_state
 
@@ -150,7 +151,7 @@ async def async_main(timestamp):
         mongo_client = get_mongo_client()
         if mongo_client:
             batch_insert_articles_to_mongo(mongo_client, all_articles)
-            mongo_client.close()
+            # Client is singleton, do not close
     else:
         logger.info("\n✅ No new articles found\n")
 
@@ -161,7 +162,11 @@ async def async_main(timestamp):
 
 def main(timestamp):
     """Sync wrapper for async code"""
-    asyncio.run(async_main(timestamp))
+    try:
+        asyncio.run(async_main(timestamp))
+    finally:
+        # Ensure MongoDB connection is closed at the very end
+        close_mongo_client()
 
 
 if __name__ == "__main__":
