@@ -13,15 +13,36 @@ MONGO_URI = os.environ.get("MONGO_URI")
 MONGO_DB_NAME = os.environ.get("MONGO_DB_NAME", "articles_db")
 MONGO_COLLECTION_NAME = os.environ.get("MONGO_COLLECTION_NAME", "articles")
 
+_MONGO_CLIENT = None
+
 
 def get_mongo_client():
     """
-    Returns a MongoClient instance.
+    Returns a shared MongoClient instance (Singleton).
     """
+    global _MONGO_CLIENT
     if not MONGO_URI:
-        logger.warning("MONGO_URI not found in environment variables.")
+        # Avoid spamming logs if URI is missing; caller handles None check
         return None
-    return MongoClient(MONGO_URI)
+        
+    if _MONGO_CLIENT is None:
+        try:
+            _MONGO_CLIENT = MongoClient(MONGO_URI)
+        except Exception as e:
+            logger.error(f"Failed to create MongoDB client: {e}")
+            return None
+            
+    return _MONGO_CLIENT
+
+
+def close_mongo_client():
+    """
+    Closes the global MongoDB client connection.
+    """
+    global _MONGO_CLIENT
+    if _MONGO_CLIENT:
+        _MONGO_CLIENT.close()
+        _MONGO_CLIENT = None
 
 
 def _get_collection(client):

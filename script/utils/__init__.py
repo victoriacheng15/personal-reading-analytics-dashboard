@@ -51,6 +51,7 @@ from .mongo import (
     get_mongo_client,
     batch_insert_articles_to_mongo,
     insert_error_event_to_mongo,
+    close_mongo_client,
 )
 
 __all__ = [
@@ -88,4 +89,5 @@ __all__ = [
     "get_mongo_client",
     "batch_insert_articles_to_mongo",
     "insert_error_event_to_mongo",
+    "close_mongo_client",
 ]
