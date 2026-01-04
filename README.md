@@ -14,9 +14,9 @@ A self-built fully automated reading analytics dashboard with zero infrastructur
 
 This project is built to reflect how I believe small, personal tools should work:
 
-- **Zero infrastructure** → No servers, databases, or cloud costs. Runs entirely on GitHub (Actions + Pages).  
+- **Zero infrastructure** → No servers or hosting costs. Runs entirely on GitHub (Actions + Pages).  
 - **Fully automated** → Scheduled GitHub Actions keep data fresh—no manual runs or home servers.  
-- **Cost-effective** → Uses only free tiers (GitHub, Google Sheets API)—proving powerful automation doesn’t require budget.
+- **Cost-effective** → Uses only free tiers (GitHub, Google Sheets API, MongoDB Atlas)—proving powerful automation doesn’t require budget.
 
 ---
 
