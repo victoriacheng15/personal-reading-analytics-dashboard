@@ -70,6 +70,7 @@ def test_fetch_page_concurrency_lock_release(mock_get):
     If the lock is held during the request, 3 requests taking 0.2s each would take >0.6s total.
     If parallel, they should take ~0.2s + minimal staggering.
     """
+
     # Simulate a slow network request
     async def slow_request(*args, **kwargs):
         await asyncio.sleep(0.2)
@@ -109,4 +110,6 @@ def test_fetch_page_concurrency_lock_release(mock_get):
     # Req 3: T+0.40 to T+0.60
     # Total buggy time: ~0.60s
 
-    assert duration < 0.55, f"Requests took {duration}s, suggesting sequential execution (lock held during IO)"
+    assert duration < 0.55, (
+        f"Requests took {duration}s, suggesting sequential execution (lock held during IO)"
+    )

@@ -105,7 +105,9 @@ def test_batch_insert_articles_to_mongo_empty_articles(mock_logger):
 @patch("utils.mongo._get_collection")
 @patch("utils.mongo.logger")
 @patch("utils.mongo.datetime")
-def test_batch_insert_articles_to_mongo_insertion_error(mock_datetime, mock_logger, mock_get_collection):
+def test_batch_insert_articles_to_mongo_insertion_error(
+    mock_datetime, mock_logger, mock_get_collection
+):
     """Test that function logs errors when insertion fails"""
     mock_now = Mock()
     mock_now.isoformat.return_value = "2025-12-22T20:51:59.123456+00:00"
@@ -130,7 +132,9 @@ def test_batch_insert_articles_to_mongo_insertion_error(mock_datetime, mock_logg
 
 @patch("utils.mongo._get_collection")
 @patch("utils.mongo.datetime")
-def test_batch_insert_articles_to_mongo_document_structure(mock_datetime, mock_get_collection):
+def test_batch_insert_articles_to_mongo_document_structure(
+    mock_datetime, mock_get_collection
+):
     """Test that documents are created with correct structure"""
     mock_now = Mock()
     mock_now.isoformat.return_value = "2025-12-22T20:51:59.123456+00:00"
@@ -145,7 +149,12 @@ def test_batch_insert_articles_to_mongo_document_structure(mock_datetime, mock_g
     mock_client = Mock()
 
     articles = [
-        ("2025-12-20", "Why Observability Matters", "https://stripe.com/blog/observability", "stripe"),
+        (
+            "2025-12-20",
+            "Why Observability Matters",
+            "https://stripe.com/blog/observability",
+            "stripe",
+        ),
     ]
 
     batch_insert_articles_to_mongo(mock_client, articles)
@@ -189,7 +198,7 @@ def test_insert_error_event_to_mongo_success(mock_datetime, mock_get_collection)
         error_message="Failed to fetch page",
         url="https://freecodecamp.org/blog",
         domain="freecodecamp.org",
-        metadata={"http_status": 503, "retry_count": 0}
+        metadata={"http_status": 503, "retry_count": 0},
     )
 
     call_args = mock_collection.insert_one.call_args
@@ -231,7 +240,7 @@ def test_insert_error_event_to_mongo_with_traceback(mock_datetime, mock_get_coll
         error_type="extraction_failed",
         error_message="AttributeError: 'NoneType' object has no attribute 'get_text'",
         url="https://shopify.engineering/post123",
-        traceback_str=traceback_str
+        traceback_str=traceback_str,
     )
 
     call_args = mock_collection.insert_one.call_args
@@ -244,7 +253,9 @@ def test_insert_error_event_to_mongo_with_traceback(mock_datetime, mock_get_coll
 
 @patch("utils.mongo._get_collection")
 @patch("utils.mongo.datetime")
-def test_insert_error_event_to_mongo_extracts_domain(mock_datetime, mock_get_collection):
+def test_insert_error_event_to_mongo_extracts_domain(
+    mock_datetime, mock_get_collection
+):
     """Test that domain is extracted from URL when not provided"""
     mock_now = Mock()
     mock_now.isoformat.return_value = "2025-12-23T10:30:00.000000+00:00"
@@ -263,7 +274,7 @@ def test_insert_error_event_to_mongo_extracts_domain(mock_datetime, mock_get_col
         source="stripe",
         error_type="provider_failed",
         error_message="KeyError: 'extractor'",
-        url="https://stripe.com/blog"
+        url="https://stripe.com/blog",
     )
 
     call_args = mock_collection.insert_one.call_args
@@ -281,7 +292,7 @@ def test_insert_error_event_to_mongo_no_client(mock_logger):
         source="github",
         error_type="fetch_failed",
         error_message="Failed to fetch",
-        url="https://github.com/blog"
+        url="https://github.com/blog",
     )
 
     mock_logger.error.assert_not_called()
@@ -308,7 +319,7 @@ def test_insert_error_event_to_mongo_invalid_url(mock_datetime, mock_get_collect
         source="github",
         error_type="fetch_failed",
         error_message="Failed to fetch",
-        url="not-a-valid-url"
+        url="not-a-valid-url",
     )
 
     call_args = mock_collection.insert_one.call_args
@@ -322,7 +333,9 @@ def test_insert_error_event_to_mongo_invalid_url(mock_datetime, mock_get_collect
 @patch("utils.mongo._get_collection")
 @patch("utils.mongo.logger")
 @patch("utils.mongo.datetime")
-def test_insert_error_event_to_mongo_insertion_error(mock_datetime, mock_logger, mock_get_collection):
+def test_insert_error_event_to_mongo_insertion_error(
+    mock_datetime, mock_logger, mock_get_collection
+):
     """Test that function logs errors when insertion fails"""
     mock_now = Mock()
     mock_now.isoformat.return_value = "2025-12-23T10:30:00.000000+00:00"
@@ -339,8 +352,10 @@ def test_insert_error_event_to_mongo_insertion_error(mock_datetime, mock_logger,
         source="substack",
         error_type="extraction_failed",
         error_message="Parsing error",
-        url="https://substack.com/post"
+        url="https://substack.com/post",
     )
 
     mock_logger.error.assert_called_once()
-    assert "Failed to insert error event into MongoDB" in str(mock_logger.error.call_args)
+    assert "Failed to insert error event into MongoDB" in str(
+        mock_logger.error.call_args
+    )

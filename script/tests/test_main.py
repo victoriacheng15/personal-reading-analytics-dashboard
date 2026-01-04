@@ -57,7 +57,9 @@ def test_process_provider_unknown_provider(mock_provider_dict):
 @patch("main.get_mongo_client")
 @patch("main.fetch_page", new_callable=AsyncMock)
 @patch("main.provider_dict")
-def test_process_provider_fetch_failure(mock_provider_dict, mock_fetch_page, mock_get_mongo_client):
+def test_process_provider_fetch_failure(
+    mock_provider_dict, mock_fetch_page, mock_get_mongo_client
+):
     """Test processing when page fetch fails"""
     mock_handler = {"element": lambda: "article", "extractor": Mock()}
     mock_provider_dict.return_value = {"test_provider": mock_handler}

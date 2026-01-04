@@ -1,9 +1,0 @@
-services:
-  app:
-    image: articles-extractor
-    container_name: extractor
-    build:
-      context: .
-      dockerfile: Dockerfile
-    env_file:
-      - .env

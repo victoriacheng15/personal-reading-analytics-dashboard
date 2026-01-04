@@ -3,40 +3,34 @@
         py-test py-coverage \
         run-metrics run-dashboard cleanup \
         run clean \
-        up down logs
+        docker-build docker-run
 
 # === Help ===
 help:
 	@echo "Available commands:"
+	@echo "  make help             - Show this help message"
 	@echo "  make install          - Create .venv and install Python dependencies"
 	@echo "  make freeze           - Freeze Python dependencies to requirements.txt"
 	@echo "  make update           - Update Python dependencies"
 	@echo ""
-	@echo "  make format           - Format Python files with ruff"
-	@echo "  make gofmt            - Format Go files with gofmt"
-	@echo ""
-	@echo "  make go-test          - Run Go tests"
-	@echo "  make go-coverage      - Run Go tests with coverage summary"
-	@echo "  make go-coverage-html - Generate Go HTML coverage report (coverage.html)"
-	@echo "  make go-coverage-log  - Show uncovered Go functions in terminal"
-	@echo ""
+	@echo "  make check            - Run ruff check on Python files"
+	@echo "  make py-format        - Format Python files with ruff"
 	@echo "  make py-test          - Run Python tests"
-	@echo "  make py-coverage      - Run Python coverage with missing-line report"
-	@echo ""
-	@echo "  make run-metrics      - Build and run metrics binary (metricsjson)"
-	@echo "  make run-dashboard    - Build and run dashboard binary"
-	@echo "  make cleanup          - Remove Go binaries and coverage files"
-	@echo ""
+	@echo "  make py-cov           - Run Python coverage with missing-line report"
 	@echo "  make run              - Run Python main script (via .venv)"
 	@echo "  make clean            - Remove Python __pycache__ and .pyc files"
 	@echo ""
-	@echo "  make up               - Start Docker containers"
-	@echo "  make down             - Stop Docker containers"
-	@echo "  make logs             - Export Docker logs to logs.txt"
+	@echo "  make go-format        - Format Go files with gofmt"
+	@echo "  make go-test          - Run Go tests"
+	@echo "  make go-cov           - Run Go tests with coverage summary"
+	@echo "  make go-cov-html      - Generate Go HTML coverage report (coverage.html)"
+	@echo "  make go-cov-log       - Show uncovered Go functions in terminal"
+	@echo "  make run-metrics      - Build and run metrics binary (metricsjson)"
+	@echo "  make run-dashboard    - Build and run dashboard binary"
 	@echo ""
-	@echo "  make help             - Show this help message"
+	@echo "  make docker-run       - Build, run, and remove Docker image"
 
-# === Python ===
+# === Python venv and package Management ===
 install:
 	@if [ ! -d .venv ]; then \
 		echo "Creating virtual environment..."; \
@@ -51,16 +45,17 @@ freeze:
 update:
 	.venv/bin/pip install --upgrade -r requirements.txt
 
+# === Python Linting, Testing, and Running ===
 check:
 	.venv/bin/python -m ruff check script/ --diff
 
-format:
+py-format:
 	.venv/bin/python -m ruff format script/
 
 py-test:
 	.venv/bin/python -m pytest script/
 
-py-coverage:
+py-cov:
 	.venv/bin/python -m pytest --cov=script --cov-report=term-missing
 
 run:
@@ -70,21 +65,21 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null
 	find . -type f -name "*.py[co]" -delete 2>/dev/null
 
-# === Go ===
-gofmt:
+# === Go Linting, Testing, and Running ===
+go-format:
 	gofmt -w ./cmd
 
 go-test:
 	go test -v ./cmd/...
 
-go-coverage:
+go-cov:
 	go test -cover ./cmd/...
 
-go-coverage-html:
+go-cov-html:
 	go test -coverprofile=coverage.out ./cmd/... && \
 	go tool cover -html=coverage.out -o coverage.html
 
-go-coverage-log:
+go-cov-log:
 	go test -coverprofile=coverage.out ./cmd/... && \
 	go tool cover -func=coverage.out | awk '$$3 != "100.0%"'
 
@@ -94,15 +89,8 @@ run-metrics:
 run-dashboard:
 	go build -o ./dashboard.exe ./cmd/dashboard && ./dashboard.exe && rm ./dashboard.exe
 
-cleanup:
-	rm -f ./metricsjson.exe ./dashboard.exe coverage.out coverage.html
-
-# === Docker ===
-up:
-	docker compose up --build
-
-down:
-	docker compose down
-
-logs:
-	docker logs extractor > logs.txt
+# === Docker Management ===
+docker-run:
+	docker build -t articles-extractor .
+	docker run --rm articles-extractor
+	docker image rm articles-extractor

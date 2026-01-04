@@ -47,7 +47,7 @@ async def process_provider(fetcher_state, provider, existing_titles):
     provider_element = provider["element"]
 
     handlers = provider_dict(provider_element)
-    handler = handlers.get(provider_name)
+    handler = handlers.get(provider_name.lower())
 
     if not handler:
         logger.info(f"Unknown provider: {provider_name}")
@@ -58,7 +58,7 @@ async def process_provider(fetcher_state, provider, existing_titles):
         if not soup:
             error_msg = f"Failed to fetch page for {provider_name} from {provider_url}"
             logger.warning(error_msg)
-            
+
             # Capture fetch failure event to MongoDB
             mongo_client = get_mongo_client()
             if mongo_client:
@@ -68,13 +68,10 @@ async def process_provider(fetcher_state, provider, existing_titles):
                     error_type="fetch_failed",
                     error_message="Failed to fetch page",
                     url=provider_url,
-                    metadata={
-                        "provider_element": provider_element,
-                        "retry_count": 0
-                    }
+                    metadata={"provider_element": provider_element, "retry_count": 0},
                 )
                 # Client is singleton, do not close
-            
+
             return [], fetcher_state
 
         element_args = handler["element"]()
@@ -94,7 +91,7 @@ async def process_provider(fetcher_state, provider, existing_titles):
 
     except Exception as e:
         logger.error(f"Error processing {provider_name}: {str(e)}", exc_info=True)
-        
+
         # Capture provider-level failure event to MongoDB
         mongo_client = get_mongo_client()
         if mongo_client:
@@ -107,12 +104,12 @@ async def process_provider(fetcher_state, provider, existing_titles):
                 metadata={
                     "provider_element": provider_element,
                     "phase": "article_extraction",
-                    "exception_type": type(e).__name__
+                    "exception_type": type(e).__name__,
                 },
-                traceback_str=traceback.format_exc()
+                traceback_str=traceback.format_exc(),
             )
             # Client is singleton, do not close
-        
+
         return [], fetcher_state
 
 
@@ -132,7 +129,7 @@ async def async_main(timestamp):
         process_provider(fetcher_state, provider, existing_titles)
         for provider in providers
     ]
-    
+
     # Execute all tasks concurrently
     if tasks:
         results = await asyncio.gather(*tasks)

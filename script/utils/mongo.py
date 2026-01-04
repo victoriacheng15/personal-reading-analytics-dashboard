@@ -24,14 +24,14 @@ def get_mongo_client():
     if not MONGO_URI:
         # Avoid spamming logs if URI is missing; caller handles None check
         return None
-        
+
     if _MONGO_CLIENT is None:
         try:
             _MONGO_CLIENT = MongoClient(MONGO_URI)
         except Exception as e:
             logger.error(f"Failed to create MongoDB client: {e}")
             return None
-            
+
     return _MONGO_CLIENT
 
 
@@ -48,17 +48,17 @@ def close_mongo_client():
 def _get_collection(client):
     """
     Returns the MongoDB collection for articles/events.
-    
+
     Args:
         client (MongoClient): The MongoDB client.
-        
+
     Returns:
         Collection: MongoDB collection or None if client is invalid.
     """
     if not client:
         logger.warning("MongoDB client is None. Cannot access collection.")
         return None
-    
+
     db = client[MONGO_DB_NAME]
     return db[MONGO_COLLECTION_NAME]
 
@@ -106,13 +106,23 @@ def batch_insert_articles_to_mongo(client, articles):
     if documents:
         try:
             result = collection.insert_many(documents)
-            logger.info(f"Successfully inserted {len(result.inserted_ids)} articles into MongoDB.")
+            logger.info(
+                f"Successfully inserted {len(result.inserted_ids)} articles into MongoDB."
+            )
         except Exception as e:
             logger.error(f"Failed to insert articles into MongoDB: {e}")
 
 
-def insert_error_event_to_mongo(client, source, error_type, error_message, url, 
-                                 domain=None, metadata=None, traceback_str=None):
+def insert_error_event_to_mongo(
+    client,
+    source,
+    error_type,
+    error_message,
+    url,
+    domain=None,
+    metadata=None,
+    traceback_str=None,
+):
     """
     Inserts an error event into MongoDB.
 
@@ -144,7 +154,7 @@ def insert_error_event_to_mongo(client, source, error_type, error_message, url,
         "message": error_message,
         "url": url,
     }
-    
+
     if traceback_str:
         error_doc["traceback"] = traceback_str
 
@@ -163,6 +173,8 @@ def insert_error_event_to_mongo(client, source, error_type, error_message, url,
 
     try:
         result = collection.insert_one(doc)
-        logger.info(f"Inserted error event ({error_type}) for {source} into MongoDB: {result.inserted_id}")
+        logger.info(
+            f"Inserted error event ({error_type}) for {source} into MongoDB: {result.inserted_id}"
+        )
     except Exception as e:
         logger.error(f"Failed to insert error event into MongoDB: {e}")

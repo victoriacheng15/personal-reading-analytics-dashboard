@@ -57,7 +57,7 @@ def test_extract_substack_articles_success():
         "2025-01-15",
         "Test Substack",
         "https://example.substack.com/p/test",
-        "substack",
+        "Substack",
     )
 
 
@@ -78,7 +78,7 @@ def test_extract_github_articles_success():
         "2025-01-15",
         "GitHub News",
         "https://github.blog/2025-01-15-news",
-        "github",
+        "GitHub",
     )
 
 
@@ -104,7 +104,7 @@ def test_extract_shopify_articles_success():
         "2025-01-15",
         "Shopify Article",
         "https://shopify.engineering/engineering/shopify-article",
-        "shopify",
+        "Shopify",
     )
 
 
@@ -126,7 +126,7 @@ def test_extract_stripe_articles_success():
         "2025-01-15",
         "Stripe News",
         "https://stripe.com/blog/stripe-news",
-        "stripe",
+        "Stripe",
     )
 
 
@@ -147,7 +147,7 @@ def test_extract_stripe_articles_fallback():
         "2025-01-15",
         "Stripe Fallback",
         "https://stripe.com/blog/stripe-news-fallback",
-        "stripe",
+        "Stripe",
     )
 
 

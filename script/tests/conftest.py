@@ -25,8 +25,9 @@ def mock_mongo_client():
     Also resets the Singleton client to ensure test isolation.
     """
     import utils.mongo
+
     utils.mongo._MONGO_CLIENT = None
-    
+
     with patch("pymongo.MongoClient") as mock_client:
         # Make it return None or a mock so no real connection is made
         mock_client.return_value = None

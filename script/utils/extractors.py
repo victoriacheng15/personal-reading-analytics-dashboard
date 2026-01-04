@@ -4,6 +4,13 @@ import traceback
 from datetime import datetime
 from utils.format_date import clean_and_convert_date
 from utils.mongo import insert_error_event_to_mongo, get_mongo_client
+from utils.constants import (
+    SOURCE_FREECODECAMP,
+    SOURCE_SUBSTACK,
+    SOURCE_GITHUB,
+    SOURCE_SHOPIFY,
+    SOURCE_STRIPE,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -23,7 +30,7 @@ def extractor_error_handler(site_name):
                     snippet = str(article)[:300].replace("\n", " ")
                 except Exception:
                     snippet = "<unavailable>"
-                
+
                 # Try to extract URL from article
                 try:
                     link = article.find("a")
@@ -31,14 +38,14 @@ def extractor_error_handler(site_name):
                         article_url = link.get("href")
                 except Exception:
                     pass
-                
+
                 tb = traceback.format_exc()
                 logger.error(
                     f"Error extracting {site_name} article: {e}\n"
                     f"Article snippet: {snippet}\n"
                     f"Traceback: {tb}"
                 )
-                
+
                 # Capture extraction failure event to MongoDB
                 try:
                     mongo_client = get_mongo_client()
@@ -51,14 +58,16 @@ def extractor_error_handler(site_name):
                             url=article_url,
                             metadata={
                                 "extractor_function": func.__name__,
-                                "article_snippet": snippet
+                                "article_snippet": snippet,
                             },
-                            traceback_str=tb
+                            traceback_str=tb,
                         )
                         # Client is now a singleton managed globally, do not close here
                 except Exception as mongo_error:
-                    logger.warning(f"Failed to log extraction error to MongoDB: {mongo_error}")
-                
+                    logger.warning(
+                        f"Failed to log extraction error to MongoDB: {mongo_error}"
+                    )
+
                 raise
 
         return wrapper
@@ -66,7 +75,7 @@ def extractor_error_handler(site_name):
     return decorator
 
 
-@extractor_error_handler("freeCodeCamp")
+@extractor_error_handler(SOURCE_FREECODECAMP)
 def extract_fcc_articles(article):
     """
     Extracts article information from a freeCodeCamp article element.
@@ -75,10 +84,10 @@ def extract_fcc_articles(article):
     href = article.find("a").get("href")
     link = f"https://www.freecodecamp.org{href}"
     date = clean_and_convert_date(article.find("time").get("datetime"))
-    return (date, title, link, "freeCodeCamp")
+    return (date, title, link, SOURCE_FREECODECAMP)
 
 
-@extractor_error_handler("Substack")
+@extractor_error_handler(SOURCE_SUBSTACK)
 def extract_substack_articles(article):
     """
     Extracts article information from a Substack article element.
@@ -87,10 +96,10 @@ def extract_substack_articles(article):
     link = article.find(attrs={"data-testid": "post-preview-title"}).get("href")
     # Date is assumed to be in a format like "YYYY-MM-DD"
     date = article.find("time").get("datetime").split("T")[0]
-    return (date, title, link, "substack")
+    return (date, title, link, SOURCE_SUBSTACK)
 
 
-@extractor_error_handler("GitHub")
+@extractor_error_handler(SOURCE_GITHUB)
 def extract_github_articles(article):
     """
     Extracts article information from a GitHub article element.
@@ -98,10 +107,10 @@ def extract_github_articles(article):
     title = article.find("h3").get_text().strip()
     link = article.find(class_="Link--primary").get("href")
     date = article.find("time").get("datetime")
-    return (date, title, link, "github")
+    return (date, title, link, SOURCE_GITHUB)
 
 
-@extractor_error_handler("Shopify")
+@extractor_error_handler(SOURCE_SHOPIFY)
 def extract_shopify_articles(article):
     """
     Extracts article information from a Shopify article element.
@@ -127,10 +136,10 @@ def extract_shopify_articles(article):
     )
     before_format_date = datetime.strptime(date_element, "%b %d, %Y")
     date = before_format_date.strftime("%Y-%m-%d")
-    return (date, title, link, "shopify")
+    return (date, title, link, SOURCE_SHOPIFY)
 
 
-@extractor_error_handler("Stripe")
+@extractor_error_handler(SOURCE_STRIPE)
 def extract_stripe_articles(article):
     """
     Extracts article information from a Stripe Engineering blog article element.
@@ -152,7 +161,7 @@ def extract_stripe_articles(article):
     date_raw = time_elem.get("datetime") if time_elem else None
     date = clean_and_convert_date(date_raw) if date_raw else ""
 
-    return (date, title, link, "stripe")
+    return (date, title, link, SOURCE_STRIPE)
 
 
 def get_articles(elements, extract_func, existing_titles):
@@ -191,23 +200,23 @@ def provider_dict(provider_element):
         dict: A dictionary containing the provider's element and extractor function.
     """
     return {
-        "freecodecamp": {
+        SOURCE_FREECODECAMP.lower(): {
             "element": lambda: provider_element,
             "extractor": extract_fcc_articles,
         },
-        "substack": {
+        SOURCE_SUBSTACK.lower(): {
             "element": lambda: {"class_": re.compile(provider_element)},
             "extractor": extract_substack_articles,
         },
-        "github": {
+        SOURCE_GITHUB.lower(): {
             "element": lambda: provider_element,
             "extractor": extract_github_articles,
         },
-        "shopify": {
+        SOURCE_SHOPIFY.lower(): {
             "element": lambda: provider_element,
             "extractor": extract_shopify_articles,
         },
-        "stripe": {
+        SOURCE_STRIPE.lower(): {
             "element": lambda: provider_element,
             "extractor": extract_stripe_articles,
         },

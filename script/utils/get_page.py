@@ -39,11 +39,11 @@ async def fetch_page(state, url):
         now = time.time()
         # Calculate time since the last reserved slot
         elapsed = now - state["last_request_time"]
-        
+
         # If we are too fast, schedule a wait
         if elapsed < state["request_interval"]:
             wait_time = state["request_interval"] - elapsed
-        
+
         # Reserve this slot by updating the time to when this request effectively 'starts'
         # If wait_time > 0, we push the 'last' time into the future
         state["last_request_time"] = now + wait_time
@@ -54,7 +54,7 @@ async def fetch_page(state, url):
 
     try:
         response = await state["client"].get(url)
-        
+
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, "html.parser")
             return soup, state
