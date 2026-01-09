@@ -24,7 +24,6 @@ The `docs/` folder is designed to:
   - `architecture-v1.md`, `github_actions-v1.md`, `installation-v1.md`, `README-v1.md`: Examples of archived documents.
 - **`experiments/`**: Documentation related to experimental features, proof-of-concepts, or abandoned ideas that might still hold valuable insights.
   - `jenkins.md`: Example of an experimental document.
-- **`agents.md` (this file)**: Describes the structure and purpose of the `/docs` directory itself.
 
 ## Documentation Principles
 
