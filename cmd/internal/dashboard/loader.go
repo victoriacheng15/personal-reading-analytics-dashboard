@@ -48,9 +48,9 @@ func GetTemplatesDir() (string, error) {
 // LoadEvolutionData reads the evolution.yml file and parses it into EvolutionData struct
 func LoadEvolutionData() (schema.EvolutionData, error) {
 	possiblePaths := []string{
-		"cmd/internal/dashboard/evolution.yml",
-		"internal/dashboard/evolution.yml",
-		filepath.Join(".", "cmd", "internal", "dashboard", "evolution.yml"),
+		"cmd/internal/dashboard/content/evolution.yml",
+		"internal/dashboard/content/evolution.yml",
+		filepath.Join(".", "cmd", "internal", "dashboard", "content", "evolution.yml"),
 	}
 
 	var data schema.EvolutionData

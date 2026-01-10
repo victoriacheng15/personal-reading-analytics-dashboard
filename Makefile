@@ -1,6 +1,6 @@
 .PHONY: help install freeze update format gofmt \
-        go-test go-coverage go-coverage-html go-coverage-log \
-        py-test py-coverage \
+        go-test go-cov go-cov-html go-cov-log \
+        py-test py-cov \
         run-metrics run-dashboard cleanup \
         run clean \
         docker-build docker-run

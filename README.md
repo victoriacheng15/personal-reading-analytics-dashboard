@@ -16,11 +16,23 @@ This project is built to reflect how I believe small, personal tools should work
 
 - **Zero infrastructure** → No servers or hosting costs. Runs entirely on GitHub (Actions + Pages).  
 - **Fully automated** → Scheduled GitHub Actions keep data fresh—no manual runs or home servers.  
+- **Observability first** → Uses an Event Sourcing pattern (MongoDB) to decouple extraction from analytics, ensuring full auditability and health monitoring.
 - **Cost-effective** → Uses only free tiers (GitHub, Google Sheets API, MongoDB Atlas)—proving powerful automation doesn’t require budget.
 
 ---
 
-## 📚 Documentation
+## 🏗 Architecture & Documentation
+
+Unlike typical "script-based" scrapers, this system is architected for scale and maintenance using an **Event Sourcing** pattern.
+
+- **Ingestion**: Python scripts harvest content and emit standardized events to a MongoDB immutable log.
+- **Observability**: An external hub consumes these events to populate Grafana dashboards for system health monitoring.
+- **Visualization**: Go binaries process the event stream to generate the static site.
+
+### 📈 System Observability
+
+To demonstrate operational maturity, I maintain a public **[Observability Hub](https://victoriacheng15.github.io/observability-hub/dashboards.html)**.
+This separate dashboard visualizes the "health" of this pipeline (ETL status, error rates, latencies) without requiring Grafana authentication.
 
 For deep technical details, architectural diagrams, and operational guides, please visit the **[Documentation Hub](docs/README.md)**.
 

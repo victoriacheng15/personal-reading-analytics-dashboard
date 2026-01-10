@@ -82,7 +82,11 @@ func TestDashboardService_Generate(t *testing.T) {
 
 			// Mock evolution.yml
 			evolutionData := `events: []`
-			if err := os.WriteFile(filepath.Join(tmpDir, "cmd", "internal", "dashboard", "evolution.yml"), []byte(evolutionData), 0644); err != nil {
+			contentDir := filepath.Join(tmpDir, "cmd", "internal", "dashboard", "content")
+			if err := os.MkdirAll(contentDir, 0755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(contentDir, "evolution.yml"), []byte(evolutionData), 0644); err != nil {
 				t.Fatal(err)
 			}
 

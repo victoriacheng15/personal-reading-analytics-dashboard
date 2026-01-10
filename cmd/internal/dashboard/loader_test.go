@@ -137,7 +137,7 @@ func TestLoadEvolutionData(t *testing.T) {
 					t.Fatalf("failed to change directory: %v", err)
 				}
 
-				dir := filepath.Join("cmd", "internal", "dashboard")
+				dir := filepath.Join("cmd", "internal", "dashboard", "content")
 				if err := os.MkdirAll(dir, 0755); err != nil {
 					t.Fatal(err)
 				}

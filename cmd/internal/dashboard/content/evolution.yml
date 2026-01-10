@@ -1,61 +1,60 @@
 events:
-  - date: "2024-02"
+  - date: "2024-02-04"
     title: "Article Collection Begins"
     description: |
       - "Automated article collection from technical blogs to Google Sheets using a local Python script."
       - "Utilized Python generators and yield to efficiently stream extracted data, reducing memory overhead."
       - "Implemented basic deduplication logic to ensure a clean dataset for archival."
 
-  - date: "2024-03"
+  - date: "2024-03-04"
     title: "Consistent Parsing Across Diverse Layouts"
     description: |
       - "Built robust detection for article titles, authors, and content despite varying HTML structures."
       - "Containerized the local development environment for reproducibility."
 
-  - date: "2024-04"
+  - date: "2024-04-03"
     title: "Future-Proof Extraction Logic"
     description: |
       - "Replaced layout-dependent CSS selectors with flexible, text-aware extraction rules."
       - "Reduced breakage caused by routine website updates."
 
-  - date: "2024-05"
+  - date: "2024-05-12"
     title: "Handling Complex, Dynamic Websites"
     description: |
       - "Upgraded the system to reliably capture articles from modern sites like Substack by identifying stable patterns in their structure."
 
-  - date: "2025-01"
+  - date: "2025-01-25"
     title: "Fully Automated Daily Collection"
     description: |
       - "Migrated from manual runs to a scheduled, automated workflow using GitHub Actions."
       - "Added structured logging and secure credential handling."
 
-  - date: "2025-03"
+  - date: "2025-03-05"
     title: "Expanded to Technical Engineering Blogs"
     description: |
       - "Added GitHub Engineering and Shopify Engineering Blogs as new sources."
       - "Moved source configurations to a spreadsheet, allowing new blogs to be added instantly without changing any code."
       - "Improved error resilience to keep the pipeline running even when a source changes unexpectedly."
 
-  - date: "2025-04"
+  - date: "2025-04-17"
     title: "Faster, Parallel Content Fetching"
     description: |
       - "Integrated asyncio to fetch all sources concurrently, enabling the system to scale efficiently with an increasing number of providers."
       - "Optimized resource usage by moving from synchronous, blocking requests to an asynchronous execution model."
 
-  - date: "2025-11"
+  - date: "2025-11-28"
     title: "Personal Reading Analytics Dashboard Launched"
     description: |
       - "Released a public dashboard on GitHub Pages to visualize reading behavior over time."
       - "Built with a lightweight Go metrics engine and interactive HTML/Chart.js visuals."
 
-  - date: "2025-12"
+  - date: "2025-12-19"
     title: "Deeper Insights & Observability Foundation"
     description: |
       - "Added metrics like unread article age distribution and unread count by publication year to identify reading bottlenecks."
       - "Architected a MongoDB-based event logging system to capture ingestion failures and error traces for future observability."
-      - "Established a testing framework with fixture-based mocking to validate metric calculations without side effects."
   
-  - date: "2026-01"
+  - date: "2026-01-01"
     title: "Launched Landing and Evolution Pages"
     description: |
       - "Launched a comprehensive project portal, featuring a dynamic evolution timeline to visualize engineering milestones and technical growth."
