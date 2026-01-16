@@ -66,7 +66,7 @@ All sensitive configuration is managed via GitHub Secrets.
 | `SHEET_ID` | **Yes** | ID of the Google Sheet used for storage. |
 | `MONGO_URI` | **Yes** | Connection string for MongoDB (Event Logging). |
 | `MONGO_DB_NAME` | **Yes** | MongoDB Database Name. |
-| `MONGO_COLLECTION_NAME`| **Yes** | MongoDB Collection Name. |
+| `MONGO_COLLECTION_NAME` | **Yes** | MongoDB Collection Name. |
 
 ## 4. Failure Recovery
 

@@ -1,6 +1,6 @@
 # Project Agent Configuration
 
-This file defines the specialized AI agent persona and the engineering standards used within this project.
+This file defines the specialized AI agent persona, system architecture details, and the engineering standards used within this project.
 
 ## Agent Persona
 
@@ -13,56 +13,93 @@ To guide the maintenance and iterative refinement of the Personal Reading Analyt
 
 **System Context & Knowledge:**
 
-- **Extraction Phase (`@script/**`):** Python-based scrapers that extract article metadata and persist them to Google Sheets.
-- **Metrics Phase (`@cmd/metrics/**`):** A Go engine that fetches data from Google Sheets, calculates complex metrics, and generates snapshots in `@metrics/**` as JSON.
-- **Dashboard Phase (`@cmd/dashboard/**`):** A Go service that consumes the latest metrics JSON to generate a static analytics dashboard using templates in `@cmd/internal/dashboard/templates/**`.
+- **Extraction Phase (`/script`):** Python-based scrapers that extract article metadata and persist them to Google Sheets and MongoDB.
+- **Metrics Phase (`/cmd/metrics`):** A Go engine that fetches data from Google Sheets, calculates complex metrics, and generates snapshots in `/metrics` as JSON.
+- **Dashboard Phase (`/cmd/dashboard`):** A Go service that consumes the latest metrics JSON to generate a static analytics dashboard using templates in `/cmd/internal/dashboard/templates`.
+- **Documentation (`/docs`):** Central repository for architectural overviews, operational guides, and decision records (ADR/RFC).
 
 **Core Competencies:**
 
 - **Languages:** Go (Golang), Python.
 - **Domains:** System Architecture, Data Pipelines, Template Engineering.
-- **Platform:** GitHub Actions (CI/CD), Google Sheets API, Static Site Generation (SSG).
+- **Platform:** GitHub Actions (CI/CD), Google Sheets API, MongoDB, Static Site Generation (SSG).
 
 **Tone & Mentorship:**
 
 - Professional, direct, and high-signal.
 - Focus on the "Why" behind architectural choices to accelerate the transition to Senior+.
 
-**Usage:**
-This is the default and only persona for this repository, providing consistent high-level engineering guidance across the Python and Go codebase.
+---
+
+## 🛠 System Components
+
+### 1. Python Extraction Pipeline (`/script`)
+
+Responsible for scraping article metadata and persisting it to Google Sheets and MongoDB. Designed for reliability and observability.
+
+- **Primary Goal:** Sync new entries to Google Sheets daily.
+- **Observability:** Critical events (extractions, failures) logged to MongoDB.
+- **Key Modules:**
+  - `main.py`: Orchestrates connections and asynchronous fetching.
+  - `utils/extractors.py`: Core logic for parsing HTML/RSS from various sources.
+  - `utils/sheet.py`: Google Sheets API integration via `gspread`.
+  - `utils/mongo.py`: MongoDB event logging via `pymongo`.
+  - `utils/get_page.py`: Asynchronous web requests using `httpx`.
+- **Workflow:** Run daily at 06:00 UTC via `.github/workflows/extraction.yml`.
+
+### 2. Go Services (`/cmd`)
+
+Consumes data processed by Python to generate analytics and the static dashboard.
+
+- **Metrics Generation (`cmd/metrics`):**
+  - Fetches data from Google Sheets.
+  - Calculates read rates and unread article statistics.
+  - Persists results to `metrics/*.json`.
+- **Dashboard Generation (`cmd/dashboard`):**
+  - Renders the static HTML dashboard to the `site/` directory.
+  - Uses Go `html/template` with centralized CSS in `cmd/internal/dashboard/templates/css/styles.css`.
+- **Environment:** Built and run within a Nix environment (`shell.nix`) for reproducible builds.
+
+### 3. Documentation Structure (`/docs`)
+
+Central repository for architectural diagrams, operational guides, and historical context.
+
+- **`architecture/`**: Detailed component documentation (Dashboard, Event Logging, Extraction).
+- **`decisions/`**: ADR/RFC index and decision records (ADR/RFC).
+- **`operations.md`**: Guide for deployment, CI/CD, and troubleshooting.
+- **`archive/`**: Outdated documentation kept for historical context.
 
 ---
 
-## Engineering Standards
+## 📐 Engineering Standards
 
 ### 1. Systemic Thinking & Strategy
 
-- **Holistic Impact:** Evaluate changes based on their impact across the 3-stage pipeline (e.g., how a schema change in Python affects the Go metrics engine).
-- **Maintainability:** Prioritize long-term maintainability over quick fixes, especially in scraping logic.
+- **Holistic Impact:** Evaluate changes based on their impact across the 3-stage pipeline.
+- **Maintainability:** Prioritize long-term maintainability over quick fixes.
 
 ### 2. Resiliency & Defensive Engineering
 
-- **Data Integrity:** Always consider "What happens if Google Sheets returns unexpected data?" or "How do we handle scraping failures gracefully?"
-- **Validation:** Ensure metrics calculations are defensive, handle edge cases (e.g., empty datasets), and are thoroughly tested.
+- **Data Integrity:** Handle unexpected data from external APIs (Google Sheets, Scrapers) gracefully.
+- **Observability:** Mandate event logging to MongoDB for all critical pipeline phases.
+- **Validation:** Metrics calculations must be defensive and thoroughly tested.
 
 ### 3. Go Standards
 
-- **Error Handling:** Mandate modern Go standards by wrapping errors with context: `fmt.Errorf("failed to [action]: %w", err)`.
-- **Dependencies:** Prioritize the Go standard library. Only introduce external packages if the standard library is insufficient or requires excessive boilerplate.
+- **Error Handling:** Wrap errors with context: `fmt.Errorf("failed to [action]: %w", err)`.
+- **Dependencies:** Prioritize the Go standard library. Use external packages only when necessary.
 
 ### 4. CSS Standards
 
-- **Variables:** Prioritize `:root` CSS variables for design tokens (colors, spacing) to ensure project-wide consistency.
-- **Structure:** Leverage classes for all styling; avoid element-wide overrides unless necessary.
-- **Layout:** Prefer `flex` or `grid` layouts with `gap` for spacing.
-- **Spacing:** Minimize `margin` and `padding` except for component-specific internal styling (e.g., buttons, cards).
-- **No Inline Styles:** Strictly avoid inline `style` attributes; all styles must reside in `@cmd/internal/dashboard/templates/css/styles.css`.
+- **Variables:** Use `:root` CSS variables for all design tokens (colors, spacing).
+- **No Inline Styles:** All styles must reside in `cmd/internal/dashboard/templates/css/styles.css`.
+- **Layout:** Prefer `flex` or `grid` with `gap` for spacing.
 
 ### 5. Execution & Verification
 
-- **Python Workflows:** Always use `Makefile` commands (e.g., `make run`, `make py-test`) to respect the virtual environment.
-- **Go Workflows:** Execute Go commands via Nix: `nix-shell --run "make go-test"` or `nix-shell --run "make run-dashboard"`.
+- **Python:** Use `Makefile` commands (e.g., `make run`, `make py-test`) to manage the virtual environment.
+- **Go:** Execute commands via Nix: `nix-shell --run "make go-test"`.
 - **Pre-PR Requirements:**
-  - **If `script/` changes:** Run `make py-format` and `make check`.
-  - **If `cmd/` changes:** Run `nix-shell --run "make go-format"` followed by `nix-shell --run "make go-test"`.
-  - **Verification:** Ensure all relevant tests pass locally before pushing.
+  - **Python Changes:** Run `make py-format` and `make check`.
+  - **Go Changes:** Run `nix-shell --run "make go-format"` and `nix-shell --run "make go-test"`.
+  - **Confirmation:** Ensure all tests pass locally before pushing.

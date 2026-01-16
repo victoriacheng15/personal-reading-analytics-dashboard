@@ -4,6 +4,9 @@ Welcome to the technical documentation hub for the **Personal Reading Analytics 
 
 ## 🏗 Architecture & Design
 
+- **[Architectural Decisions (ADR/RFC)](decisions/README.md)**
+  - Documentation of key architectural shifts and technical decisions.
+
 - **[Extraction Pipeline](architecture/extraction.md)**
   - Details the async Python ETL pipeline that scrapes articles and loads them into Google Sheets and MongoDB.
   - Covers the orchestration, extraction, transformation, and load layers.
