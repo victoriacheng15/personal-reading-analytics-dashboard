@@ -1,10 +1,10 @@
-package dashboard
+package analytics
 
 import (
 	"encoding/json"
 	"testing"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
+	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
 )
 
 // ============================================================================

@@ -26,7 +26,7 @@ help:
 	@echo "  make go-cov-html      - Generate Go HTML coverage report (coverage.html)"
 	@echo "  make go-cov-log       - Show uncovered Go functions in terminal"
 	@echo "  make run-metrics      - Build and run metrics binary (metricsjson)"
-	@echo "  make run-dashboard    - Build and run dashboard binary"
+	@echo "  make run-analytics    - Build and run analytics binary"
 	@echo ""
 	@echo "  make docker-run       - Build, run, and remove Docker image"
 
@@ -86,8 +86,8 @@ go-cov-log:
 run-metrics:
 	go build -o ./metricsjson.exe ./cmd/metrics && ./metricsjson.exe && rm ./metricsjson.exe
 
-run-dashboard:
-	go build -o ./dashboard.exe ./cmd/dashboard && ./dashboard.exe && rm ./dashboard.exe
+run-analytics:
+	go build -o ./analytics.exe ./cmd/analytics && ./analytics.exe && rm ./analytics.exe
 
 # === Docker Management ===
 docker-run:

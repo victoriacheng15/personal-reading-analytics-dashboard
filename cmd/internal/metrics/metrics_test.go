@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
+	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
 	"google.golang.org/api/sheets/v4"
 )
 

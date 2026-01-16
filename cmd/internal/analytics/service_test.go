@@ -1,21 +1,21 @@
-package dashboard
+package analytics
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
+	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
 )
 
-func TestDashboardService_Generate(t *testing.T) {
+func TestAnalyticsService_Generate(t *testing.T) {
 	tests := []struct {
 		name          string
 		metrics       schema.Metrics
 		expectSuccess bool
 	}{
 		{
-			name: "generates html dashboard with metrics",
+			name: "generates html analytics with metrics",
 			metrics: schema.Metrics{
 				TotalArticles: 10,
 				BySource:      map[string]int{"SourceA": 10},
@@ -44,7 +44,7 @@ func TestDashboardService_Generate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tmpDir, err := os.MkdirTemp("", "dashboard_service_test")
+			tmpDir, err := os.MkdirTemp("", "analytics_service_test")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -52,7 +52,7 @@ func TestDashboardService_Generate(t *testing.T) {
 
 			// The service looks for templates relative to CWD or in specific paths.
 			// For testing, we'll create a mock structure.
-			templateDir := filepath.Join(tmpDir, "cmd", "internal", "dashboard", "templates")
+			templateDir := filepath.Join(tmpDir, "cmd", "internal", "analytics", "templates")
 			if err := os.MkdirAll(templateDir, 0755); err != nil {
 				t.Fatal(err)
 			}
@@ -82,7 +82,7 @@ func TestDashboardService_Generate(t *testing.T) {
 
 			// Mock evolution.yml
 			evolutionData := `events: []`
-			contentDir := filepath.Join(tmpDir, "cmd", "internal", "dashboard", "content")
+			contentDir := filepath.Join(tmpDir, "cmd", "internal", "analytics", "content")
 			if err := os.MkdirAll(contentDir, 0755); err != nil {
 				t.Fatal(err)
 			}
@@ -96,10 +96,10 @@ func TestDashboardService_Generate(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			service := NewDashboardService("site")
+			service := NewAnalyticsService("site")
 			err = service.Generate(tt.metrics)
 			if (err == nil) != tt.expectSuccess {
-				t.Errorf("DashboardService.Generate() error = %v, expectSuccess %v", err, tt.expectSuccess)
+				t.Errorf("AnalyticsService.Generate() error = %v, expectSuccess %v", err, tt.expectSuccess)
 			}
 
 			if _, err := os.Stat("site/index.html"); os.IsNotExist(err) {

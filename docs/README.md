@@ -11,7 +11,7 @@ Welcome to the technical documentation hub for the **Personal Reading Analytics 
   - Details the async Python ETL pipeline that scrapes articles and loads them into Google Sheets and MongoDB.
   - Covers the orchestration, extraction, transformation, and load layers.
 
-- **[Dashboard Pipeline](architecture/dashboard.md)**
+- **[Analytics Pipeline](architecture/analytics.md)**
   - Explains the Go-based metrics generation and static site building process.
   - Includes the multi-page generation flow (Landing, Analytics, Evolution) and data inputs.
 

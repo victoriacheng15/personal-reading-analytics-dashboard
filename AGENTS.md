@@ -15,7 +15,7 @@ To guide the maintenance and iterative refinement of the Personal Reading Analyt
 
 - **Extraction Phase (`/script`):** Python-based scrapers that extract article metadata and persist them to Google Sheets and MongoDB.
 - **Metrics Phase (`/cmd/metrics`):** A Go engine that fetches data from Google Sheets, calculates complex metrics, and generates snapshots in `/metrics` as JSON.
-- **Dashboard Phase (`/cmd/dashboard`):** A Go service that consumes the latest metrics JSON to generate a static analytics dashboard using templates in `/cmd/internal/dashboard/templates`.
+- **Dashboard Phase (`/cmd/analytics`):** A Go service that consumes the latest metrics JSON to generate a static analytics dashboard using templates in `/cmd/internal/analytics/templates`.
 - **Documentation (`/docs`):** Central repository for architectural overviews, operational guides, and decision records (ADR/RFC).
 
 **Core Competencies:**
@@ -55,16 +55,16 @@ Consumes data processed by Python to generate analytics and the static dashboard
   - Fetches data from Google Sheets.
   - Calculates read rates and unread article statistics.
   - Persists results to `metrics/*.json`.
-- **Dashboard Generation (`cmd/dashboard`):**
+- **Analytics Generation (`cmd/analytics`):**
   - Renders the static HTML dashboard to the `site/` directory.
-  - Uses Go `html/template` with centralized CSS in `cmd/internal/dashboard/templates/css/styles.css`.
+  - Uses Go `html/template` with centralized CSS in `cmd/internal/analytics/templates/css/styles.css`.
 - **Environment:** Built and run within a Nix environment (`shell.nix`) for reproducible builds.
 
 ### 3. Documentation Structure (`/docs`)
 
 Central repository for architectural diagrams, operational guides, and historical context.
 
-- **`architecture/`**: Detailed component documentation (Dashboard, Event Logging, Extraction).
+- **`architecture/`**: Detailed component documentation (Analytics, Event Logging, Extraction).
 - **`decisions/`**: ADR/RFC index and decision records (ADR/RFC).
 - **`operations.md`**: Guide for deployment, CI/CD, and troubleshooting.
 - **`archive/`**: Outdated documentation kept for historical context.
@@ -92,7 +92,7 @@ Central repository for architectural diagrams, operational guides, and historica
 ### 4. CSS Standards
 
 - **Variables:** Use `:root` CSS variables for all design tokens (colors, spacing).
-- **No Inline Styles:** All styles must reside in `cmd/internal/dashboard/templates/css/styles.css`.
+- **No Inline Styles:** All styles must reside in `cmd/internal/analytics/templates/css/styles.css`.
 - **Layout:** Prefer `flex` or `grid` with `gap` for spacing.
 
 ### 5. Execution & Verification

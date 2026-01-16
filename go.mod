@@ -1,4 +1,4 @@
-module github.com/victoriacheng15/personal-reading-analytics-dashboard
+module github.com/victoriacheng15/personal-reading-analytics
 
 go 1.23
 

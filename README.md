@@ -1,16 +1,16 @@
-# 📚 Personal Reading Analytics Dashboard
+# 📚 Personal Reading Analytics
 
 A self-built fully automated reading analytics dashboard with zero infrastructure, refreshed automatically to turn personal data into actionable insights.
 
 ---
 
-## 🔗 Live Dashboard
+## 🔗 Live Anayltics
 
-👉 [See Live Dashbaord](https://victoriacheng15.github.io/personal-reading-analytics-dashboard/)
+👉 [See Live Anayltics](https://victoriacheng15.github.io/personal-reading-analytics/)
 
 ---
 
-## 🌿 Design Philosophy
+## 🌿 Engineering Principles
 
 This project is built to reflect how I believe small, personal tools should work:
 
@@ -31,10 +31,10 @@ Unlike typical "script-based" scrapers, this system is architected for scale and
 
 ### 📈 System Observability
 
-To demonstrate operational maturity, I maintain a public **[Observability Hub](https://victoriacheng15.github.io/observability-hub/dashboards.html)**.
+To demonstrate operational maturity, I maintain a public **[Observability Hub](https://victoriacheng15.github.io/observability-hub/snapsots.html)**.
 This separate dashboard visualizes the "health" of this pipeline (ETL status, error rates, latencies) without requiring Grafana authentication.
 
-For deep technical details, architectural diagrams, and operational guides, please visit the **[Documentation Hub](docs/README.md)**.
+For deep technical details, architectural diagrams, and operational guides, please visit the **[Documentation](docs/README.md)**.
 
 ---
 
@@ -44,7 +44,6 @@ For deep technical details, architectural diagrams, and operational guides, plea
 ![Python](https://img.shields.io/badge/Python-3776AB.svg?style=for-the-badge&logo=Python&logoColor=white)
 ![Google Sheets API](https://img.shields.io/badge/Google%20Sheets-34A853.svg?style=for-the-badge&logo=Google-Sheets&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248.svg?style=for-the-badge&logo=MongoDB&logoColor=white)
-![Chart.js](https://img.shields.io/badge/Chart.js-FF6384.svg?style=for-the-badge&logo=Chart.js&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF.svg?style=for-the-badge&logo=GitHub-Actions&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED.svg?style=for-the-badge&logo=Docker&logoColor=white)
 
@@ -93,7 +92,7 @@ Currently extracting articles from:
 Learn about the journey of this project: from local-only execution, to Docker containerization, to fully automated GitHub Actions workflows.
 
 - [Read Part 1: From Pi to Cloud Automation](https://victoriacheng15.vercel.app/blog/from-pi-to-cloud-automation)
-- **Part 2: From Links to Reading Insights** (Coming soon) - The evolution to metrics calculation and interactive visualization on GitHub Pages
+- [Read Part 2: From Links to Reading insights](https://victoriacheng15.vercel.app/blog/from-links-to-reading-insights)
 - **Part 3: From Metrics to Milestones** (Coming soon) - Visualizing technical growth and engineering milestones through a dynamic evolution timeline
 
 ---
@@ -102,4 +101,4 @@ Learn about the journey of this project: from local-only execution, to Docker co
 
 Don't just take my word for it—interact with the real data.
 
-👉 **[Launch Personal Reading Analytics](https://victoriacheng15.github.io/personal-reading-analytics-dashboard/)**
+👉 **[Launch Personal Reading Analytics](https://victoriacheng15.github.io/personal-reading-analytics/)**

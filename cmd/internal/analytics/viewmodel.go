@@ -1,15 +1,15 @@
-package dashboard
+package analytics
 
 import (
 	"html/template"
 	"time"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
+	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
 )
 
 // ViewModel represents the data structure passed to HTML templates
 type ViewModel struct {
-	DashboardTitle                   string
+	AnalyticsTitle                   string
 	PageTitle                        string
 	KeyMetrics                       []schema.KeyMetric
 	HighlightMetrics                 []schema.HightlightMetric

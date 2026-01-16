@@ -1,4 +1,4 @@
-package dashboard
+package analytics
 
 import (
 	"encoding/json"
@@ -11,26 +11,26 @@ import (
 	"sort"
 	"time"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
-	"github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal/metrics"
+	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
+	"github.com/victoriacheng15/personal-reading-analytics/cmd/internal/metrics"
 )
 
 const (
-	DashboardTitle = "📚 Personal Reading Analytics Dashboard"
+	AnalyticsTitle = "📚 Personal Reading Analytics"
 )
 
-// DashboardService handles the generation of the HTML dashboard
-type DashboardService struct {
+// AnalyticsService handles the generation of the HTML analytics
+type AnalyticsService struct {
 	outputDir string
 }
 
-// NewDashboardService creates a new DashboardService
-func NewDashboardService(outputDir string) *DashboardService {
-	return &DashboardService{outputDir: outputDir}
+// NewAnalyticsService creates a new AnalyticsService
+func NewAnalyticsService(outputDir string) *AnalyticsService {
+	return &AnalyticsService{outputDir: outputDir}
 }
 
-// Generate creates the dashboard files from the provided metrics
-func (s *DashboardService) Generate(m schema.Metrics) error {
+// Generate creates the analytics files from the provided metrics
+func (s *AnalyticsService) Generate(m schema.Metrics) error {
 	vm, err := s.prepareViewModel(m)
 	if err != nil {
 		return fmt.Errorf("failed to prepare view model: %w", err)
@@ -39,7 +39,7 @@ func (s *DashboardService) Generate(m schema.Metrics) error {
 	return s.render(vm)
 }
 
-func (s *DashboardService) prepareViewModel(m schema.Metrics) (ViewModel, error) {
+func (s *AnalyticsService) prepareViewModel(m schema.Metrics) (ViewModel, error) {
 	// Sort sources by count
 	var sources []schema.SourceInfo
 	for name, count := range m.BySource {
@@ -145,7 +145,7 @@ func (s *DashboardService) prepareViewModel(m schema.Metrics) (ViewModel, error)
 	mostUnreadSource := metrics.CalculateMostUnreadSource(m)
 	thisMonthArticles := metrics.CalculateThisMonthArticles(m, currentMonth)
 
-	// Prepare chart data using dashboard helpers
+	// Prepare chart data using analytics helpers
 	yearChartData := PrepareYearChartData(years)
 	monthChartData := PrepareMonthChartData(monthlyAggregated, sources)
 
@@ -187,7 +187,7 @@ func (s *DashboardService) prepareViewModel(m schema.Metrics) (ViewModel, error)
 	}
 
 	return ViewModel{
-		DashboardTitle:                   DashboardTitle,
+		AnalyticsTitle:                   AnalyticsTitle,
 		KeyMetrics:                       keyMetrics,
 		HighlightMetrics:                 highlightMetrics,
 		TotalArticles:                    m.TotalArticles,
@@ -218,7 +218,7 @@ func (s *DashboardService) prepareViewModel(m schema.Metrics) (ViewModel, error)
 	}, nil
 }
 
-func (s *DashboardService) render(vm ViewModel) error {
+func (s *AnalyticsService) render(vm ViewModel) error {
 	// Get templates directory
 	tmplDir, err := GetTemplatesDir()
 	if err != nil {
@@ -255,7 +255,7 @@ func (s *DashboardService) render(vm ViewModel) error {
 		Filename string
 		Title    string
 	}{
-		{"index.html", DashboardTitle},
+		{"index.html", AnalyticsTitle},
 		{"analytics.html", "📊 Analytics"},
 		{"evolution.html", "⏳ Evolution"},
 	}

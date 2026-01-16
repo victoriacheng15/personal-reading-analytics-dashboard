@@ -43,9 +43,9 @@ events:
       - "Optimized resource usage by moving from synchronous, blocking requests to an asynchronous execution model."
 
   - date: "2025-11-28"
-    title: "Personal Reading Analytics Dashboard Launched"
+    title: "Personal Reading Analytics Launched"
     description: |
-      - "Released a public dashboard on GitHub Pages to visualize reading behavior over time."
+      - "Released a public analytics on GitHub Pages to visualize reading behavior over time."
       - "Built with a lightweight Go metrics engine and interactive HTML/Chart.js visuals."
 
   - date: "2025-12-19"

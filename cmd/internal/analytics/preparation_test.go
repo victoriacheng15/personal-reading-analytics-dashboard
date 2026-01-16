@@ -1,11 +1,11 @@
-package dashboard
+package analytics
 
 import (
 	"encoding/json"
 	"html/template"
 	"testing"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
+	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
 )
 
 func TestPrepareReadUnreadByYear(t *testing.T) {

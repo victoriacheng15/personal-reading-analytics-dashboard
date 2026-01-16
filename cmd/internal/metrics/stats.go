@@ -3,7 +3,7 @@ package metrics
 import (
 	"time"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
+	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
 )
 
 // CalculateTopReadRateSource finds the source with the highest read rate

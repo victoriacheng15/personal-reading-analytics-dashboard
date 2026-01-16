@@ -9,8 +9,8 @@ import (
 
 	"github.com/joho/godotenv"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
-	metrics "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal/metrics"
+	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
+	metrics "github.com/victoriacheng15/personal-reading-analytics/cmd/internal/metrics"
 )
 
 // MetricsFetcher defines the interface for fetching metrics

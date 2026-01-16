@@ -1,4 +1,4 @@
-package dashboard
+package analytics
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
+	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
 	"gopkg.in/yaml.v3"
 )
 
@@ -17,11 +17,11 @@ func GetTemplatesDir() (string, error) {
 	// Define canonical paths in priority order
 	possibleDirs := []string{
 		// When running from project root (most common during development)
-		"cmd/internal/dashboard/templates",
-		// When binary is in cmd/dashboard directory
-		"internal/dashboard/templates",
+		"cmd/internal/analytics/templates",
+		// When binary is in cmd/analytics directory
+		"internal/analytics/templates",
 		// Fallback: explicit relative path construction
-		filepath.Join(".", "cmd", "internal", "dashboard", "templates"),
+		filepath.Join(".", "cmd", "internal", "analytics", "templates"),
 	}
 
 	var cwd string
@@ -48,9 +48,9 @@ func GetTemplatesDir() (string, error) {
 // LoadEvolutionData reads the evolution.yml file and parses it into EvolutionData struct
 func LoadEvolutionData() (schema.EvolutionData, error) {
 	possiblePaths := []string{
-		"cmd/internal/dashboard/content/evolution.yml",
-		"internal/dashboard/content/evolution.yml",
-		filepath.Join(".", "cmd", "internal", "dashboard", "content", "evolution.yml"),
+		"cmd/internal/analytics/content/evolution.yml",
+		"internal/analytics/content/evolution.yml",
+		filepath.Join(".", "cmd", "internal", "analytics", "content", "evolution.yml"),
 	}
 
 	var data schema.EvolutionData

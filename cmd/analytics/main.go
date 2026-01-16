@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal"
-	dashboard "github.com/victoriacheng15/personal-reading-analytics-dashboard/cmd/internal/dashboard"
+	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
+	analytics "github.com/victoriacheng15/personal-reading-analytics/cmd/internal/analytics"
 )
 
 // loadLatestMetrics reads the most recent metrics JSON file from metrics/ folder
@@ -63,13 +63,13 @@ func main() {
 		log.Fatalf("Failed to load metrics: %v", err)
 	}
 
-	// Initialize Dashboard Service
-	service := dashboard.NewDashboardService("site")
+	// Initialize Analytics Service
+	service := analytics.NewAnalyticsService("site")
 
-	// Generate HTML dashboard
+	// Generate HTML analytics
 	if err := service.Generate(metrics); err != nil {
-		log.Fatalf("failed to generate dashboard: %v", err)
+		log.Fatalf("failed to generate analytics: %v", err)
 	}
 
-	log.Println("✅ Successfully generated dashboard from metrics")
+	log.Println("✅ Successfully generated analytics from metrics")
 }
