@@ -45,6 +45,17 @@ func GetTemplatesDir() (string, error) {
 	)
 }
 
+// findAndReadFile searches for a file in a list of possible relative paths and reads it.
+func findAndReadFile(possiblePaths []string) ([]byte, string, error) {
+	for _, path := range possiblePaths {
+		content, err := os.ReadFile(path)
+		if err == nil {
+			return content, path, nil
+		}
+	}
+	return nil, "", fmt.Errorf("file not found in any of the paths: %v", possiblePaths)
+}
+
 // LoadEvolutionData reads the evolution.yml file and parses it into EvolutionData struct
 func LoadEvolutionData() (schema.EvolutionData, error) {
 	possiblePaths := []string{
@@ -55,38 +66,60 @@ func LoadEvolutionData() (schema.EvolutionData, error) {
 
 	var data schema.EvolutionData
 
-	for _, path := range possiblePaths {
-		content, err := os.ReadFile(path)
-		if err == nil {
-			err = yaml.Unmarshal(content, &data)
-			if err != nil {
-				return schema.EvolutionData{}, fmt.Errorf("failed to parse evolution.yml: %w", err)
-			}
+	content, path, err := findAndReadFile(possiblePaths)
+	if err != nil {
+		return schema.EvolutionData{}, fmt.Errorf("evolution.yml not found. Tried paths: %v", possiblePaths)
+	}
 
-			// Post-process descriptions into lines
-			for i := range data.Events {
-				lines := strings.Split(strings.TrimSpace(data.Events[i].Description), "\n")
-				data.Events[i].DescriptionLines = make([]string, 0, len(lines))
-				for _, line := range lines {
-					line = strings.TrimSpace(line)
-					if line == "" {
-						continue
-					}
-					// Remove leading "- " if present
-					line = strings.TrimPrefix(line, "- ")
-					line = strings.TrimSpace(line)
-					// Remove surrounding quotes if present
-					if len(line) >= 2 && line[0] == '"' && line[len(line)-1] == '"' {
-						line = line[1 : len(line)-1]
-					}
-					data.Events[i].DescriptionLines = append(data.Events[i].DescriptionLines, line)
-				}
-			}
+	err = yaml.Unmarshal(content, &data)
+	if err != nil {
+		return schema.EvolutionData{}, fmt.Errorf("failed to parse evolution.yml: %w", err)
+	}
 
-			log.Printf("✅ Loaded evolution data from: %s\n", path)
-			return data, nil
+	// Post-process descriptions into lines
+	for i := range data.Events {
+		lines := strings.Split(strings.TrimSpace(data.Events[i].Description), "\n")
+		data.Events[i].DescriptionLines = make([]string, 0, len(lines))
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
+			}
+			// Remove leading "- " if present
+			line = strings.TrimPrefix(line, "- ")
+			line = strings.TrimSpace(line)
+			// Remove surrounding quotes if present
+			if len(line) >= 2 && line[0] == '"' && line[len(line)-1] == '"' {
+				line = line[1 : len(line)-1]
+			}
+			data.Events[i].DescriptionLines = append(data.Events[i].DescriptionLines, line)
 		}
 	}
 
-	return schema.EvolutionData{}, fmt.Errorf("evolution.yml not found. Tried paths: %v", possiblePaths)
+	log.Printf("✅ Loaded evolution data from: %s\n", path)
+	return data, nil
+}
+
+// LoadIndexContent reads the index.yml file and parses it into IndexContent struct
+func LoadIndexContent() (schema.IndexContent, error) {
+	possiblePaths := []string{
+		"cmd/internal/analytics/content/index.yml",
+		"internal/analytics/content/index.yml",
+		filepath.Join(".", "cmd", "internal", "analytics", "content", "index.yml"),
+	}
+
+	var data schema.IndexContent
+
+	content, path, err := findAndReadFile(possiblePaths)
+	if err != nil {
+		return schema.IndexContent{}, fmt.Errorf("index.yml not found. Tried paths: %v", possiblePaths)
+	}
+
+	err = yaml.Unmarshal(content, &data)
+	if err != nil {
+		return schema.IndexContent{}, fmt.Errorf("failed to parse index.yml: %w", err)
+	}
+
+	log.Printf("✅ Loaded index content from: %s\n", path)
+	return data, nil
 }

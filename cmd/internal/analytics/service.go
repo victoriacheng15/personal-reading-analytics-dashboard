@@ -186,6 +186,12 @@ func (s *AnalyticsService) prepareViewModel(m schema.Metrics) (ViewModel, error)
 		})
 	}
 
+	// Load index content
+	indexContent, err := LoadIndexContent()
+	if err != nil {
+		log.Printf("⚠️ Warning: Failed to load index content: %v", err)
+	}
+
 	return ViewModel{
 		AnalyticsTitle:                   AnalyticsTitle,
 		KeyMetrics:                       keyMetrics,
@@ -215,6 +221,7 @@ func (s *AnalyticsService) prepareViewModel(m schema.Metrics) (ViewModel, error)
 		UnreadByYearJSON:                 unreadByYearJSON,
 		TopOldestUnreadArticles:          m.TopOldestUnreadArticles,
 		EvolutionData:                    evolutionData,
+		IndexContent:                     indexContent,
 	}, nil
 }
 
@@ -268,8 +275,6 @@ func (s *AnalyticsService) render(vm ViewModel) error {
 		// Parse shared templates and the specific page template
 		files := []string{
 			filepath.Join(tmplDir, "base.html"),
-			filepath.Join(tmplDir, "header.html"),
-			filepath.Join(tmplDir, "footer.html"),
 			filepath.Join(tmplDir, page.Filename),
 		}
 

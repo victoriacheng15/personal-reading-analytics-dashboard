@@ -58,17 +58,14 @@ func TestAnalyticsService_Generate(t *testing.T) {
 			}
 
 			// Create required template files
-			baseTmpl := `{{define "base"}}<html><body>{{block "content" .}}{{end}}</body></html>{{end}}`
-			headerTmpl := `{{define "header"}}<header></header>{{end}}`
-			footerTmpl := `{{define "footer"}}<footer></footer>{{end}}`
-			indexTmpl := `{{define "content"}}{{template "header" .}}<h1>Home</h1>{{template "footer" .}}{{end}}{{template "base" .}}`
-			analyticsTmpl := `{{define "content"}}{{template "header" .}}<h1>Analytics</h1>{{template "footer" .}}{{end}}{{template "base" .}}`
-			evolutionTmpl := `{{define "content"}}{{template "header" .}}<h1>Evolution</h1>{{template "footer" .}}{{end}}{{template "base" .}}`
+			baseTmpl := `{{define "base"}}<html><head><title>{{.AnalyticsTitle}} - {{.PageTitle}}</title></head><body><div id="app"><header><h1>{{.PageTitle}}</h1><time>Last updated: {{.LastUpdated.Format "Jan 02, 2006 at 3:04 PM"}}</time><nav><ul><li><a href="index.html">Home</a></li><li><a href="analytics.html">Analytics</a></li><li><a href="evolution.html">Evolution</a></li></ul></nav></header>{{block "content" .}}{{end}}<footer><p>📈 Data sourced from personal article collection • Updated weekly via GitHub Actions</p></footer></div></body></html>{{end}}`
+			// headerTmpl and footerTmpl are no longer needed
+			indexTmpl := `{{define "content"}}<h1>Home</h1>{{end}}{{template "base" .}}`
+			analyticsTmpl := `{{define "content"}}<h1>Analytics</h1>{{end}}{{template "base" .}}`
+			evolutionTmpl := `{{define "content"}}<h1>Evolution</h1>{{end}}{{template "base" .}}`
 
 			templates := map[string]string{
 				"base.html":      baseTmpl,
-				"header.html":    headerTmpl,
-				"footer.html":    footerTmpl,
 				"index.html":     indexTmpl,
 				"analytics.html": analyticsTmpl,
 				"evolution.html": evolutionTmpl,
@@ -87,6 +84,28 @@ func TestAnalyticsService_Generate(t *testing.T) {
 				t.Fatal(err)
 			}
 			if err := os.WriteFile(filepath.Join(contentDir, "evolution.yml"), []byte(evolutionData), 0644); err != nil {
+				t.Fatal(err)
+			}
+
+			// Mock index.yml
+			indexData := `
+intro_section:
+  heading: "Test Heading"
+  cta_buttons:
+    - text: "Test Analytics"
+      url: "test-analytics.html"
+origin_story_section:
+  title: "Test Origin Story"
+  paragraphs:
+    - "Test paragraph 1"
+engineering_principles_section:
+  title: "Test Engineering Principles"
+  principles:
+    - icon: "🧪"
+      title: "Test Principle 1"
+      description: "Test Description 1"
+`
+			if err := os.WriteFile(filepath.Join(contentDir, "index.yml"), []byte(indexData), 0644); err != nil {
 				t.Fatal(err)
 			}
 

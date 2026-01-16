@@ -12,9 +12,23 @@
 
 <body>
     <div id="app">
-        {{template "header" .}}
+        <header>
+            <div class="header-title-group">
+                <h1>{{.PageTitle}}</h1>
+                <time>Last updated: {{.LastUpdated.Format "Jan 02, 2006 at 3:04 PM"}}</time>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="analytics.html">Analytics</a></li>
+                    <li><a href="evolution.html">Evolution</a></li>
+                </ul>
+            </nav>
+        </header>
         {{block "content" .}}{{end}}
-        {{template "footer" .}}
+        <footer>
+          <p>📈 Data sourced from personal article collection • Updated weekly via GitHub Actions</p>
+        </footer>
     </div>
     {{block "script" .}}{{end}}
 </body>

@@ -79,9 +79,47 @@ type EvolutionData struct {
 	Events []Milestone `yaml:"events"`
 }
 
+type Artifact struct {
+	Name string `yaml:"name"`
+	URL  string `yaml:"url"`
+}
+
 type Milestone struct {
-	Date             string   `yaml:"date"`
-	Title            string   `yaml:"title"`
-	Description      string   `yaml:"description"`
-	DescriptionLines []string `yaml:"-"`
+	Date             string     `yaml:"date"`
+	Title            string     `yaml:"title"`
+	Artifacts        []Artifact `yaml:"artifacts,omitempty"`
+	Description      string     `yaml:"description"`
+	DescriptionLines []string   `yaml:"-"`
+}
+
+type IndexContent struct {
+	IntroSection                 IntroSection                 `yaml:"intro_section"`
+	OriginStorySection           OriginStorySection           `yaml:"origin_story_section"`
+	EngineeringPrinciplesSection EngineeringPrinciplesSection `yaml:"engineering_principles_section"`
+}
+
+type IntroSection struct {
+	Heading    string      `yaml:"heading"`
+	CTAButtons []CTAButton `yaml:"cta_buttons"`
+}
+
+type CTAButton struct {
+	Text string `yaml:"text"`
+	URL  string `yaml:"url"`
+}
+
+type OriginStorySection struct {
+	Title      string   `yaml:"title"`
+	Paragraphs []string `yaml:"paragraphs"`
+}
+
+type EngineeringPrinciplesSection struct {
+	Title      string      `yaml:"title"`
+	Principles []Principle `yaml:"principles"`
+}
+
+type Principle struct {
+	Icon        string `yaml:"icon"`
+	Title       string `yaml:"title"`
+	Description string `yaml:"description"`
 }

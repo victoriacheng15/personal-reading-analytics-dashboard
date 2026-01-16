@@ -58,3 +58,12 @@ events:
     title: "Launched Landing and Evolution Pages"
     description: |
       - "Launched a comprehensive project portal, featuring a dynamic evolution timeline to visualize engineering milestones and technical growth."
+
+  - date: "2026-01-16"
+    title: "Proposed First Architectural Decision Record"
+    artifacts:
+      - name: "RFC 001: Prefer RSS/Atom Feeds"
+        url: "docs/decisions/001-prefer-rss-over-html-scraping.md"
+    description: |
+      - "Established a formal process for architectural changes."
+      - "Proposed prioritizing reliable RSS/Atom feeds over brittle HTML scraping to improve the extraction pipeline."

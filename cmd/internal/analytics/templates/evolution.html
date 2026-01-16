@@ -12,6 +12,13 @@
                         <li>{{.}}</li>
                         {{end}}
                     </ul>
+                    {{if .Artifacts}}
+                    <ul class="timeline-artifacts">
+                        {{range .Artifacts}}
+                        <li><a href="https://github.com/victoriacheng15/personal-reading-analytics/blob/main/{{.URL}}" target="_blank" rel="noopener noreferrer">{{.Name}}</a></li>
+                        {{end}}
+                    </ul>
+                    {{end}}
                 </div>
             </div>
             {{end}}

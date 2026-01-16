@@ -1,57 +1,38 @@
 {{define "content"}}
 <main class="intro-page">
     <section aria-label="Intro" class="intro-section">
-        <h2 class="intro-heading">Your reading, visualized — no servers, no noise, just your data.
-        </h2>
+        <h2 class="intro-heading">{{.IndexContent.IntroSection.Heading}}</h2>
         <div class="cta-grid">
-            <a href="analytics.html" class="btn btn-primary cta-button">View the Analytics</a>
-            <a href="evolution.html" class="btn btn-secondary cta-button">See How It Evolved</a>
-            <a href="https://github.com/victoriacheng15/personal-reading-analytics" target="_blank"
-                rel="noopener noreferrer" class="btn btn-outline cta-button">View Code on GitHub</a>
+            {{range .IndexContent.IntroSection.CTAButtons}}
+            <a href="{{.URL}}" class="btn {{if eq .Text "View the Analytics"}}btn-primary{{else if eq .Text "See How It Evolved"}}btn-secondary{{else}}btn-outline{{end}} cta-button" 
+               {{if eq .Text "View Code on GitHub"}}target="_blank" rel="noopener noreferrer"{{end}}>
+                {{.Text}}
+            </a>
+            {{end}}
         </div>
     </section>
 
     <section aria-label="Origin Story">
-        <h2 class="section-title">📖 Origin Story</h2>
+        <h2 class="section-title">{{.IndexContent.OriginStorySection.Title}}</h2>
         <div class="origin-story-box">
-            <p>I used to follow a handful of engineering blogs, but checking each one for new posts became a chore—too
-                many tabs, too easy to miss something. (Yes, I’ve definitely had 20+ tabs open at once… 😅)</p>
-            <p>So I built a simple script to automatically pull article titles, dates, and links into Google
-                Sheets—inspired by early Levels.fyi’s “no database” approach. Everything in one place. No more
-                tab-hopping.</p>
-            <p>Later, I got curious: <em>What if I could actually see my reading habits over time?</em> Not to
-                “optimize” productivity—but to understand where my attention really goes… and which blogs still earn it.
-            </p>
-            <p>That curiosity led me to build a lightweight analytics system in Go, powered by the same
-                Python-collected data. The result? A personal reading analytics—a quiet mirror on my learning journey.
-            </p>
+            {{range .IndexContent.OriginStorySection.Paragraphs}}
+            <p>{{.}}</p>
+            {{end}}
         </div>
     </section>
 
-    <section aria-label="Design Principles">
-        <h2 class="section-title">🛠️ Design Principles</h2>
-        <div class="design-principles-grid">
+    <section aria-label="Engineering Principles">
+        <h2 class="section-title">{{.IndexContent.EngineeringPrinciplesSection.Title}}</h2>
+        <div class="engineering-principles-grid">
+            {{range .IndexContent.EngineeringPrinciplesSection.Principles}}
             <article class="principle-card">
-                <div class="principle-icon">🚀</div>
-                <h3 class="principle-title">Zero infrastructure</h3>
-                <p class="principle-desc">No servers or hosting costs. Runs entirely on GitHub (Actions + Pages).</p>
+                <div class="principle-icon">{{.Icon}}</div>
+                <h3 class="principle-title">{{.Title}}</h3>
+                <p class="principle-desc">{{.Description}}</p>
             </article>
-
-            <article class="principle-card">
-                <div class="principle-icon">🩺</div>
-                <h3 class="principle-title">Observability First</h3>
-                <p class="principle-desc">Decoupled extraction via Event Sourcing (MongoDB) ensures full auditability and system health monitoring.</p>
-            </article>
-
-            <article class="principle-card">
-                <div class="principle-icon">💸</div>
-                <h3 class="principle-title">Cost-effective</h3>
-                <p class="principle-desc">Uses only free tiers (GitHub, Google Sheets API, MongoDB Atlas)—proving
-                    powerful automation doesn’t require budget.</p>
-            </article>
+            {{end}}
         </div>
     </section>
-
 
 </main>
 {{end}}
