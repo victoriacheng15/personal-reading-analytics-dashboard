@@ -5,6 +5,11 @@
         run clean \
         docker-build docker-run
 
+# === Nix Integration ===
+# Helper to run any target inside nix-shell (e.g., make nix-go-test)
+nix-%:
+	nix-shell --run "make $*"
+
 # === Help ===
 help:
 	@echo "Available commands:"
