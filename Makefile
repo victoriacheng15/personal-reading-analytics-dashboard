@@ -1,5 +1,5 @@
 .PHONY: help install freeze update format gofmt \
-        go-test go-cov go-cov-html go-cov-log \
+        go-update go-test go-cov go-cov-html go-cov-log \
         py-test py-cov \
         run-metrics run-dashboard cleanup \
         run clean \
@@ -26,6 +26,7 @@ help:
 	@echo "  make clean            - Remove Python __pycache__ and .pyc files"
 	@echo ""
 	@echo "  make go-format        - Format Go files with gofmt"
+	@echo "  make go-update        - Update Go dependencies"
 	@echo "  make go-test          - Run Go tests"
 	@echo "  make go-cov           - Run Go tests with coverage summary"
 	@echo "  make go-cov-html      - Generate Go HTML coverage report (coverage.html)"
@@ -73,6 +74,10 @@ clean:
 # === Go Linting, Testing, and Running ===
 go-format:
 	gofmt -w ./cmd
+
+go-update:
+	go get -u ./...
+	go mod tidy
 
 go-test:
 	go test -v ./cmd/...
