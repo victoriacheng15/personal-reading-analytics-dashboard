@@ -1,5 +1,5 @@
 intro_section:
-  heading: "Your reading, visualized — no servers, no noise, just your data."
+  heading: "Your reading, visualized: no servers, no noise, just your data."
   cta_buttons:
     - text: "View the Analytics"
       url: "analytics.html"
@@ -11,10 +11,10 @@ intro_section:
 origin_story_section:
   title: "📖 Origin Story"
   paragraphs:
-    - "I used to follow a handful of engineering blogs, but checking each one for new posts became a chore—too many tabs, too easy to miss something. (Yes, I’ve definitely had 20+ tabs open at once… 😅)"
-    - "So I built a simple script to automatically pull article titles, dates, and links into Google Sheets—inspired by early Levels.fyi’s “no database” approach. Everything in one place. No more tab-hopping."
-    - "Later, I got curious: What if I could actually see my reading habits over time? Not to “optimize” productivity—but to understand where my attention really goes… and which blogs still earn it."
-    - "That curiosity led me to build a lightweight analytics system in Go, powered by the same Python-collected data. The result? A personal reading analytics—a quiet mirror on my learning journey."
+    - "I used to follow a handful of engineering blogs, but checking each one for new posts became a chore, too many tabs, too easy to miss something. (Yes, I’ve definitely had 20+ tabs open at once… 😅)"
+    - "So I built a simple script to automatically pull article titles, dates, and links into Google Sheets, inspired by early Levels.fyi’s “no database” approach. Everything in one place. No more tab-hopping."
+    - "Later, I got curious: What if I could actually see my reading habits over time? Not to “optimize” productivity, but to understand where my attention really goes… and which blogs still earn it."
+    - "That curiosity led me to build a lightweight analytics system in Go, powered by the same Python-collected data. The result? A personal reading analytics: a quiet mirror on my learning journey."
 
 engineering_principles_section:
   title: "🌿 Engineering Principles"
@@ -24,10 +24,10 @@ engineering_principles_section:
       description: "No servers or hosting costs. Runs entirely on GitHub (Actions + Pages)."
     - icon: "🤖"
       title: "Fully automated"
-      description: "Scheduled GitHub Actions keep data fresh—no manual runs or home servers."
+      description: "Scheduled GitHub Actions keep data fresh, utilizing CI/CD governance for human-in-the-loop oversight."
     - icon: "🩺"
       title: "Observability first"
       description: "Uses an Event Sourcing pattern (MongoDB) to decouple extraction from analytics, ensuring full auditability and health monitoring."
     - icon: "💸"
       title: "Cost-effective"
-      description: "Uses only free tiers (GitHub, Google Sheets API, MongoDB Atlas)—proving powerful automation doesn’t require budget."
+      description: "Uses only free tiers (GitHub, Google Sheets API, MongoDB Atlas), proving powerful automation doesn’t require budget."

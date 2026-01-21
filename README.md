@@ -1,6 +1,6 @@
 # 📚 Personal Reading Analytics
 
-A self-built fully automated reading analytics dashboard with zero infrastructure, refreshed automatically to turn personal data into actionable insights.
+A self-built fully automated data pipeline with CI/CD governance, refreshed automatically to turn personal data into actionable insights with zero infrastructure.
 
 ---
 
@@ -15,9 +15,9 @@ A self-built fully automated reading analytics dashboard with zero infrastructur
 This project is built to reflect how I believe small, personal tools should work:
 
 - **Zero infrastructure** → No servers or hosting costs. Runs entirely on GitHub (Actions + Pages).  
-- **Fully automated** → Scheduled GitHub Actions keep data fresh—no manual runs or home servers.  
+- **Fully automated** → Scheduled GitHub Actions keep data fresh, utilizing CI/CD governance for human-in-the-loop code review and merging.  
 - **Observability first** → Uses an Event Sourcing pattern (MongoDB) to decouple extraction from analytics, ensuring full auditability and health monitoring.
-- **Cost-effective** → Uses only free tiers (GitHub, Google Sheets API, MongoDB Atlas)—proving powerful automation doesn’t require budget.
+- **Cost-effective** → Uses only free tiers (GitHub, Google Sheets API, MongoDB Atlas), proving powerful automation doesn’t require budget.
 
 ---
 
@@ -89,16 +89,16 @@ Currently extracting articles from:
 
 ## 📖 How This Project Evolved
 
-Learn about the journey of this project: from local-only execution, to Docker containerization, to fully automated GitHub Actions workflows.
+Learn about the journey of this project: from local-only execution, to Docker containerization, to automated GitHub Actions workflows.
 
 - [Read Part 1: From Pi to Cloud Automation](https://victoriacheng15.vercel.app/blog/from-pi-to-cloud-automation)
 - [Read Part 2: From Links to Reading insights](https://victoriacheng15.vercel.app/blog/from-links-to-reading-insights)
-- **Part 3: From Metrics to Milestones** (Coming soon) - Visualizing technical growth and engineering milestones through a dynamic evolution timeline
+- [Part 3: From Metrics to Milestones](https://mehub-git-fix-rss-escaping-victoriacheng15s-projects.vercel.app/blog/from-metrics-to-milestones)
 
 ---
 
 ## 🚀 Ready to Explore?
 
-Don't just take my word for it—interact with the real data.
+Don't just take my word for it, interact with the real data.
 
 👉 **[Launch Personal Reading Analytics](https://victoriacheng15.github.io/personal-reading-analytics/)**

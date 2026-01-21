@@ -4,7 +4,7 @@ This document explains the Jenkins pipeline used to automate code formatting che
 
 ## Overview
 
-Jenkins was added to this project mainly out of curiosity—to see how Jenkins CI/CD compares to GitHub Actions for automating Docker image builds, running code formatting checks, and publishing to GHCR. The pipeline, defined in the [`Jenkinsfile`](../Jenkinsfile) at the project root, now includes a code formatting stage (using `ruff`) before building and publishing the Docker image. Jenkins is typically run on a self-hosted server (often via Docker Compose). This setup is not strictly required, but provides a hands-on comparison of two popular automation platforms.
+Jenkins was added to this project mainly out of curiosity, to see how Jenkins CI/CD compares to GitHub Actions for automating Docker image builds, running code formatting checks, and publishing to GHCR. The pipeline, defined in the [`Jenkinsfile`](../Jenkinsfile) at the project root, now includes a code formatting stage (using `ruff`) before building and publishing the Docker image. Jenkins is typically run on a self-hosted server (often via Docker Compose). This setup is not strictly required, but provides a hands-on comparison of two popular automation platforms.
 
 ## Pipeline Workflow
 

@@ -4,7 +4,7 @@ This document outlines the observability layer of the Personal Reading Analytics
 
 ## 🏗 System Design
 
-The architecture follows an **Event Sourcing** pattern where every significant action—successful extractions, pipeline summaries, and system failures—is captured as an immutable event.
+The architecture follows an **Event Sourcing** pattern where every significant action (successful extractions, pipeline summaries, and system failures) is captured as an immutable event.
 
 ```mermaid
 graph LR
