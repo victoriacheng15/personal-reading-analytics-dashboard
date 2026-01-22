@@ -54,6 +54,7 @@ def test_process_provider_unknown_provider(mock_provider_dict):
     assert state == MOCK_FETCHER_STATE
 
 
+@patch("main.DRY_RUN", False)
 @patch("main.get_mongo_client")
 @patch("main.fetch_page", new_callable=AsyncMock)
 @patch("main.provider_dict")
@@ -74,6 +75,7 @@ def test_process_provider_fetch_failure(
     assert state == MOCK_FETCHER_STATE
 
 
+@patch("main.DRY_RUN", False)
 @patch("main.get_mongo_client")
 @patch("main.insert_summary_event_mongo")
 @patch("main.close_fetcher", new_callable=AsyncMock)
@@ -125,6 +127,7 @@ def test_async_main_success(
     mock_insert_summary.assert_called_once_with(mock_client, 1)
 
 
+@patch("main.DRY_RUN", False)
 @patch("main.get_mongo_client")
 @patch("main.insert_summary_event_mongo")
 @patch("main.close_fetcher", new_callable=AsyncMock)

@@ -1,9 +1,11 @@
 from datetime import datetime
+from email.utils import parsedate_to_datetime
 
 
 def clean_and_convert_date(date_str):
     """
     Cleans and converts a date string to the format "%Y-%m-%d".
+    Supports ISO 8601 (YYYY-MM-DD...) and RFC 822 (RSS) formats.
 
     Args:
         date_str (str): The date string to clean and convert.
@@ -11,10 +13,21 @@ def clean_and_convert_date(date_str):
     Returns:
         str: The cleaned and converted date string in the format "%Y-%m-%d".
     """
+    if not date_str:
+        return ""
+
     if date_str[0].isdigit():
         date_obj = datetime.strptime(date_str[:10], "%Y-%m-%d")
     else:
-        date_obj = datetime.strptime(date_str[4:16].strip(), "%b %d %Y")
+        try:
+            # Try RFC 822 (RSS) format first
+            date_obj = parsedate_to_datetime(date_str)
+        except Exception:
+            # Fallback to legacy format (e.g. ctime-like)
+            try:
+                date_obj = datetime.strptime(date_str[4:16].strip(), "%b %d %Y")
+            except ValueError:
+                return ""
 
     return date_obj.strftime("%Y-%m-%d")
 

@@ -33,9 +33,13 @@ def extractor_error_handler(site_name):
 
                 # Try to extract URL from article
                 try:
+                    # For standard HTML
                     link = article.find("a")
                     if link and link.get("href"):
                         article_url = link.get("href")
+                    # For RSS items
+                    elif article.find("link"):
+                        article_url = article.find("link").get_text().strip()
                 except Exception:
                     pass
 
@@ -75,16 +79,63 @@ def extractor_error_handler(site_name):
     return decorator
 
 
+def clean_text(text):
+    """
+    Cleans text by removing CDATA tags and whitespace.
+    """
+    if not text:
+        return ""
+    # Remove common CDATA patterns
+    text = text.replace("<![CDATA[", "").replace("]]>", "").replace("]]", "")
+    # Final strip of any stray closing brackets/arrows that html.parser might leave
+    return text.strip(" >[]")
+
+def extract_rss_item(article, source_name):
+    """
+    Generic RSS item extractor.
+    Parses <item> tags (RSS 2.0) using BeautifulSoup.
+    Handles <title>, <link>, and <pubDate>.
+    """
+    # Title
+    title = clean_text(article.find("title").get_text())
+
+    # Link
+    # BeautifulSoup's html.parser can be tricky with <link> in RSS
+    link_elem = article.find("link")
+    link = ""
+    if link_elem:
+        link = clean_text(link_elem.get_text())
+        # If link is empty, it might be due to self-closing tag behavior in html.parser
+        if not link and link_elem.next_sibling:
+            link = clean_text(str(link_elem.next_sibling))
+    
+    # Final strip to handle any remaining newlines or whitespace
+    link = link.strip()
+
+    # Date
+    # RSS 2.0 uses <pubDate>, which html.parser may lowercase to <pubdate>
+    date_elem = article.find("pubdate") or article.find("pubDate")
+    date_raw = date_elem.get_text() if date_elem else ""
+    date = clean_and_convert_date(date_raw)
+
+    return (date, title, link, source_name)
+
+
 @extractor_error_handler(SOURCE_FREECODECAMP)
 def extract_fcc_articles(article):
     """
     Extracts article information from a freeCodeCamp article element.
+    Handles both HTML articles and RSS items.
     """
-    title = article.find("h2").get_text().strip()
-    href = article.find("a").get("href")
-    link = f"https://www.freecodecamp.org{href}"
-    date = clean_and_convert_date(article.find("time").get("datetime"))
-    return (date, title, link, SOURCE_FREECODECAMP)
+    if article.name == "item":
+        return extract_rss_item(article, SOURCE_FREECODECAMP)
+    else:
+        # Legacy HTML Scraping
+        title = article.find("h2").get_text().strip()
+        href = article.find("a").get("href")
+        link = f"https://www.freecodecamp.org{href}"
+        date = clean_and_convert_date(article.find("time").get("datetime"))
+        return (date, title, link, SOURCE_FREECODECAMP)
 
 
 @extractor_error_handler(SOURCE_SUBSTACK)
@@ -103,11 +154,16 @@ def extract_substack_articles(article):
 def extract_github_articles(article):
     """
     Extracts article information from a GitHub article element.
+    Handles both HTML articles and RSS items.
     """
-    title = article.find("h3").get_text().strip()
-    link = article.find(class_="Link--primary").get("href")
-    date = article.find("time").get("datetime")
-    return (date, title, link, SOURCE_GITHUB)
+    if article.name == "item":
+        return extract_rss_item(article, SOURCE_GITHUB)
+    else:
+        # Legacy HTML Scraping
+        title = article.find("h3").get_text().strip()
+        link = article.find(class_="Link--primary").get("href")
+        date = article.find("time").get("datetime")
+        return (date, title, link, SOURCE_GITHUB)
 
 
 @extractor_error_handler(SOURCE_SHOPIFY)
@@ -156,7 +212,7 @@ def extract_stripe_articles(article):
     # Normalize to absolute URL when possible
     link = f"https://stripe.com{href}" if href and href.startswith("/") else href
 
-    # Date is in a <time datetime="..."> element
+    # Date is in a <time datetime="..." element
     time_elem = article.find("time")
     date_raw = time_elem.get("datetime") if time_elem else None
     date = clean_and_convert_date(date_raw) if date_raw else ""
@@ -201,7 +257,8 @@ def provider_dict(provider_element):
     """
     return {
         SOURCE_FREECODECAMP.lower(): {
-            "element": lambda: provider_element,
+            # Search for BOTH the HTML class (provider_element) AND the RSS tag "item"
+            "element": lambda: [provider_element, "item"],
             "extractor": extract_fcc_articles,
         },
         SOURCE_SUBSTACK.lower(): {
@@ -209,7 +266,8 @@ def provider_dict(provider_element):
             "extractor": extract_substack_articles,
         },
         SOURCE_GITHUB.lower(): {
-            "element": lambda: provider_element,
+            # Search for BOTH the HTML class (provider_element) AND the RSS tag "item"
+            "element": lambda: [provider_element, "item"],
             "extractor": extract_github_articles,
         },
         SOURCE_SHOPIFY.lower(): {

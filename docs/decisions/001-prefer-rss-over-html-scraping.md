@@ -1,6 +1,6 @@
-# RFC [001]: Prefer RSS/Atom Feeds over HTML Scraping
+# RFC 001: Prefer RSS/Atom Feeds over HTML Scraping
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-01-16
 - **Author:** Victoria Cheng
 

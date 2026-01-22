@@ -28,6 +28,7 @@ from utils import (
     # Constants
     ARTICLES_WORKSHEET,
     PROVIDERS_WORKSHEET,
+    DRY_RUN,
 )
 
 logger = logging.getLogger(__name__)
@@ -61,17 +62,18 @@ async def process_provider(fetcher_state, provider, existing_titles):
             logger.warning(error_msg)
 
             # Capture fetch failure event to MongoDB
-            mongo_client = get_mongo_client()
-            if mongo_client:
-                insert_error_event_mongo(
-                    client=mongo_client,
-                    source=provider_name,
-                    error_type="fetch_failed",
-                    error_message="Failed to fetch page",
-                    url=provider_url,
-                    metadata={"provider_element": provider_element, "retry_count": 0},
-                )
-                # Client is singleton, do not close
+            if not DRY_RUN:
+                mongo_client = get_mongo_client()
+                if mongo_client:
+                    insert_error_event_mongo(
+                        client=mongo_client,
+                        source=provider_name,
+                        error_type="fetch_failed",
+                        error_message="Failed to fetch page",
+                        url=provider_url,
+                        metadata={"provider_element": provider_element, "retry_count": 0},
+                    )
+                    # Client is singleton, do not close
 
             return [], fetcher_state
 
@@ -94,27 +96,31 @@ async def process_provider(fetcher_state, provider, existing_titles):
         logger.error(f"Error processing {provider_name}: {str(e)}", exc_info=True)
 
         # Capture provider-level failure event to MongoDB
-        mongo_client = get_mongo_client()
-        if mongo_client:
-            insert_error_event_mongo(
-                client=mongo_client,
-                source=provider_name,
-                error_type="provider_failed",
-                error_message=str(e),
-                url=provider_url,
-                metadata={
-                    "provider_element": provider_element,
-                    "phase": "article_extraction",
-                    "exception_type": type(e).__name__,
-                },
-                traceback_str=traceback.format_exc(),
-            )
-            # Client is singleton, do not close
+        if not DRY_RUN:
+            mongo_client = get_mongo_client()
+            if mongo_client:
+                insert_error_event_mongo(
+                    client=mongo_client,
+                    source=provider_name,
+                    error_type="provider_failed",
+                    error_message=str(e),
+                    url=provider_url,
+                    metadata={
+                        "provider_element": provider_element,
+                        "phase": "article_extraction",
+                        "exception_type": type(e).__name__,
+                    },
+                    traceback_str=traceback.format_exc(),
+                )
+                # Client is singleton, do not close
 
         return [], fetcher_state
 
 
 async def async_main(timestamp):
+    if DRY_RUN:
+        logger.info("🚫 DRY RUN MODE: No data will be written to Google Sheets or MongoDB.")
+
     client = get_client()
     articles_sheet = get_worksheet(client, SHEET_ID, ARTICLES_WORKSHEET)
     providers_sheet = get_worksheet(client, SHEET_ID, PROVIDERS_WORKSHEET)
@@ -139,27 +145,37 @@ async def async_main(timestamp):
 
     # Batch write all articles at once
     if all_articles:
-        # Write to Google Sheets
-        batch_append_articles(articles_sheet, all_articles)
-        logger.info(
-            f"Batch write complete: {len(all_articles)} articles added to the sheet."
-        )
+        if not DRY_RUN:
+            # Write to Google Sheets
+            batch_append_articles(articles_sheet, all_articles)
+            logger.info(
+                f"Batch write complete: {len(all_articles)} articles added to the sheet."
+            )
 
-        # Write to MongoDB
-        mongo_client = get_mongo_client()
-        if mongo_client:
-            insert_articles_event_mongo(mongo_client, all_articles)
-            insert_summary_event_mongo(mongo_client, len(all_articles))
-            # Client is singleton, do not close
+            # Write to MongoDB
+            mongo_client = get_mongo_client()
+            if mongo_client:
+                insert_articles_event_mongo(mongo_client, all_articles)
+                insert_summary_event_mongo(mongo_client, len(all_articles))
+                # Client is singleton, do not close
+        else:
+            logger.info(f"DRY RUN: Found {len(all_articles)} new articles (Skipping writes).")
+            for a in all_articles:
+                logger.info(f" - [DRY RUN] Would add: {a[1]} ({a[2]})")
     else:
         logger.info("\n✅ No new articles found\n")
         # Log summary event for no new articles
-        mongo_client = get_mongo_client()
-        if mongo_client:
-            insert_summary_event_mongo(mongo_client, 0)
+        if not DRY_RUN:
+            mongo_client = get_mongo_client()
+            if mongo_client:
+                insert_summary_event_mongo(mongo_client, 0)
 
-    articles_sheet.sort((1, "des"))
-    articles_sheet.update_cell(1, 6, f"Updated at\n{timestamp}")
+    if not DRY_RUN:
+        articles_sheet.sort((1, "des"))
+        articles_sheet.update_cell(1, 6, f"Updated at\n{timestamp}")
+    else:
+        logger.info("DRY RUN: Skipping sheet sort and timestamp update.")
+        
     await close_fetcher(fetcher_state)
 
 

@@ -2,8 +2,12 @@ import httpx
 import asyncio
 import logging
 import time
-from bs4 import BeautifulSoup
+import warnings
+from bs4 import BeautifulSoup, XMLParsedAsHTMLWarning
 from .constants import DEFAULT_REQUEST_INTERVAL, DEFAULT_TIMEOUT
+
+# Suppress warning when parsing XML (RSS) with the HTML parser
+warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 logger = logging.getLogger(__name__)
 

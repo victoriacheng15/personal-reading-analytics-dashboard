@@ -41,6 +41,28 @@ def test_extract_fcc_articles_success():
     )
 
 
+def test_extract_fcc_articles_rss_success():
+    html = """
+    <item>
+        <title><![CDATA[ RSS Test Title ]]></title>
+        <link>https://www.freecodecamp.org/news/rss-article/</link>
+        <pubDate>Wed, 15 Jan 2025 10:00:00 +0000</pubDate>
+    </item>
+    """
+    # Beautifulsoup usually lowercase tags in html.parser, but RSS tags can be case-sensitive.
+    # However, our extractor uses .find("title"), which is case-insensitive in bs4.
+    element = create_element(html)
+
+    result = extract_fcc_articles(element)
+
+    assert result == (
+        "2025-01-15",
+        "RSS Test Title",
+        "https://www.freecodecamp.org/news/rss-article/",
+        "freeCodeCamp",
+    )
+
+
 # Tests for extract_substack_articles
 def test_extract_substack_articles_success():
     html = """
@@ -78,6 +100,26 @@ def test_extract_github_articles_success():
         "2025-01-15",
         "GitHub News",
         "https://github.blog/2025-01-15-news",
+        "GitHub",
+    )
+
+
+def test_extract_github_articles_rss_success():
+    html = """
+    <item>
+        <title>GitHub RSS Title</title>
+        <link>https://github.blog/2025-01-15-rss-news/</link>
+        <pubDate>Wed, 15 Jan 2025 10:00:00 +0000</pubDate>
+    </item>
+    """
+    element = create_element(html)
+
+    result = extract_github_articles(element)
+
+    assert result == (
+        "2025-01-15",
+        "GitHub RSS Title",
+        "https://github.blog/2025-01-15-rss-news/",
         "GitHub",
     )
 
