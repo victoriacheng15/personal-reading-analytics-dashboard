@@ -12,7 +12,7 @@ The current extraction pipeline relies on scraping HTML DOM structures. This is 
 - **Execution Overhead:** HTML pages are significantly larger than XML feeds, increasing bandwidth and parsing time.
 - **Complexity:** Storing specific CSS selectors in Google Sheets makes the system hard to audit and prone to manual entry errors.
 
-## Decision
+## Proposed Solution
 
 The project will prioritize **RSS/Atom feeds** as the primary extraction method for all providers that support them.
 
@@ -20,18 +20,11 @@ The project will prioritize **RSS/Atom feeds** as the primary extraction method 
 - **Fallback Method:** HTML scraping will only be used for providers that do not publish a discovery feed (e.g., Stripe, Shopify).
 - **Implementation:** The system will check for a configured `rss_url` key in the provider handler. If present, it takes precedence over the standard URL.
 
-## Consequences
+## Comparison / Alternatives Considered
 
-### Positive
-
-- **Reliability:** RSS is a published API contract. It rarely changes structure, significantly reducing "random" failures.
-- **Performance:** XML payloads are smaller and faster to parse than full HTML pages.
-- **Standardization:** Date formats in RSS (RFC 822) are more consistent than arbitrary HTML text (e.g., "Jan 15", "2 days ago").
-
-### Negative
-
-- **Inconsistency:** The system will maintain two parallel extraction logic paths (XML parsing vs. HTML scraping) indefinitely, as not all providers support RSS.
-- **Metadata Limitations:** RSS feeds sometimes provide limited content summaries compared to the full metadata available on the HTML page (though usually sufficient for Title/Link/Date).
+- **Alternative 1: Headless Browsing (Playwright/Puppeteer):** Could handle dynamic content better than simple scraping, but adds massive execution overhead and doesn't solve the "brittle CSS" problem.
+- **Alternative 2: Professional Scraping APIs:** Reliable but introduces recurring costs and external vendor dependency.
+- **Why this path?** RSS/Atom feeds are published API contracts. They provide a standardized, low-overhead way to fetch metadata that is inherently more stable than HTML structures.
 
 ## Failure Modes (Operational Excellence)
 

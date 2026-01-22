@@ -570,6 +570,9 @@ footer {
 
     .timeline-content {
         flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
         background: var(--bg-soft);
         padding: var(--spacing-md);
         border-radius: var(--radius-std);
@@ -579,12 +582,11 @@ footer {
         h3 {
             color: var(--text-main);
             font-size: var(--text-lg);
-            margin-bottom: 1.25rem;
             font-weight: var(--weight-bold);
         }
 
         .timeline-artifacts {
-            padding-top: var(--spacing-md);
+            padding-top: var(--spacing-sm);
             border-top: 1px solid var(--border-light-2);
 
             ul {
@@ -616,7 +618,6 @@ footer {
                 &:hover {
                     background: var(--brand-primary);
                     color: var(--bg-hover);
-                    transform: var(--hover-lift);
                 }
             }
         }
@@ -624,11 +625,9 @@ footer {
 
     .timeline-details {
         list-style: none;
-        margin-bottom: var(--spacing-md);
 
         li {
-            margin-bottom: 0.75rem;
-            padding-left: 1.5rem;
+            padding-left: var(--spacing-md);
             position: relative;
             color: var(--text-main);
             font-size: var(--text-base);
