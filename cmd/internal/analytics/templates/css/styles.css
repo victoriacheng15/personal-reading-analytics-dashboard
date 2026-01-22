@@ -586,18 +586,14 @@ footer {
         }
 
         .timeline-artifacts {
+            list-style: none;
             padding-top: var(--spacing-sm);
             border-top: 1px solid var(--border-light-2);
-
-            ul {
-                padding-left: 0;
-                display: flex;
-                flex-wrap: wrap;
-                gap: var(--spacing-sm);
-            }
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
 
             li {
-                list-style: none;
                 margin-bottom: 0;
             }
 
@@ -625,6 +621,9 @@ footer {
 
     .timeline-details {
         list-style: none;
+        display: flex; 
+        flex-direction: column;
+        gap: var(--spacing-sm);
 
         li {
             padding-left: var(--spacing-md);

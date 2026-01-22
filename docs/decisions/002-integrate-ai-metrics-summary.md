@@ -1,4 +1,4 @@
-# RFC [002]: Integrate AI-Powered Weekly Metrics Summary
+# RFC 002: Integrate AI-Powered Weekly Metrics Summary
 
 - **Status:** Proposed
 - **Date:** 2026-01-22

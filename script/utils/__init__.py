@@ -45,6 +45,7 @@ from .constants import (
     DEFAULT_REQUEST_INTERVAL,
     DEFAULT_TIMEOUT,
     GOOGLE_SHEETS_SCOPES,
+    DRY_RUN,
 )
 
 from .mongo import (
@@ -86,6 +87,7 @@ __all__ = [
     "DEFAULT_REQUEST_INTERVAL",
     "DEFAULT_TIMEOUT",
     "GOOGLE_SHEETS_SCOPES",
+    "DRY_RUN",
     # MongoDB operations
     "get_mongo_client",
     "insert_articles_event_mongo",

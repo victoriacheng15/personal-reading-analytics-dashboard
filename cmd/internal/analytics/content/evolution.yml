@@ -58,9 +58,12 @@ events:
       - "Formalized architectural changes and proposed prioritizing RSS/Atom feeds over HTML scraping."
 
   - date: "2026-01-22"
-    title: "Proposed AI-Powered Metrics Insights"
+    title: "Transitioned to RSS Extraction & Proposed AI Insights"
     artifacts:
-      - name: "RFC 002: Integrate AI-Powered Weekly Metrics Summary"
+      - name: "RFC 001: Prefer RSS/Atom Feeds "
+        url: "docs/decisions/001-prefer-rss-over-html-scraping.md"
+      - name: "RFC 002: AI-Powered Weekly Metrics Summary"
         url: "docs/decisions/002-integrate-ai-metrics-summary.md"
     description: |
-      - "Proposed integrating Google Gemini for qualitative reading trend summaries."
+      - "Implemented auto-detecting RSS extraction for freeCodeCamp and GitHub, significantly improving pipeline stability."
+      - "Proposed RFC 002 to integrate Google Gemini for qualitative reading trend summaries."
