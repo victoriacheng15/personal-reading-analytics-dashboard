@@ -180,10 +180,20 @@ func (s *AnalyticsService) prepareViewModel(m schema.Metrics) (ViewModel, error)
 	if err != nil {
 		log.Printf("⚠️ Warning: Failed to load evolution data: %v", err)
 	} else {
-		// Sort events by date descending (latest first)
-		sort.Slice(evolutionData.Events, func(i, j int) bool {
-			return evolutionData.Events[i].Date > evolutionData.Events[j].Date
-		})
+		// Sort chapters by period descending (assuming order in YAML is chronological, we reverse it)
+		// Or strictly, we just iterate backwards in the template.
+		// But let's reverse the slice here for easier template logic.
+		// Actually, let's reverse it here so index 0 is always the "latest".
+		for i, j := 0, len(evolutionData.Chapters)-1; i < j; i, j = i+1, j-1 {
+			evolutionData.Chapters[i], evolutionData.Chapters[j] = evolutionData.Chapters[j], evolutionData.Chapters[i]
+		}
+
+		// Also reverse the timeline events within each chapter to show newest first
+		for c := range evolutionData.Chapters {
+			for i, j := 0, len(evolutionData.Chapters[c].Timeline)-1; i < j; i, j = i+1, j-1 {
+				evolutionData.Chapters[c].Timeline[i], evolutionData.Chapters[c].Timeline[j] = evolutionData.Chapters[c].Timeline[j], evolutionData.Chapters[c].Timeline[i]
+			}
+		}
 	}
 
 	// Load index content
@@ -241,6 +251,9 @@ func (s *AnalyticsService) render(vm ViewModel) error {
 			}
 			return float64(a) / float64(b)
 		},
+		"sub": func(a, b int) int {
+			return a - b
+		},
 	}
 
 	// Create output directory
@@ -254,8 +267,6 @@ func (s *AnalyticsService) render(vm ViewModel) error {
 	if err := copyDir(cssSrc, cssDst); err != nil {
 		// Log warning but don't fail, in case css dir doesn't exist
 		log.Printf("⚠️ Warning: Failed to copy CSS directory: %v", err)
-	} else {
-		log.Printf("✅ Copied CSS to %s", cssDst)
 	}
 
 	// Pages to generate

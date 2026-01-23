@@ -143,11 +143,13 @@ func TestLoadEvolutionData(t *testing.T) {
 				}
 
 				yamlContent := `
-events:
-  - date: "2024-01"
-    title: "Test Event"
-    description: |
-      - "Detail 1"
+chapters:
+  - title: "Chapter 1"
+    timeline:
+      - date: "2024-01"
+        title: "Test Event"
+        description: |
+          - "Detail 1"
 `
 				if err := os.WriteFile(filepath.Join(dir, "evolution.yml"), []byte(yamlContent), 0644); err != nil {
 					t.Fatal(err)
@@ -187,13 +189,13 @@ events:
 				t.Errorf("unexpected error: %v", err)
 			}
 
-			if len(data.Events) > 0 && data.Events[0].Title != "Test Event" {
-				t.Errorf("expected title 'Test Event', got %s", data.Events[0].Title)
+			if len(data.Chapters) > 0 && len(data.Chapters[0].Timeline) > 0 && data.Chapters[0].Timeline[0].Title != "Test Event" {
+				t.Errorf("expected title 'Test Event', got %s", data.Chapters[0].Timeline[0].Title)
 			}
 
-			if len(data.Events) > 0 {
-				if len(data.Events[0].DescriptionLines) == 0 || data.Events[0].DescriptionLines[0] != "Detail 1" {
-					t.Errorf("expected DescriptionLines[0] to be 'Detail 1', got %v", data.Events[0].DescriptionLines)
+			if len(data.Chapters) > 0 && len(data.Chapters[0].Timeline) > 0 {
+				if len(data.Chapters[0].Timeline[0].DescriptionLines) == 0 || data.Chapters[0].Timeline[0].DescriptionLines[0] != "Detail 1" {
+					t.Errorf("expected DescriptionLines[0] to be 'Detail 1', got %v", data.Chapters[0].Timeline[0].DescriptionLines)
 				}
 			}
 		})

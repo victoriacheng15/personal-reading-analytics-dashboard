@@ -78,7 +78,7 @@ func TestAnalyticsService_Generate(t *testing.T) {
 			}
 
 			// Mock evolution.yml
-			evolutionData := `events: []`
+			evolutionData := `chapters: []`
 			contentDir := filepath.Join(tmpDir, "cmd", "internal", "analytics", "content")
 			if err := os.MkdirAll(contentDir, 0755); err != nil {
 				t.Fatal(err)

@@ -1,78 +1,101 @@
-events:
-  - date: "2024-02-04"
-    title: "Article Collection Begins"
-    description: |
-      - "Automated article collection to Google Sheets using memory-efficient Python generators and deduplication."
+chapters:
+  - title: "The Foundation"
+    period: "Feb 04, 2024 - May 12, 2024"
+    intro: "Establishing a resilient data ingestion pipeline for chaotic web content."
+    timeline:
+      - date: "2024-02-04"
+        title: "Article Collection Begins"
+        description: |
+          - "Automated article collection from technical blogs to Google Sheets using a local Python script."
+          - "Utilized Python generators and yield to efficiently stream extracted data, reducing memory overhead."
+          - "Implemented basic deduplication logic to ensure a clean dataset for archival."
 
-  - date: "2024-03-04"
-    title: "Consistent Parsing Across Diverse Layouts"
-    description: |
-      - "Developed robust parsing for varied HTML structures and containerized the development environment."
+      - date: "2024-03-04"
+        title: "Consistent Parsing Across Diverse Layouts"
+        description: |
+          - "Built robust detection for article titles, authors, and content despite varying HTML structures."
+          - "Containerized the local development environment for reproducibility."
 
-  - date: "2024-04-03"
-    title: "Future-Proof Extraction Logic"
-    description: |
-      - "Switched to flexible, text-aware extraction rules to reduce breakage from website updates."
+      - date: "2024-04-03"
+        title: "Future-Proof Extraction Logic"
+        description: |
+          - "Replaced layout-dependent CSS selectors with flexible, text-aware extraction rules."
+          - "Reduced breakage caused by routine website updates."
 
-  - date: "2024-05-12"
-    title: "Handling Complex, Dynamic Websites"
-    description: |
-      - "Improved reliability for capturing articles from modern sites like Substack."
+      - date: "2024-05-12"
+        title: "Handling Complex, Dynamic Websites"
+        description: |
+          - "Upgraded the system to reliably capture articles from modern sites like Substack by identifying stable patterns in their structure."
 
-  - date: "2025-01-25"
-    title: "Fully Automated Daily Collection"
-    description: |
-      - "Automated collection with GitHub Actions and implemented structured logging and secure credential handling."
+  - title: "Automation & Scale"
+    period: "Jan 25, 2025 - Dec 19, 2025"
+    intro: "Transitioning to automated CI/CD to eliminate manual toil and ensure data freshness while launching public analytics."
+    timeline:
+      - date: "2025-01-25"
+        title: "Fully Automated Daily Collection"
+        description: |
+          - "Migrated from manual runs to a scheduled, automated workflow using GitHub Actions."
+          - "Implemented structured logging and secure credential handling."
 
-  - date: "2025-03-05"
-    title: "Expanded to Technical Engineering Blogs"
-    description: |
-      - "Expanded sources and moved configurations to Google Sheets for code-free updates and error resilience."
+      - date: "2025-03-05"
+        title: "Expanded to Technical Engineering Blogs"
+        description: |
+          - "Added GitHub Engineering and Shopify Engineering Blogs as new automated sources."
+          - "Moved source configurations to a spreadsheet, allowing new blogs to be added instantly without changing any code."
+          - "Improved error resilience to keep the pipeline running even when a source changes unexpectedly."
 
-  - date: "2025-04-17"
-    title: "Faster, Parallel Content Fetching"
-    description: |
-      - "Integrated asyncio for concurrent fetching and efficient resource usage."
+      - date: "2025-04-17"
+        title: "Faster, Parallel Content Fetching"
+        description: |
+          - "Integrated asyncio to fetch all sources concurrently, enabling the system to scale efficiently with an increasing number of providers."
+          - "Optimized resource usage by moving from synchronous, blocking requests to an asynchronous execution model."
 
-  - date: "2025-11-28"
-    title: "Personal Reading Analytics Launched"
-    description: |
-      - "Launched public analytics on GitHub Pages using a Go metrics engine and Chart.js."
+      - date: "2025-11-28"
+        title: "Personal Reading Analytics Launched"
+        description: |
+          - "Released a public analytics on GitHub Pages to visualize reading behavior over time."
+          - "Built with a lightweight Go metrics engine and interactive HTML/Chart.js visuals."
 
-  - date: "2025-12-19"
-    title: "Deeper Insights & Observability Foundation"
-    description: |
-      - "Added detailed unread metrics and a MongoDB event logging system for observability."
+      - date: "2025-12-19"
+        title: "Deeper Insights & Observability Foundation"
+        description: |
+          - "Added metrics like unread article age distribution and unread count by publication year to identify reading bottlenecks."
+          - "Architected a MongoDB event logging system with structured schemas to capture ingestion failures and error traces for operational observability."
 
-  - date: "2026-01-01"
-    title: "Launched Landing and Evolution Pages"
-    description: |
-      - "Launched a project portal featuring a dynamic evolution timeline."
+  - title: "Intelligence & Governance"
+    period: "Jan 01, 2026 - Present"
+    intro: "Formalizing architectural standards and integrating AI-powered analysis."
+    timeline:
+      - date: "2026-01-01"
+        title: "Launched Landing and Evolution Pages"
+        description: |
+          - "Launched a comprehensive project portal, featuring a dynamic evolution timeline to visualize engineering milestones and technical growth."
 
-  - date: "2026-01-16"
-    title: "Proposed First Architectural Decision Record"
-    artifacts:
-      - name: "RFC 001: Prefer RSS/Atom Feeds"
-        url: "docs/decisions/001-prefer-rss-over-html-scraping.md"
-    description: |
-      - "Formalized architectural changes and proposed prioritizing RSS/Atom feeds over HTML scraping."
+      - date: "2026-01-16"
+        title: "Architectural Governance"
+        artifacts:
+          - name: "ADR 001: Prefer RSS over Scraping"
+            url: "docs/decisions/001-prefer-rss-over-html-scraping.md"
+        description: |
+          - "Formalized architectural changes and proposed prioritizing RSS/Atom feeds over HTML scraping."
+          - "Standardized on RSS/Atom feeds to improve extraction pipeline stability."
 
-  - date: "2026-01-22"
-    title: "Transitioned to RSS Extraction & Proposed AI Insights"
-    artifacts:
-      - name: "RFC 001: Prefer RSS/Atom Feeds "
-        url: "docs/decisions/001-prefer-rss-over-html-scraping.md"
-      - name: "RFC 002: AI-Powered Weekly Metrics Summary"
-        url: "docs/decisions/002-integrate-ai-metrics-summary.md"
-    description: |
-      - "Implemented auto-detecting RSS extraction for freeCodeCamp and GitHub, significantly improving pipeline stability."
-      - "Proposed RFC 002 to integrate Google Gemini for qualitative reading trend summaries."
+      - date: "2026-01-22"
+        title: "Transitioned to RSS Extraction & Proposed AI Insights"
+        artifacts:
+          - name: "ADR 001: Prefer RSS over Scraping"
+            url: "docs/decisions/001-prefer-rss-over-html-scraping.md"
+          - name: "ADR 002: AI-Powered Weekly Metrics Summary"
+            url: "docs/decisions/002-integrate-ai-metrics-summary.md"
+        description: |
+          - "Implemented auto-detecting RSS extraction for freeCodeCamp and GitHub, significantly improving pipeline stability."
+          - "Proposed RFC 002 to integrate Google Gemini for qualitative reading trend summaries."
 
-  - date: "2026-01-23"
-    title: "Integrated AI-Powered Weekly Summaries"
-    artifacts:
-      - name: "ADR 002: AI-Powered Weekly Metrics Summary"
-        url: "docs/decisions/002-integrate-ai-metrics-summary.md"
-    description: |
-      - "Integrated Google Gemini (2.5 Flash Lite) to provide qualitative week-over-week trends directly on the dashboard."
-      - "Enhanced the metrics pipeline with standalone '--fetch' and '--summarize' workflows for better operational flexibility."
+      - date: "2026-01-23"
+        title: "Integrated AI-Powered Weekly Summaries"
+        artifacts:
+          - name: "ADR 002: AI-Powered Weekly Metrics Summary"
+            url: "docs/decisions/002-integrate-ai-metrics-summary.md"
+        description: |
+          - "Integrated Google Gemini (2.5 Flash Lite) to provide qualitative week-over-week trends directly on the analytics page."
+          - "Enhanced the metrics pipeline with standalone fetch and summarize flags for better operational flexibility."

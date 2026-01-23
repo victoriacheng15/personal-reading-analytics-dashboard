@@ -91,8 +91,8 @@ Currently extracting articles from:
 
 Learn about the journey of this project: from local-only execution, to Docker containerization, to automated GitHub Actions workflows.
 
-- [Read Part 1: From Pi to Cloud Automation](https://victoriacheng15.vercel.app/blog/from-pi-to-cloud-automation)
-- [Read Part 2: From Links to Reading insights](https://victoriacheng15.vercel.app/blog/from-links-to-reading-insights)
+- [Part 1: From Pi to Cloud Automation](https://victoriacheng15.vercel.app/blog/from-pi-to-cloud-automation)
+- [Part 2: From Links to Reading insights](https://victoriacheng15.vercel.app/blog/from-links-to-reading-insights)
 - [Part 3: From Metrics to Milestones](https://mehub-git-fix-rss-escaping-victoriacheng15s-projects.vercel.app/blog/from-metrics-to-milestones)
 
 ---

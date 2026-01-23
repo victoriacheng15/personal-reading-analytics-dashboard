@@ -1,28 +1,59 @@
 {{define "content"}}
 <main class="evolution-page">
-    <section aria-label="Evolution Timeline">
-        <div class="timeline">
-            {{range .EvolutionData.Events}}
-            <div class="timeline-item">
-                <h2 class="timeline-date">{{.Date}}</h2>
-                <div class="timeline-content">
-                    <h3>{{.Title}}</h3>
-                    <ul class="timeline-details">
-                        {{range .DescriptionLines}}
-                        <li>{{.}}</li>
-                        {{end}}
-                    </ul>
-                    {{if .Artifacts}}
-                    <ul class="timeline-artifacts">
-                        {{range .Artifacts}}
-                        <li><a href="https://github.com/victoriacheng15/personal-reading-analytics/blob/main/{{.URL}}" target="_blank" rel="noopener noreferrer">{{.Name}}</a></li>
-                        {{end}}
-                    </ul>
+    <section class="intro-section" style="text-align: center; margin-bottom: 2rem;">
+        <h2 class="section-title">📜 Engineering Evolution</h2>
+        <p style="color: var(--text-muted); max-width: 600px; margin: 1rem auto;">
+            A chronological history of the technical decisions, architectural shifts, and automated milestones 
+            that shaped this project from a simple script into an intelligent platform.
+        </p>
+    </section>
+
+    <section aria-label="Project Evolution Timeline" class="chapters-container">
+        {{range $index, $chapter := .EvolutionData.Chapters}}
+        <details class="chapter-card" {{if eq $index 0}}open{{end}}>
+            <summary class="chapter-header">
+                <div class="chapter-title-group">
+                    <h3 class="chapter-title">Chapter {{sub (len $.EvolutionData.Chapters) $index}}: {{.Title}}</h3>
+                    <p class="chapter-intro">{{.Intro}}</p>
+                </div>
+                <div class="chapter-meta">
+                    <span class="period-badge">{{.Period}}</span>
+                    <span class="toggle-icon"></span>
+                </div>
+            </summary>
+            
+            <div class="chapter-content">
+                <div class="timeline">
+                    {{range .Timeline}}
+                    <article class="timeline-item">
+                        <div class="timeline-date">{{.Date}}</div>
+                        <div class="timeline-content">
+                            <h3>{{.Title}}</h3>
+                            
+                            {{if .DescriptionLines}}
+                            <ul class="timeline-details">
+                                {{range .DescriptionLines}}
+                                <li>{{.}}</li>
+                                {{end}}
+                            </ul>
+                            {{end}}
+
+                            {{if .Artifacts}}
+                            <ul class="timeline-artifacts">
+                                {{range .Artifacts}}
+                                <li>
+                                    <a href="{{.URL}}" target="_blank">📄 {{.Name}}</a>
+                                </li>
+                                {{end}}
+                            </ul>
+                            {{end}}
+                        </div>
+                    </article>
                     {{end}}
                 </div>
             </div>
-            {{end}}
-        </div>
+        </details>
+        {{end}}
     </section>
 </main>
 {{end}}
