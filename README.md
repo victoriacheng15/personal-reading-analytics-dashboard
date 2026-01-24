@@ -27,7 +27,7 @@ Unlike typical "script-based" scrapers, this system is architected for scale and
 
 - **Ingestion**: Python scripts harvest content and emit standardized events to a MongoDB immutable log.
 - **Observability**: An external hub consumes these events to populate Grafana dashboards for system health monitoring.
-- **Visualization**: Go binaries process the event stream to generate the static site.
+- **Visualization**: Go binaries process the event stream, generate AI-powered summaries for historical context, and produce the static site.
 
 ### 📈 System Observability
 
@@ -44,8 +44,9 @@ For deep technical details, architectural diagrams, and operational guides, plea
 ![Python](https://img.shields.io/badge/Python-3776AB.svg?style=for-the-badge&logo=Python&logoColor=white)
 ![Google Sheets API](https://img.shields.io/badge/Google%20Sheets-34A853.svg?style=for-the-badge&logo=Google-Sheets&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248.svg?style=for-the-badge&logo=MongoDB&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF.svg?style=for-the-badge&logo=GitHub-Actions&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Google%20Gemini-4285F4.svg?style=for-the-badge&logo=google-gemini&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED.svg?style=for-the-badge&logo=Docker&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF.svg?style=for-the-badge&logo=GitHub-Actions&logoColor=white)
 
 ---
 
@@ -55,6 +56,7 @@ For deep technical details, architectural diagrams, and operational guides, plea
 
 - **Total articles**: Tracking total articles across currently supported sources
 - **Read rate**: Percentage of articles completed with visual highlighting
+- **AI-powered summary**: Qualitative weekly analysis of reading trends and backlog reduction
 - **Reading statistics**: Read count, unread count, and average articles per month
 - **Highlight badges**: Top read rate source, most unread source, current month's read articles
 

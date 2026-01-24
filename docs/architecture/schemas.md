@@ -71,6 +71,7 @@ type Metrics struct {
     ReadRate                     float64                      `json:"read_rate"`
     AvgArticlesPerMonth          float64                      `json:"avg_articles_per_month"`
     LastUpdated                  time.Time                    `json:"last_updated"`
+    AISummary                    string                       `json:"ai_summary,omitempty"`
 }
 
 type ArticleMeta struct {

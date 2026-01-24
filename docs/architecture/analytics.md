@@ -8,6 +8,9 @@ The analytics layer is a **metrics and visualization pipeline** that processes a
 graph TD
     A[Google Sheets] -->|Fetch API| B(Metrics Generator<br/>cmd/metrics)
     B -->|Calculate & Serialize| C[metrics/YYYY-MM-DD.json]
+    B -->|Send Stats| H[Gemini AI]
+    H -->|Return Summary| B
+    B -->|Append Summary| C
     C -->|Read Latest| D(Analytics Generator<br/>cmd/analytics)
     G[evolution.yml] -->|Read| D
     D -->|Hydrate Templates| E[Static Site<br/>index, analytics, evolution]
@@ -45,6 +48,16 @@ The source templates used by the Analytics Generator to produce the final site.
   - `base.html`, `header.html`, `footer.html`: Shared layout components.
 - **Technology:** Go `html/template`, CSS variables for theming, and Chart.js.
 - **Security:** No runtime external API calls; all data is embedded at build time.
+
+### 4. AI Integration (`cmd/internal/ai`)
+
+Manages interactions with the Google Gemini API to generate qualitative summaries.
+
+- **Responsibility:**
+  - Constructing prompts from raw metrics data.
+  - Interfacing with the `google.golang.org/genai` SDK.
+  - returning a text summary of weekly progress and trends.
+- **Model:** Defaults to `gemini-2.5-flash-lite` for cost-effective performance.
 
 ## Analytics Generation Flow
 
