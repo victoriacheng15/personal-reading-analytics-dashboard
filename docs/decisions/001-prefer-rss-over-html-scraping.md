@@ -1,18 +1,14 @@
-# RFC 001: Prefer RSS/Atom Feeds over HTML Scraping
+# ADR 001: Prefer RSS/Atom Feeds over HTML Scraping
 
 - **Status:** Accepted
 - **Date:** 2026-01-16
 - **Author:** Victoria Cheng
 
-## The Problem
+## Context and Problem Statement
 
-The current extraction pipeline relies on scraping HTML DOM structures. This is brittle because:
+The current extraction pipeline relies on scraping HTML DOM structures. This is brittle because CSS class names and nesting change frequently, breaking extractors without warning. HTML pages are also significantly larger than XML feeds, increasing bandwidth and parsing time. Storing specific CSS selectors in Google Sheets makes the system hard to audit and prone to manual entry errors.
 
-- **High Maintenance:** CSS class names and nesting change frequently, breaking extractors without warning.
-- **Execution Overhead:** HTML pages are significantly larger than XML feeds, increasing bandwidth and parsing time.
-- **Complexity:** Storing specific CSS selectors in Google Sheets makes the system hard to audit and prone to manual entry errors.
-
-## Solution
+## Decision Outcome
 
 The project will prioritize **RSS/Atom feeds** as the primary extraction method for all providers that support them.
 
@@ -20,18 +16,16 @@ The project will prioritize **RSS/Atom feeds** as the primary extraction method 
 - **Fallback Method:** HTML scraping will only be used for providers that do not publish a discovery feed (e.g., Stripe, Shopify).
 - **Implementation:** Instead of separate URL keys, the system uses **Dual-Mode Extractors**. The `provider_dict` defines multiple targets (e.g., `[provider_element, "item"]`), and the extractor function dynamically branches logic based on whether it encounters an RSS `<item>` or a standard HTML element.
 
-## Comparison / Alternatives Considered
+## Consequences
 
-- **Alternative 1: Headless Browsing (Playwright/Puppeteer):** Could handle dynamic content better than simple scraping, but adds massive execution overhead and doesn't solve the "brittle CSS" problem.
-- **Alternative 2: Professional Scraping APIs:** Reliable but introduces recurring costs and external vendor dependency.
-- **Why this path?** RSS/Atom feeds are published API contracts. They provide a standardized, low-overhead way to fetch metadata that is inherently more stable than HTML structures.
+- **Positive:**
+  - **Stability:** RSS feeds are stable API contracts, unlike DOM structures.
+  - **Performance:** Reduced bandwidth and parsing overhead.
+  - **Simplicity:** Removes the need for complex CSS selector maintenance for supported providers.
+- **Negative/Trade-offs:**
+  - Limited by provider feed availability (not all engineering blogs provide full-text feeds or any feed at all).
 
-## Failure Modes (Operational Excellence)
+## Verification
 
-- **Feed Removal:** If a provider removes their RSS feed, the system will trigger a `fetch_failed` event in MongoDB.
-- **Schema Mismatch:** If the XML structure deviates from RSS 2.0/Atom standards, the extractor will raise an `extraction_failed` event.
-- **Observability:** These will be monitored via the `event_type` in the MongoDB `articles` collection to identify broken feeds immediately.
-
-## Conclusion
-
-Migrating to RSS improves the systemic reliability of the extraction pipeline. Migration will begin with GitHub and freeCodeCamp, while keeping HTML scraping as a legacy fallback for providers without feeds.
+- [x] **Manual Check:** Inspect `script/utils/extractors.py` to verify `provider_dict` contains dual-mode configurations (e.g., for `freeCodeCamp` and `GitHub`).
+- [x] **Automated Tests:** Run `pytest script/tests/test_extractors.py` and verify `test_extract_fcc_articles_rss_success` and `test_extract_github_articles_rss_success` pass.
