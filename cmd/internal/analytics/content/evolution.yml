@@ -1,75 +1,98 @@
 chapters:
   - title: "The Foundation"
-    period: "Feb 04, 2024 - May 12, 2024"
     intro: "Establishing a resilient data ingestion pipeline for chaotic web content."
     timeline:
       - date: "2024-02-04"
         title: "Article Collection Begins"
         description: |
           - "Automated article collection from technical blogs to Google Sheets using a local Python script."
-          - "Utilized Python generators and yield to efficiently stream extracted data, reducing memory overhead."
+          - "Optimized memory efficiency using Python generators to stream data, ensuring performance on constrained resources."
           - "Implemented basic deduplication logic to ensure a clean dataset for archival."
 
       - date: "2024-03-04"
         title: "Consistent Parsing Across Diverse Layouts"
         description: |
-          - "Built robust detection for article titles, authors, and content despite varying HTML structures."
-          - "Containerized the local development environment for reproducibility."
+          - "Built robust detection for article titles and authors to handle unstructured HTML from diverse sources."
+          - "Containerized the development environment to ensure reproducibility across different machines."
 
       - date: "2024-04-03"
         title: "Future-Proof Extraction Logic"
         description: |
-          - "Replaced layout-dependent CSS selectors with flexible, text-aware extraction rules."
-          - "Reduced breakage caused by routine website updates."
+          - "Engineered resilient extraction logic that adapts to layout changes, drastically reducing maintenance overhead."
 
       - date: "2024-05-12"
         title: "Handling Complex, Dynamic Websites"
         description: |
-          - "Upgraded the system to reliably capture articles from modern sites like Substack by identifying stable patterns in their structure."
+          - "Upgraded the system to reliably capture articles from modern dynamic sites like Substack by identifying stable structural patterns."
 
-  - title: "Automation & Scale"
-    period: "Jan 25, 2025 - Dec 19, 2025"
-    intro: "Transitioning to automated CI/CD to eliminate manual toil and ensure data freshness while launching public analytics."
+      - date: "2024-06-12"
+        title: "Standardized Local Development"
+        description: |
+          - "Implemented Docker Compose and a standardized Makefile to streamline developer workflows and ensure execution consistency."
+
+  - title: "Automation"
+    intro: "Transitioning to automated CI/CD to eliminate manual toil and ensure data freshness."
     timeline:
+      - date: "2025-01-01"
+        title: "Configuration as Data"
+        description: |
+          - "Decoupled source configurations from application code, allowing rapid data source updates without deployment."
+          - "Migrated configuration to a centralized provider sheet to democratize management."
+
       - date: "2025-01-25"
+        title: "Automated Code Quality & Formatting"
+        description: |
+          - "Enforced code quality standards via GitHub Actions CI pipelines to prevent technical debt accumulation."
+
+      - date: "2025-01-26"
         title: "Fully Automated Daily Collection"
         description: |
-          - "Migrated from manual runs to a scheduled, automated workflow using GitHub Actions."
-          - "Implemented structured logging and secure credential handling."
+          - "Migrated manual workflows to fully automated, scheduled GitHub Actions, ensuring daily data freshness."
+          - "Secured API integrations using encrypted secrets management."
 
+      - date: "2025-02-01"
+        title: "Improved Execution Traceability"
+        description: |
+          - "Implemented structured logging and historical tracking to reduce mean-time-to-recovery (MTTR) for pipeline failures."
+
+      - date: "2025-02-27"
+        title: "Codebase Documentation"
+        description: |
+          - "Standardized technical documentation across the extraction engine to onboard contributors and facilitate long-term maintenance."
+
+  - title: "Scale"
+    intro: "Expanding data sources, optimizing performance, and launching public-facing analytics."
+    timeline:
       - date: "2025-03-05"
         title: "Expanded to Technical Engineering Blogs"
         description: |
-          - "Added GitHub Engineering and Shopify Engineering Blogs as new automated sources."
-          - "Moved source configurations to a spreadsheet, allowing new blogs to be added instantly without changing any code."
-          - "Improved error resilience to keep the pipeline running even when a source changes unexpectedly."
+          - "Added major engineering blogs (GitHub, Shopify) to the automated pipeline."
+          - "Enhanced error resilience strategies to maintain pipeline stability during partial source failures."
 
       - date: "2025-04-17"
         title: "Faster, Parallel Content Fetching"
         description: |
-          - "Integrated asyncio to fetch all sources concurrently, enabling the system to scale efficiently with an increasing number of providers."
-          - "Optimized resource usage by moving from synchronous, blocking requests to an asynchronous execution model."
+          - "Re-architected the ingestion engine for concurrency using asyncio, enabling efficient scaling as data sources multiply."
 
       - date: "2025-11-28"
         title: "Personal Reading Analytics Launched"
         description: |
-          - "Released a public analytics on GitHub Pages to visualize reading behavior over time."
-          - "Built with a lightweight Go metrics engine and interactive HTML/Chart.js visuals."
+          - "Released a public analytics dashboard on GitHub Pages to visualize long-term reading trends."
+          - "Built a lightweight, high-performance metrics engine using Go."
 
       - date: "2025-12-19"
         title: "Deeper Insights & Observability Foundation"
         description: |
-          - "Added metrics like unread article age distribution and unread count by publication year to identify reading bottlenecks."
-          - "Architected a MongoDB event logging system with structured schemas to capture ingestion failures and error traces for operational observability."
+          - "Introduced advanced metrics for unread aging and publication year distribution to identify reading bottlenecks."
+          - "Designed a centralized observability system with MongoDB to track ingestion health and accelerate debugging."
 
-  - title: "Intelligence & Governance"
-    period: "Jan 01, 2026 - Present"
-    intro: "Formalizing architectural standards and integrating AI-powered analysis."
+  - title: "Governance"
+    intro: "Formalizing architectural standards and project documentation."
     timeline:
       - date: "2026-01-01"
         title: "Launched Landing and Evolution Pages"
         description: |
-          - "Launched a comprehensive project portal, featuring a dynamic evolution timeline to visualize engineering milestones and technical growth."
+          - "Launched a comprehensive project portal to visualize engineering milestones and document technical growth."
 
       - date: "2026-01-16"
         title: "Architectural Governance"
@@ -77,8 +100,7 @@ chapters:
           - name: "ADR 001: Prefer RSS over Scraping"
             url: "docs/decisions/001-prefer-rss-over-html-scraping.md"
         description: |
-          - "Formalized architectural changes and proposed prioritizing RSS/Atom feeds over HTML scraping."
-          - "Standardized on RSS/Atom feeds to improve extraction pipeline stability."
+          - "Defined architectural standards to prioritize RSS feeds, shifting strategy from fragile scraping to stable API-based ingestion."
 
       - date: "2026-01-22"
         title: "Transitioned to RSS Extraction & Proposed AI Insights"
@@ -88,14 +110,17 @@ chapters:
           - name: "ADR 002: Integrate AI Delta Analysis"
             url: "docs/decisions/002-integrate-ai-delta-analysis.md"
         description: |
-          - "Implemented auto-detecting RSS extraction for freeCodeCamp and GitHub, significantly improving pipeline stability."
-          - "Proposed RFC 002 to integrate Google Gemini for qualitative reading trend delta analysis."
+          - "Led the migration of key data sources to auto-detected RSS feeds, significantly improving pipeline reliability."
+          - "Authored ADR 002 to propose integrating Generative AI for qualitative trend analysis."
 
+  - title: "Intelligence"
+    intro: "Integrating AI-powered analysis to extract qualitative insights."
+    timeline:
       - date: "2026-01-23"
         title: "Integrated AI Delta Analysis"
         artifacts:
           - name: "ADR 002: Integrate AI Delta Analysis"
             url: "docs/decisions/002-integrate-ai-delta-analysis.md"
         description: |
-          - "Integrated Google Gemini (2.5 Flash Lite) to provide qualitative week-over-week trends directly on the analytics page."
-          - "Enhanced the metrics pipeline with standalone fetch and delta analysis flags for better operational flexibility."
+          - "Integrated Google Gemini (GenAI) to transform raw reading metrics into qualitative, actionable insights."
+          - "Designed a flexible analysis pipeline allowing standalone execution for cost optimization."
