@@ -88,7 +88,8 @@ def clean_text(text):
     # Remove common CDATA patterns
     text = text.replace("<![CDATA[", "").replace("]]>", "").replace("]]", "")
     # Final strip of any stray closing brackets/arrows that html.parser might leave
-    return text.strip(" >[]")
+    # and handle any remaining newlines or whitespace
+    return text.strip().strip(" >[]").strip()
 
 def extract_rss_item(article, source_name):
     """

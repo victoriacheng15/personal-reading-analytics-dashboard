@@ -16,6 +16,8 @@ def clean_and_convert_date(date_str):
     if not date_str:
         return ""
 
+    date_str = date_str.strip()
+
     if date_str[0].isdigit():
         date_obj = datetime.strptime(date_str[:10], "%Y-%m-%d")
     else:
