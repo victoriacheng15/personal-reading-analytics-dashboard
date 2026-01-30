@@ -1,4 +1,4 @@
-name: Weekly Metrics Generation
+name: Metrics Generation
 
 on:
   schedule:
@@ -34,12 +34,11 @@ jobs:
             exit 1
           fi
 
-      - name: Create .env file
-        run: |
-          echo "SHEET_ID=${{ secrets.SHEET_ID }}" > .env
-          echo "CREDENTIALS_PATH=./credentials.json" >> .env
-
       - name: Build and generate metrics
+        env:
+          SHEET_ID: ${{ secrets.SHEET_ID }}
+          CREDENTIALS_PATH: ./credentials.json
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: make run-metrics
 
       - name: Clean up credentials.json
