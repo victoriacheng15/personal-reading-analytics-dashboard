@@ -1,0 +1,566 @@
+{
+  "total_articles": 3209,
+  "by_source": {
+    "GitHub": 63,
+    "Shopify": 89,
+    "Stripe": 20,
+    "Substack": 1826,
+    "freeCodeCamp": 1211
+  },
+  "by_source_read_status": {
+    "GitHub": [
+      21,
+      42
+    ],
+    "Shopify": [
+      35,
+      54
+    ],
+    "Stripe": [
+      6,
+      14
+    ],
+    "Substack": [
+      837,
+      989
+    ],
+    "freeCodeCamp": [
+      637,
+      574
+    ],
+    "substack_author_count": [
+      5,
+      0
+    ]
+  },
+  "by_year": {
+    "2011": 1,
+    "2013": 2,
+    "2014": 3,
+    "2015": 2,
+    "2016": 2,
+    "2017": 3,
+    "2018": 9,
+    "2019": 8,
+    "2020": 11,
+    "2021": 8,
+    "2022": 11,
+    "2023": 234,
+    "2024": 1353,
+    "2025": 1476,
+    "2026": 86
+  },
+  "by_month": {
+    "01": 332,
+    "02": 363,
+    "03": 389,
+    "04": 284,
+    "05": 237,
+    "06": 218,
+    "07": 217,
+    "08": 212,
+    "09": 218,
+    "10": 270,
+    "11": 244,
+    "12": 225
+  },
+  "by_year_and_month": {
+    "2011": {
+      "07": 1
+    },
+    "2013": {
+      "03": 1,
+      "09": 1
+    },
+    "2014": {
+      "07": 1,
+      "10": 1,
+      "11": 1
+    },
+    "2015": {
+      "01": 1,
+      "05": 1
+    },
+    "2016": {
+      "03": 1,
+      "10": 1
+    },
+    "2017": {
+      "02": 2,
+      "06": 1
+    },
+    "2018": {
+      "02": 2,
+      "03": 2,
+      "08": 2,
+      "11": 1,
+      "12": 2
+    },
+    "2019": {
+      "02": 1,
+      "05": 1,
+      "07": 1,
+      "09": 1,
+      "10": 2,
+      "11": 2
+    },
+    "2020": {
+      "02": 2,
+      "05": 2,
+      "08": 2,
+      "09": 1,
+      "12": 4
+    },
+    "2021": {
+      "01": 1,
+      "02": 1,
+      "04": 2,
+      "07": 1,
+      "09": 1,
+      "10": 1,
+      "12": 1
+    },
+    "2022": {
+      "01": 2,
+      "03": 2,
+      "04": 1,
+      "05": 2,
+      "07": 1,
+      "09": 2,
+      "10": 1
+    },
+    "2023": {
+      "01": 2,
+      "02": 4,
+      "03": 6,
+      "04": 3,
+      "05": 2,
+      "06": 4,
+      "07": 9,
+      "08": 18,
+      "09": 13,
+      "10": 25,
+      "11": 54,
+      "12": 94
+    },
+    "2024": {
+      "01": 150,
+      "02": 257,
+      "03": 207,
+      "04": 116,
+      "05": 77,
+      "06": 79,
+      "07": 79,
+      "08": 72,
+      "09": 76,
+      "10": 100,
+      "11": 81,
+      "12": 59
+    },
+    "2025": {
+      "01": 90,
+      "02": 94,
+      "03": 170,
+      "04": 162,
+      "05": 152,
+      "06": 134,
+      "07": 124,
+      "08": 118,
+      "09": 123,
+      "10": 139,
+      "11": 105,
+      "12": 65
+    },
+    "2026": {
+      "01": 86
+    }
+  },
+  "by_month_and_source_read_status": {
+    "01": {
+      "GitHub": [
+        3,
+        17
+      ],
+      "Shopify": [
+        2,
+        7
+      ],
+      "Substack": [
+        130,
+        72
+      ],
+      "freeCodeCamp": [
+        44,
+        57
+      ]
+    },
+    "02": {
+      "GitHub": [
+        1,
+        6
+      ],
+      "Shopify": [
+        2,
+        6
+      ],
+      "Stripe": [
+        1,
+        1
+      ],
+      "Substack": [
+        74,
+        137
+      ],
+      "freeCodeCamp": [
+        65,
+        70
+      ]
+    },
+    "03": {
+      "GitHub": [
+        4,
+        4
+      ],
+      "Shopify": [
+        2,
+        6
+      ],
+      "Stripe": [
+        0,
+        2
+      ],
+      "Substack": [
+        75,
+        175
+      ],
+      "freeCodeCamp": [
+        53,
+        68
+      ]
+    },
+    "04": {
+      "GitHub": [
+        2,
+        1
+      ],
+      "Shopify": [
+        1,
+        5
+      ],
+      "Stripe": [
+        0,
+        1
+      ],
+      "Substack": [
+        53,
+        101
+      ],
+      "freeCodeCamp": [
+        56,
+        64
+      ]
+    },
+    "05": {
+      "GitHub": [
+        4,
+        2
+      ],
+      "Shopify": [
+        4,
+        1
+      ],
+      "Stripe": [
+        0,
+        4
+      ],
+      "Substack": [
+        56,
+        66
+      ],
+      "freeCodeCamp": [
+        66,
+        34
+      ]
+    },
+    "06": {
+      "GitHub": [
+        3,
+        1
+      ],
+      "Shopify": [
+        5,
+        0
+      ],
+      "Stripe": [
+        1,
+        0
+      ],
+      "Substack": [
+        63,
+        52
+      ],
+      "freeCodeCamp": [
+        63,
+        30
+      ]
+    },
+    "07": {
+      "GitHub": [
+        1,
+        3
+      ],
+      "Shopify": [
+        5,
+        4
+      ],
+      "Stripe": [
+        1,
+        1
+      ],
+      "Substack": [
+        44,
+        73
+      ],
+      "freeCodeCamp": [
+        47,
+        38
+      ]
+    },
+    "08": {
+      "GitHub": [
+        0,
+        3
+      ],
+      "Shopify": [
+        2,
+        8
+      ],
+      "Stripe": [
+        0,
+        1
+      ],
+      "Substack": [
+        53,
+        58
+      ],
+      "freeCodeCamp": [
+        50,
+        37
+      ]
+    },
+    "09": {
+      "GitHub": [
+        1,
+        2
+      ],
+      "Shopify": [
+        2,
+        3
+      ],
+      "Stripe": [
+        2,
+        2
+      ],
+      "Substack": [
+        47,
+        67
+      ],
+      "freeCodeCamp": [
+        51,
+        41
+      ]
+    },
+    "10": {
+      "GitHub": [
+        1,
+        1
+      ],
+      "Shopify": [
+        4,
+        5
+      ],
+      "Stripe": [
+        0,
+        1
+      ],
+      "Substack": [
+        55,
+        78
+      ],
+      "freeCodeCamp": [
+        72,
+        53
+      ]
+    },
+    "11": {
+      "GitHub": [
+        0,
+        2
+      ],
+      "Shopify": [
+        4,
+        2
+      ],
+      "Stripe": [
+        1,
+        0
+      ],
+      "Substack": [
+        81,
+        68
+      ],
+      "freeCodeCamp": [
+        38,
+        48
+      ]
+    },
+    "12": {
+      "GitHub": [
+        1,
+        0
+      ],
+      "Shopify": [
+        2,
+        7
+      ],
+      "Stripe": [
+        0,
+        1
+      ],
+      "Substack": [
+        106,
+        42
+      ],
+      "freeCodeCamp": [
+        32,
+        34
+      ]
+    }
+  },
+  "by_category": {
+    "GitHub": [
+      21,
+      42
+    ],
+    "Shopify": [
+      35,
+      54
+    ],
+    "Stripe": [
+      6,
+      14
+    ],
+    "Substack": [
+      837,
+      989
+    ],
+    "freeCodeCamp": [
+      637,
+      574
+    ]
+  },
+  "by_category_and_source": {},
+  "read_unread_totals": [
+    1536,
+    1673
+  ],
+  "unread_by_month": {
+    "01": 153,
+    "02": 220,
+    "03": 255,
+    "04": 172,
+    "05": 107,
+    "06": 83,
+    "07": 119,
+    "08": 107,
+    "09": 115,
+    "10": 138,
+    "11": 120,
+    "12": 84
+  },
+  "unread_by_category": {
+    "GitHub": 42,
+    "Shopify": 54,
+    "Stripe": 14,
+    "Substack": 989,
+    "freeCodeCamp": 574
+  },
+  "unread_by_source": {
+    "GitHub": 42,
+    "Shopify": 54,
+    "Stripe": 14,
+    "Substack": 989,
+    "freeCodeCamp": 574
+  },
+  "unread_by_year": {
+    "2018": 9,
+    "2019": 6,
+    "2020": 9,
+    "2021": 8,
+    "2022": 11,
+    "2023": 18,
+    "2024": 827,
+    "2025": 726,
+    "2026": 59
+  },
+  "unread_article_age_distribution": {
+    "1_to_3_months": 105,
+    "3_to_6_months": 194,
+    "6_to_12_months": 376,
+    "less_than_1_month": 59,
+    "older_than_1year": 939
+  },
+  "oldest_unread_article": {
+    "title": "Implementing ChatOps into our Incident Management Procedure",
+    "date": "2018-02-13",
+    "link": "https://shopify.engineering/implementing-chatops-into-our-incident-management-procedure",
+    "category": "Shopify",
+    "read": false
+  },
+  "top_oldest_unread_articles": [
+    {
+      "title": "Implementing ChatOps into our Incident Management Procedure",
+      "date": "2018-02-13",
+      "link": "https://shopify.engineering/implementing-chatops-into-our-incident-management-procedure",
+      "category": "Shopify",
+      "read": false
+    },
+    {
+      "title": "Future Proofing Our Cloud Storage Usage",
+      "date": "2018-02-26",
+      "link": "https://shopify.engineering/future-proofing-our-cloud-storage-usage",
+      "category": "Shopify",
+      "read": false
+    },
+    {
+      "title": "A Pods Architecture To Allow Shopify To Scale",
+      "date": "2018-03-02",
+      "link": "https://shopify.engineering/a-pods-architecture-to-allow-shopify-to-scale",
+      "category": "Shopify",
+      "read": false
+    }
+  ],
+  "source_metadata": {
+    "GitHub": {
+      "added": "2024-03-18"
+    },
+    "Shopify": {
+      "added": "2025-03-05"
+    },
+    "Stripe": {
+      "added": "2025-11-19"
+    },
+    "Substack": {
+      "added": "initial"
+    },
+    "freeCodeCamp": {
+      "added": "initial"
+    }
+  },
+  "read_count": 1536,
+  "unread_count": 1673,
+  "read_rate": 47.86537862262387,
+  "avg_articles_per_month": 18.34052359882006,
+  "last_updated": "2026-01-30T16:05:14.685229993Z",
+  "ai_delta_analysis": "Reading velocity has slightly increased, indicated by a marginal improvement in the read rate. The backlog of articles older than one year has seen a minor reduction, but there has been a small increase in unread articles from 2026. The primary focus of reading this week remained on content from 2024 and 2025, with a notable rise in engagement with content from 2026."
+}
