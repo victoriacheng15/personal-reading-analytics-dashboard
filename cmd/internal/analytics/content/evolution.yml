@@ -103,19 +103,24 @@ chapters:
           - "Defined architectural standards to prioritize RSS feeds, shifting strategy from fragile scraping to stable API-based ingestion."
 
       - date: "2026-01-22"
-        title: "Transitioned to RSS Extraction & Proposed AI Insights"
+        title: "Transitioned to RSS Extraction"
         artifacts:
           - name: "ADR 001: Prefer RSS over Scraping"
             url: "docs/decisions/001-prefer-rss-over-html-scraping.md"
-          - name: "ADR 002: Integrate AI Delta Analysis"
-            url: "docs/decisions/002-integrate-ai-delta-analysis.md"
         description: |
           - "Led the migration of key data sources to auto-detected RSS feeds, significantly improving pipeline reliability."
-          - "Authored ADR 002 to propose integrating Generative AI for qualitative trend analysis."
 
   - title: "Intelligence"
     intro: "Integrating AI-powered analysis to extract qualitative insights."
     timeline:
+      - date: "2026-01-22"
+        title: "Proposed AI Delta Analysis"
+        artifacts:
+          - name: "ADR 002: Integrate AI Delta Analysis"
+            url: "docs/decisions/002-integrate-ai-delta-analysis.md"
+        description: |
+          - "Authored ADR 002 to propose integrating Generative AI for qualitative trend analysis."
+
       - date: "2026-01-23"
         title: "Integrated AI Delta Analysis"
         artifacts:
@@ -124,3 +129,14 @@ chapters:
         description: |
           - "Integrated Google Gemini (GenAI) to transform raw reading metrics into qualitative, actionable insights."
           - "Designed a flexible analysis pipeline allowing standalone execution for cost optimization."
+
+  - title: "Persistence"
+    intro: "Preserving historical snapshots to visualize long-term reading trends."
+    timeline:
+      - date: "2026-01-30"
+        title: "Proposed Static Historical Metrics Snapshots"
+        artifacts:
+          - name: "ADR 003: Static Historical Metrics"
+            url: "docs/decisions/003-static-historical-metrics.md"
+        description: |
+          - "Authored ADR 003 to transform the analytics from a single snapshot into a permanent historical archive."

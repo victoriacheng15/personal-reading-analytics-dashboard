@@ -8,6 +8,7 @@ This directory contains the history of significant architectural shifts and tech
 | :--- | :--- | :--- |
 | **001** | [Prefer RSS/Atom Feeds over HTML Scraping](001-prefer-rss-over-html-scraping.md) | `Accepted` |
 | **002** | [Integrate AI Delta Analysis](002-integrate-ai-delta-analysis.md) | `Accepted` |
+| **003** | [Static Generation for Historical Metrics](003-static-historical-metrics.md) | `Proposed` |
 
 ---
 
