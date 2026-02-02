@@ -1,5 +1,13 @@
 {{define "content"}}
 <main class="analytics-page">
+    {{ if .IsHistorical }}
+    <aside class="historical-banner" aria-label="Archive notice">
+        <p>
+            <span role="img" aria-hidden="true">📂</span> Viewing archived report from <time datetime="{{.ReportDate}}">{{.ReportDate}}</time>. 
+            <a href="{{.BaseURL}}analytics.html">Return to latest snapshot</a>
+        </p>
+    </aside>
+    {{ end }}
 <section class="metrics-grid">
     <aside class="ai-summary-card full-width" role="note" aria-label="AI Delta Analysis">
         <h3 class="ai-card-title"><span role="img" aria-label="Robot">🤖</span> AI Delta Analysis</h3>

@@ -29,17 +29,52 @@ func NewAnalyticsService(outputDir string) *AnalyticsService {
 	return &AnalyticsService{outputDir: outputDir}
 }
 
-// Generate creates the analytics files from the provided metrics
-func (s *AnalyticsService) Generate(m schema.Metrics) error {
-	vm, err := s.prepareViewModel(m)
+// GenConfig holds configuration for a specific generation pass
+type GenConfig struct {
+	OutputDir    string
+	BaseURL      string
+	IsHistorical bool
+	HistoryDates []string
+	ReportDate   string
+}
+
+// GenerateFullSite generates all pages (index, analytics, evolution)
+func (s *AnalyticsService) GenerateFullSite(m schema.Metrics, config GenConfig) error {
+	vm, err := s.prepareViewModel(m, config)
 	if err != nil {
 		return fmt.Errorf("failed to prepare view model: %w", err)
 	}
 
-	return s.render(vm)
+	pages := []struct {
+		Filename string
+		Title    string
+	}{
+		{"index.html", AnalyticsTitle},
+		{"analytics.html", "📊 Analytics"},
+		{"evolution.html", "⏳ Evolution"},
+	}
+
+	return s.render(vm, config.OutputDir, pages)
 }
 
-func (s *AnalyticsService) prepareViewModel(m schema.Metrics) (ViewModel, error) {
+// GenerateAnalyticsOnly generates only the analytics.html page
+func (s *AnalyticsService) GenerateAnalyticsOnly(m schema.Metrics, config GenConfig) error {
+	vm, err := s.prepareViewModel(m, config)
+	if err != nil {
+		return fmt.Errorf("failed to prepare view model: %w", err)
+	}
+
+	pages := []struct {
+		Filename string
+		Title    string
+	}{
+		{"analytics.html", "📊 Analytics (Archived)"},
+	}
+
+	return s.render(vm, config.OutputDir, pages)
+}
+
+func (s *AnalyticsService) prepareViewModel(m schema.Metrics, config GenConfig) (ViewModel, error) {
 	// Sort sources by count
 	var sources []schema.SourceInfo
 	for name, count := range m.BySource {
@@ -233,10 +268,19 @@ func (s *AnalyticsService) prepareViewModel(m schema.Metrics) (ViewModel, error)
 		TopOldestUnreadArticles:          m.TopOldestUnreadArticles,
 		EvolutionData:                    evolutionData,
 		IndexContent:                     indexContent,
+
+		// New fields from config
+		BaseURL:      config.BaseURL,
+		IsHistorical: config.IsHistorical,
+		HistoryDates: config.HistoryDates,
+		ReportDate:   config.ReportDate,
 	}, nil
 }
 
-func (s *AnalyticsService) render(vm ViewModel) error {
+func (s *AnalyticsService) render(vm ViewModel, outputDir string, pages []struct {
+	Filename string
+	Title    string
+}) error {
 	// Get templates directory
 	tmplDir, err := GetTemplatesDir()
 	if err != nil {
@@ -257,26 +301,16 @@ func (s *AnalyticsService) render(vm ViewModel) error {
 	}
 
 	// Create output directory
-	if err := os.MkdirAll(s.outputDir, 0755); err != nil {
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
 	// Copy CSS directory
 	cssSrc := filepath.Join(tmplDir, "css")
-	cssDst := filepath.Join(s.outputDir, "css")
+	cssDst := filepath.Join(outputDir, "css")
 	if err := copyDir(cssSrc, cssDst); err != nil {
 		// Log warning but don't fail, in case css dir doesn't exist
 		log.Printf("⚠️ Warning: Failed to copy CSS directory: %v", err)
-	}
-
-	// Pages to generate
-	pages := []struct {
-		Filename string
-		Title    string
-	}{
-		{"index.html", AnalyticsTitle},
-		{"analytics.html", "📊 Analytics"},
-		{"evolution.html", "⏳ Evolution"},
 	}
 
 	// Loop and generate each page
@@ -297,7 +331,7 @@ func (s *AnalyticsService) render(vm ViewModel) error {
 		}
 
 		// Create output file
-		outPath := filepath.Join(s.outputDir, page.Filename)
+		outPath := filepath.Join(outputDir, page.Filename)
 		f, err := os.Create(outPath)
 		if err != nil {
 			return fmt.Errorf("failed to create %s: %w", outPath, err)
@@ -313,7 +347,7 @@ func (s *AnalyticsService) render(vm ViewModel) error {
 			return fmt.Errorf("failed to execute template for %s: %w", page.Filename, err)
 		}
 	}
-	log.Printf("✅ Successfully generated site")
+	log.Printf("✅ Successfully generated site in %s", outputDir)
 
 	return nil
 }

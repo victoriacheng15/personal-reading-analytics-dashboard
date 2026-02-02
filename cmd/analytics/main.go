@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -12,64 +13,92 @@ import (
 	analytics "github.com/victoriacheng15/personal-reading-analytics/cmd/internal/analytics"
 )
 
-// loadLatestMetrics reads the most recent metrics JSON file from metrics/ folder
-func loadLatestMetrics() (schema.Metrics, error) {
+// getMetricsDates returns all YYYY-MM-DD dates from JSON files in metrics/ folder, sorted descending
+func getMetricsDates() ([]string, error) {
 	entries, err := os.ReadDir("metrics")
 	if err != nil {
-		return schema.Metrics{}, fmt.Errorf("unable to read metrics directory: %w", err)
+		return nil, fmt.Errorf("unable to read metrics directory: %w", err)
 	}
 
-	if len(entries) == 0 {
-		return schema.Metrics{}, fmt.Errorf("no metrics files found in metrics/ folder")
-	}
-
-	// Find the latest metrics file (they are named YYYY-MM-DD.json)
-	var jsonFiles []string
+	var dates []string
 	for _, entry := range entries {
 		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
-			jsonFiles = append(jsonFiles, entry.Name())
+			date := strings.TrimSuffix(entry.Name(), ".json")
+			dates = append(dates, date)
 		}
 	}
 
-	if len(jsonFiles) == 0 {
-		return schema.Metrics{}, fmt.Errorf("no valid metrics files found")
+	if len(dates) == 0 {
+		return nil, fmt.Errorf("no valid metrics files found")
 	}
 
-	// Sort descending (latest first, since YYYY-MM-DD.json is lexicographically ordered)
-	sort.Sort(sort.Reverse(sort.StringSlice(jsonFiles)))
-	latestFile := jsonFiles[0]
+	sort.Sort(sort.Reverse(sort.StringSlice(dates)))
+	return dates, nil
+}
 
-	log.Printf("Loading metrics from: metrics/%s\n", latestFile)
-
-	// Read and parse the JSON file
-	data, err := os.ReadFile(fmt.Sprintf("metrics/%s", latestFile))
+// loadMetricsByDate reads a specific metrics JSON file from metrics/ folder
+func loadMetricsByDate(date string) (schema.Metrics, error) {
+	filename := fmt.Sprintf("metrics/%s.json", date)
+	data, err := os.ReadFile(filename)
 	if err != nil {
-		return schema.Metrics{}, fmt.Errorf("unable to read metrics file: %w", err)
+		return schema.Metrics{}, fmt.Errorf("unable to read metrics file %s: %w", filename, err)
 	}
 
 	var metrics schema.Metrics
 	err = json.Unmarshal(data, &metrics)
 	if err != nil {
-		return schema.Metrics{}, fmt.Errorf("unable to parse metrics JSON: %w", err)
+		return schema.Metrics{}, fmt.Errorf("unable to parse metrics JSON from %s: %w", filename, err)
 	}
 
 	return metrics, nil
 }
 
 func main() {
-	// Load latest metrics from metrics/ folder
-	metrics, err := loadLatestMetrics()
+	// 1. Get all available metrics dates
+	dates, err := getMetricsDates()
 	if err != nil {
-		log.Fatalf("Failed to load metrics: %v", err)
+		log.Fatalf("Failed to discover metrics: %v", err)
 	}
 
-	// Initialize Analytics Service
+	// 2. Initialize Analytics Service
 	service := analytics.NewAnalyticsService("site")
 
-	// Generate HTML analytics
-	if err := service.Generate(metrics); err != nil {
-		log.Fatalf("failed to generate analytics: %v", err)
+	// 3. Multi-pass generation
+	for i, date := range dates {
+		log.Printf("[%d/%d] Generating reports for %s...\n", i+1, len(dates), date)
+
+		metrics, err := loadMetricsByDate(date)
+		if err != nil {
+			log.Printf("⚠️ Warning: Skipping %s: %v\n", date, err)
+			continue
+		}
+
+		// Historical: ONLY analytics.html in site/history/YYYY-MM-DD
+		err = service.GenerateAnalyticsOnly(metrics, analytics.GenConfig{
+			OutputDir:    filepath.Join("site", "history", date),
+			BaseURL:      "../../",
+			IsHistorical: true,
+			HistoryDates: dates,
+			ReportDate:   date,
+		})
+		if err != nil {
+			log.Printf("⚠️ Warning: Failed historical generation for %s: %v\n", date, err)
+		}
+
+		// Latest (root): ALL pages in site/
+		if i == 0 {
+			err = service.GenerateFullSite(metrics, analytics.GenConfig{
+				OutputDir:    "site",
+				BaseURL:      "./",
+				IsHistorical: false,
+				HistoryDates: dates,
+				ReportDate:   date,
+			})
+			if err != nil {
+				log.Fatalf("Failed to generate latest site: %v", err)
+			}
+		}
 	}
 
-	log.Println("✅ Successfully generated analytics from metrics")
+	log.Println("✅ Successfully generated all historical and latest analytics")
 }
