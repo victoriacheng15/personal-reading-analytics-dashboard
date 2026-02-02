@@ -15,7 +15,7 @@ func TestAnalyticsService_Generate(t *testing.T) {
 		expectSuccess bool
 	}{
 		{
-			name: "generates html analytics with metrics",
+			name: "generates full site with metrics",
 			metrics: schema.Metrics{
 				TotalArticles: 10,
 				BySource:      map[string]int{"SourceA": 10},
@@ -58,8 +58,7 @@ func TestAnalyticsService_Generate(t *testing.T) {
 			}
 
 			// Create required template files
-			baseTmpl := `{{define "base"}}<html><head><title>{{.AnalyticsTitle}} - {{.PageTitle}}</title></head><body><div id="app"><header><h1>{{.PageTitle}}</h1><time>Last updated: {{.LastUpdated.Format "Jan 02, 2006 at 3:04 PM"}}</time><nav><ul><li><a href="index.html">Home</a></li><li><a href="analytics.html">Analytics</a></li><li><a href="evolution.html">Evolution</a></li></ul></nav></header>{{block "content" .}}{{end}}<footer><p>📈 Data sourced from personal article collection • Updated weekly via GitHub Actions</p></footer></div></body></html>{{end}}`
-			// headerTmpl and footerTmpl are no longer needed
+			baseTmpl := `{{define "base"}}<html><head><title>{{.AnalyticsTitle}} - {{.PageTitle}}</title></head><body><div id="app"><header><h1>{{.PageTitle}}</h1><nav><ul><li><a href="{{.BaseURL}}index.html">Home</a></li></ul></nav></header>{{block "content" .}}{{end}}</div></body></html>{{end}}`
 			indexTmpl := `{{define "content"}}<h1>Home</h1>{{end}}{{template "base" .}}`
 			analyticsTmpl := `{{define "content"}}<h1>Analytics</h1>{{end}}{{template "base" .}}`
 			evolutionTmpl := `{{define "content"}}<h1>Evolution</h1>{{end}}{{template "base" .}}`
@@ -116,13 +115,35 @@ engineering_principles_section:
 			}
 
 			service := NewAnalyticsService("site")
-			err = service.Generate(tt.metrics)
+			config := GenConfig{
+				OutputDir:    "site",
+				BaseURL:      "./",
+				IsHistorical: false,
+				HistoryDates: []string{"2024-01-01"},
+				ReportDate:   "2024-01-01",
+			}
+
+			// Test Full Site Generation
+			err = service.GenerateFullSite(tt.metrics, config)
 			if (err == nil) != tt.expectSuccess {
-				t.Errorf("AnalyticsService.Generate() error = %v, expectSuccess %v", err, tt.expectSuccess)
+				t.Errorf("GenerateFullSite() error = %v, expectSuccess %v", err, tt.expectSuccess)
 			}
 
 			if _, err := os.Stat("site/index.html"); os.IsNotExist(err) {
 				t.Error("site/index.html was not created")
+			}
+
+			// Test Analytics Only Generation
+			config.IsHistorical = true
+			config.OutputDir = "site/history/2024-01-01"
+			config.BaseURL = "../../"
+			err = service.GenerateAnalyticsOnly(tt.metrics, config)
+			if (err == nil) != tt.expectSuccess {
+				t.Errorf("GenerateAnalyticsOnly() error = %v, expectSuccess %v", err, tt.expectSuccess)
+			}
+
+			if _, err := os.Stat("site/history/2024-01-01/analytics.html"); os.IsNotExist(err) {
+				t.Error("site/history/2024-01-01/analytics.html was not created")
 			}
 		})
 	}

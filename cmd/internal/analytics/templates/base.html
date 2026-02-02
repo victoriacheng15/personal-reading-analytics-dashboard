@@ -19,9 +19,23 @@
             </div>
             <nav>
                 <ul>
-                    <li><a href="index.html" {{if eq .PageTitle "Home"}}aria-current="page"{{end}}>Home</a></li>
-                    <li><a href="analytics.html" {{if eq .PageTitle "Analytics"}}aria-current="page"{{end}}>Analytics</a></li>
-                    <li><a href="evolution.html" {{if eq .PageTitle "Evolution"}}aria-current="page"{{end}}>Evolution</a></li>
+                    <li><a href="{{.BaseURL}}index.html" {{if eq .PageTitle "📚 Personal Reading Analytics"}}aria-current="page"{{end}}>Home</a></li>
+                    <li><a href="{{.BaseURL}}analytics.html" {{if (or (eq .PageTitle "📊 Analytics") (eq .PageTitle "📊 Analytics (Archived)"))}}aria-current="page"{{end}}>Analytics</a></li>
+                    <li><a href="{{.BaseURL}}evolution.html" {{if eq .PageTitle "⏳ Evolution"}}aria-current="page"{{end}}>Evolution</a></li>
+                    {{if (or (eq .PageTitle "📊 Analytics") (eq .PageTitle "📊 Analytics (Archived)"))}}
+                    <li class="history-nav-item">
+                        <label for="snapshot-selector" class="visually-hidden">Select Snapshot</label>
+                        <select id="snapshot-selector" class="snapshot-select" onchange="window.location.href=this.value">
+                            <option value="{{.BaseURL}}analytics.html">Latest Analytics</option>
+                            {{$base := .BaseURL}}
+                            {{range .HistoryDates}}
+                            <option value="{{$base}}history/{{.}}/analytics.html" {{if eq . $.ReportDate}}selected{{end}}>
+                                {{.}}
+                            </option>
+                            {{end}}
+                        </select>
+                    </li>
+                    {{end}}
                 </ul>
             </nav>
         </header>

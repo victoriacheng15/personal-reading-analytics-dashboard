@@ -24,36 +24,34 @@ func isValidURL(link string) bool {
 }
 
 // ============================================================================
-// loadLatestMetrics: Loads the latest metrics JSON file from the metrics directory
+// getMetricsDates: Returns all YYYY-MM-DD dates from JSON files in metrics/ folder
+// loadMetricsByDate: Reads a specific metrics JSON file from metrics/ folder
 // ============================================================================
 
-func TestLoadLatestMetrics(t *testing.T) {
+func TestGetMetricsDates(t *testing.T) {
 	tests := []struct {
-		name             string
-		fileNames        []string
-		fileContents     []string
-		expectedArticles int
-		expectError      bool
+		name          string
+		fileNames     []string
+		expectedDates []string
+		expectError   bool
 	}{
 		{
-			name:             "loads latest metrics file",
-			fileNames:        []string{"2025-01-01.json", "2024-01-01.json"},
-			fileContents:     []string{`{"total_articles": 100}`, `{"total_articles": 50}`},
-			expectedArticles: 100,
-			expectError:      false,
+			name:          "returns sorted dates",
+			fileNames:     []string{"2025-01-01.json", "2024-01-01.json", "invalid.txt"},
+			expectedDates: []string{"2025-01-01", "2024-01-01"},
+			expectError:   false,
 		},
 		{
-			name:             "single metrics file",
-			fileNames:        []string{"2024-01-01.json"},
-			fileContents:     []string{`{"total_articles": 50}`},
-			expectedArticles: 50,
-			expectError:      false,
+			name:          "no valid metrics files",
+			fileNames:     []string{"not-a-date.txt"},
+			expectedDates: nil,
+			expectError:   true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tmpDir, err := os.MkdirTemp("", "test_metrics")
+			tmpDir, err := os.MkdirTemp("", "test_metrics_dates")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -64,8 +62,8 @@ func TestLoadLatestMetrics(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			for i, fileName := range tt.fileNames {
-				if err := os.WriteFile(filepath.Join(metricsDir, fileName), []byte(tt.fileContents[i]), 0644); err != nil {
+			for _, fileName := range tt.fileNames {
+				if err := os.WriteFile(filepath.Join(metricsDir, fileName), []byte("{}"), 0644); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -76,7 +74,74 @@ func TestLoadLatestMetrics(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			metrics, err := loadLatestMetrics()
+			dates, err := getMetricsDates()
+			if (err != nil) != tt.expectError {
+				t.Errorf("unexpected error: %v", err)
+			}
+
+			if len(dates) != len(tt.expectedDates) {
+				t.Errorf("expected %d dates, got %d", len(tt.expectedDates), len(dates))
+			}
+
+			for i := range dates {
+				if dates[i] != tt.expectedDates[i] {
+					t.Errorf("expected date %s, got %s", tt.expectedDates[i], dates[i])
+				}
+			}
+		})
+	}
+}
+
+func TestLoadMetricsByDate(t *testing.T) {
+	tests := []struct {
+		name             string
+		date             string
+		fileContent      string
+		expectedArticles int
+		expectError      bool
+	}{
+		{
+			name:             "loads metrics for specific date",
+			date:             "2025-01-01",
+			fileContent:      `{"total_articles": 100}`,
+			expectedArticles: 100,
+			expectError:      false,
+		},
+		{
+			name:             "non-existent date",
+			date:             "2000-01-01",
+			fileContent:      "",
+			expectedArticles: 0,
+			expectError:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir, err := os.MkdirTemp("", "test_metrics_by_date")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer os.RemoveAll(tmpDir)
+
+			metricsDir := filepath.Join(tmpDir, "metrics")
+			if err := os.Mkdir(metricsDir, 0755); err != nil {
+				t.Fatal(err)
+			}
+
+			if tt.fileContent != "" {
+				if err := os.WriteFile(filepath.Join(metricsDir, tt.date+".json"), []byte(tt.fileContent), 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			oldWd, _ := os.Getwd()
+			defer os.Chdir(oldWd)
+			if err := os.Chdir(tmpDir); err != nil {
+				t.Fatal(err)
+			}
+
+			metrics, err := loadMetricsByDate(tt.date)
 			if (err != nil) != tt.expectError {
 				t.Errorf("unexpected error: %v", err)
 			}

@@ -40,4 +40,10 @@ type ViewModel struct {
 	TopOldestUnreadArticles          []schema.ArticleMeta
 	EvolutionData                    schema.EvolutionData
 	IndexContent                     schema.IndexContent
+
+	// Historical Metrics context
+	BaseURL      string
+	IsHistorical bool
+	HistoryDates []string
+	ReportDate   string
 }
