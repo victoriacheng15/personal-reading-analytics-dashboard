@@ -140,3 +140,12 @@ chapters:
             url: "docs/decisions/003-static-historical-metrics.md"
         description: |
           - "Authored ADR 003 to transform the analytics from a single snapshot into a permanent historical archive."
+
+      - date: "2026-02-02"
+        title: "Implemented Historical Metrics Snapshots"
+        artifacts:
+          - name: "ADR 003: Static Historical Metrics"
+            url: "docs/decisions/003-static-historical-metrics.md"
+        description: |
+          - "Transformed the analytics into a permanent historical archive using a multi-pass generator."
+          - "Implemented a relative navigation system and a snapshot selector for seamless version switching."

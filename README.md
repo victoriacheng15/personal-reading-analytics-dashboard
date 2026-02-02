@@ -10,9 +10,9 @@ Beyond standard charts, it performs an **AI Delta Analysis** to generate a quali
 
 ---
 
-## 🔗 Live Anayltics
+## 🔗 Live Analytics
 
-👉 [See Live Anayltics](https://victoriacheng15.github.io/personal-reading-analytics/)
+👉 [See Live Analytics](https://victoriacheng15.github.io/personal-reading-analytics/)
 
 ---
 
@@ -37,7 +37,7 @@ Unlike typical "script-based" scrapers, this system is architected for scale and
 
 ### 📈 System Observability
 
-To demonstrate operational maturity, I maintain a public **[Observability Hub](https://victoriacheng15.github.io/observability-hub/snapsots.html)**.
+To demonstrate operational maturity, I maintain a public **[Observability Hub](https://victoriacheng15.github.io/observability-hub/snapshots.html)**.
 This separate dashboard visualizes the "health" of this pipeline (ETL status, error rates, latencies) without requiring Grafana authentication.
 
 For deep technical details, architectural diagrams, and operational guides, please visit the **[Documentation](docs/README.md)**.
@@ -63,6 +63,7 @@ For deep technical details, architectural diagrams, and operational guides, plea
 - **Total articles**: Tracking total articles across currently supported sources
 - **Read rate**: Percentage of articles completed with visual highlighting
 - **AI Delta Analysis**: Multi-dimensional analysis of reading **Velocity** (pace), **Backlog Health** (clearing old debt vs. new noise), and **Chronology** (era of content focus) to provide narrative context beyond raw numbers.
+- **Historical Archive**: A permanent record of past weekly snapshots, accessible via a context-aware selector to track progress over time.
 - **Reading statistics**: Read count, unread count, and average articles per month
 - **Highlight badges**: Top read rate source, most unread source, current month's read articles
 
@@ -101,7 +102,7 @@ Learn about the journey of this project: from local-only execution, to Docker co
 
 - [Part 1: From Pi to Cloud Automation](https://victoriacheng15.vercel.app/blog/from-pi-to-cloud-automation)
 - [Part 2: From Links to Reading insights](https://victoriacheng15.vercel.app/blog/from-links-to-reading-insights)
-- [Part 3: From Metrics to Milestones](https://mehub-git-fix-rss-escaping-victoriacheng15s-projects.vercel.app/blog/from-metrics-to-milestones)
+- [Part 3: From Metrics to Milestones](https://victoriacheng15.vercel.app/blog/from-metrics-to-milestones)
 
 ---
 
