@@ -28,14 +28,14 @@ Fetches raw data from Google Sheets and performs all heavy aggregation logic.
 
 ### 2. Analytics Generator (`cmd/analytics`)
 
-Reads the latest metrics and evolution data to render the static site.
+Reads archived metrics and evolution data to render the static site.
 
 - **Responsibility:**
-  - Identifying the latest metrics JSON file.
+  - Identifying **all** metrics JSON files in the `metrics/` folder.
   - Loading project history from `evolution.yml`.
   - Preparing Chart.js payloads.
-  - Executing Go HTML templates to generate specific pages.
-- **Key Feature:** It is decoupled from the data source (Google Sheets). It can regenerate the site from archived JSONs offline.
+  - Executing Go HTML templates to generate the current site and historical archives.
+- **Key Feature:** Multi-pass generation. It iterates over every snapshot to build a browsable history, while the latest snapshot populates the root dashboard.
 
 ### 3. UI & Templates (`cmd/internal/analytics/templates/`)
 
@@ -45,7 +45,7 @@ The source templates used by the Analytics Generator to produce the final site.
   - `index.html`: Landing page template with project origin story and design principles.
   - `analytics.html`: Analytics template for reading metrics and interactive charts.
   - `evolution.html`: Timeline template for visualizing technical growth.
-  - `base.html`, `header.html`, `footer.html`: Shared layout components.
+  - `base.html`: Shared layout component containing the main structure and navigation.
 - **Technology:** Go `html/template`, CSS variables for theming, and Chart.js.
 - **Security:** No runtime external API calls; all data is embedded at build time.
 
@@ -70,16 +70,23 @@ sequenceDiagram
     participant Main as cmd/analytics
     participant FS as File System
     participant Tmpl as HTML Templates
-    participant Output as site/*.html
+    participant Output as site/
 
     Main->>FS: Scan metrics/ directory
     FS-->>Main: List [2024-12-01.json, 2024-12-08.json...]
-    Main->>Main: Sort & Select Latest
-    Main->>FS: Read Latest JSON & evolution.yml
-    Main->>Main: Unmarshal Data & Prepare Chart Payloads
-    loop For Each Page (Index, Analytics, Evolution)
-        Main->>Tmpl: Parse & Execute Template
-        Tmpl-->>Output: Generate HTML File
+    Main->>Main: Sort snapshots (latest first)
+    
+    loop For Each Snapshot
+        Main->>FS: Read Snapshot JSON
+        Main->>Main: Unmarshal & Prepare Chart Payloads
+        
+        alt is Latest Snapshot
+            Main->>Tmpl: Parse & Execute (Index, Analytics, Evolution)
+            Tmpl-->>Output: Generate root HTML files
+        else is Historical Snapshot
+            Main->>Tmpl: Parse & Execute (Analytics only)
+            Tmpl-->>Output: Generate history/YYYY-MM-DD/analytics.html
+        end
     end
 ```
 

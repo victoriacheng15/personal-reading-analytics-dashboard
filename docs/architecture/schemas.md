@@ -114,13 +114,21 @@ The `EvolutionData` struct defines the structure for `evolution.yml`, which powe
 
 ```go
 type EvolutionData struct {
-    Events []Milestone `yaml:"events"`
+ Chapters []Chapter `yaml:"chapters"`
+}
+
+type Chapter struct {
+ Title    string      `yaml:"title"`
+ Period   string      `yaml:"period"`
+ Intro    string      `yaml:"intro"`
+ Timeline []Milestone `yaml:"timeline"`
 }
 
 type Milestone struct {
-    Date             string   `yaml:"date"`
-    Title            string   `yaml:"title"`
-    Description      string   `yaml:"description"` // Raw multiline string from YAML
-    DescriptionLines []string `yaml:"-"`           // Parsed into a slice for templates
+ Date             string     `yaml:"date"`
+ Title            string     `yaml:"title"`
+ Artifacts        []Artifact `yaml:"artifacts,omitempty"`
+ Description      string     `yaml:"description"`
+ DescriptionLines []string   `yaml:"-"`
 }
 ```
