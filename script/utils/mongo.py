@@ -180,7 +180,12 @@ def insert_error_event_mongo(
         payload["traceback"] = traceback_str
 
     # Ensure source is lowercased for consistency
-    doc = _create_event_doc(source.lower(), "extraction_failed" if error_type == "extraction_failed" else error_type, payload, meta=metadata)
+    doc = _create_event_doc(
+        source.lower(),
+        "extraction_failed" if error_type == "extraction_failed" else error_type,
+        payload,
+        meta=metadata,
+    )
 
     try:
         result = collection.insert_one(doc)

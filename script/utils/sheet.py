@@ -90,5 +90,7 @@ def batch_append_articles(sheet: Worksheet, articles: List[tuple]) -> None:
 
     # Batch append all rows at once
     # Ensure source is lowercased for consistency
-    rows = [[date, title, link, source.lower()] for date, title, link, source in articles]
+    rows = [
+        [date, title, link, source.lower()] for date, title, link, source in articles
+    ]
     sheet.append_rows(rows)

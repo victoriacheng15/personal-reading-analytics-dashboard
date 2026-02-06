@@ -8,8 +8,8 @@ from utils import (
     extract_shopify_articles,
     extract_stripe_articles,
     get_articles,
-    provider_dict,
-    extractor_error_handler,
+    get_strategy_handler,
+    wrap_with_error_handler,
 )
 
 
@@ -37,7 +37,6 @@ def test_extract_fcc_articles_success():
         "2025-01-15",
         "Test Title",
         "https://www.freecodecamp.org/news/test-article",
-        "freeCodeCamp",
     )
 
 
@@ -59,7 +58,6 @@ def test_extract_fcc_articles_rss_success():
         "2025-01-15",
         "RSS Test Title",
         "https://www.freecodecamp.org/news/rss-article/",
-        "freeCodeCamp",
     )
 
 
@@ -79,7 +77,6 @@ def test_extract_substack_articles_success():
         "2025-01-15",
         "Test Substack",
         "https://example.substack.com/p/test",
-        "Substack",
     )
 
 
@@ -100,7 +97,6 @@ def test_extract_github_articles_success():
         "2025-01-15",
         "GitHub News",
         "https://github.blog/2025-01-15-news",
-        "GitHub",
     )
 
 
@@ -120,7 +116,6 @@ def test_extract_github_articles_rss_success():
         "2025-01-15",
         "GitHub RSS Title",
         "https://github.blog/2025-01-15-rss-news/",
-        "GitHub",
     )
 
 
@@ -146,7 +141,6 @@ def test_extract_shopify_articles_success():
         "2025-01-15",
         "Shopify Article",
         "https://shopify.engineering/engineering/shopify-article",
-        "Shopify",
     )
 
 
@@ -168,7 +162,6 @@ def test_extract_stripe_articles_success():
         "2025-01-15",
         "Stripe News",
         "https://stripe.com/blog/stripe-news",
-        "Stripe",
     )
 
 
@@ -189,21 +182,21 @@ def test_extract_stripe_articles_fallback():
         "2025-01-15",
         "Stripe Fallback",
         "https://stripe.com/blog/stripe-news-fallback",
-        "Stripe",
     )
 
 
-# Tests for extractor_error_handler
-def test_extractor_error_handler_logs_error():
+# Tests for wrap_with_error_handler
+def test_wrap_with_error_handler_logs_error():
     mock_logger = Mock()
 
-    @extractor_error_handler("TestSite")
     def faulty_extractor(article):
         raise ValueError("Extraction failed")
 
+    wrapped = wrap_with_error_handler(faulty_extractor, "TestSite")
+
     with patch("utils.extractors.logger", mock_logger):
         with pytest.raises(ValueError):
-            faulty_extractor("some html content")
+            wrapped("some html content")
 
     mock_logger.error.assert_called_once()
     args = mock_logger.error.call_args[0][0]
@@ -214,16 +207,16 @@ def test_extractor_error_handler_logs_error():
 # Tests for get_articles
 def test_get_articles_yields_new_articles():
     mock_extractor = Mock(
-        return_value=("2025-01-01", "New Title", "http://link.com", "source")
+        return_value=("2025-01-01", "New Title", "http://link.com", "original_source")
     )
     elements = ["elem1"]
     existing_titles = {"Old Title"}
 
-    generator = get_articles(elements, mock_extractor, existing_titles)
+    generator = get_articles(elements, mock_extractor, existing_titles, "Sheet Source")
     results = list(generator)
 
     assert len(results) == 1
-    assert results[0] == ("2025-01-01", "New Title", "http://link.com", "source")
+    assert results[0] == ("2025-01-01", "New Title", "http://link.com", "Sheet Source")
 
 
 def test_get_articles_skips_existing_titles():
@@ -233,7 +226,7 @@ def test_get_articles_skips_existing_titles():
     elements = ["elem1"]
     existing_titles = {"Existing Title"}
 
-    generator = get_articles(elements, mock_extractor, existing_titles)
+    generator = get_articles(elements, mock_extractor, existing_titles, "Sheet Source")
     results = list(generator)
 
     assert len(results) == 0
@@ -244,22 +237,50 @@ def test_get_articles_handles_exceptions():
     elements = ["elem1"]
     existing_titles = set()
 
-    generator = get_articles(elements, mock_extractor, existing_titles)
+    generator = get_articles(elements, mock_extractor, existing_titles, "Sheet Source")
     results = list(generator)
 
     assert len(results) == 0
 
 
-# Tests for provider_dict
-def test_provider_dict_structure():
-    providers = provider_dict("test-element")
-    assert "freecodecamp" in providers
-    assert "substack" in providers
-    assert "github" in providers
-    assert "shopify" in providers
-    assert "stripe" in providers
+# Tests for get_strategy_handler
+def test_get_strategy_handler_html():
+    handler = get_strategy_handler("Shopify", "html", "test-class")
+    assert handler["element"]() == "test-class"
+    assert callable(handler["extractor"])
 
-    for key, value in providers.items():
-        assert "element" in value
-        assert "extractor" in value
-        assert callable(value["extractor"])
+
+def test_get_strategy_handler_rss():
+    handler = get_strategy_handler("GitHub", "rss", "test-class")
+    # Should include both element and "item"
+    assert handler["element"]() == ["test-class", "item"]
+    assert callable(handler["extractor"])
+
+
+def test_get_strategy_handler_rss_default_element():
+    handler = get_strategy_handler("GitHub", "rss", None)
+    assert handler["element"]() == ["item"]
+
+
+def test_get_strategy_handler_substack():
+    handler = get_strategy_handler("Substack", "substack", "test-class")
+    element_args = handler["element"]()
+    assert isinstance(element_args, dict)
+    assert "class_" in element_args
+    # Check if it's a regex pattern
+    assert element_args["class_"].pattern == "test-class"
+    assert callable(handler["extractor"])
+
+
+def test_get_strategy_handler_unknown_provider():
+    handler = get_strategy_handler("Unknown", "html", "test-class")
+    assert handler is None
+
+
+def test_get_strategy_handler_generic_rss():
+    # If strategy is RSS but provider is unknown, it should return a generic RSS extractor
+    handler = get_strategy_handler("GenericBlog", "rss", "test-class")
+    assert handler is not None
+    assert handler["element"]() == ["test-class", "item"]
+    assert callable(handler["extractor"])
+    # It should be a lambda or partial wrapping extract_rss_item
