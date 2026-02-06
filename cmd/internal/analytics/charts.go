@@ -56,15 +56,6 @@ func PrepareMonthChartData(months []schema.MonthInfo, sources []schema.SourceInf
 	}
 	monthLabelsJSON, _ := json.Marshal(monthLabels)
 
-	// Build datasets for each source
-	sourceColors := map[string]string{
-		"Substack":     "#667eea",
-		"freeCodeCamp": "#764ba2",
-		"GitHub":       "#f093fb",
-		"Shopify":      "#4facfe",
-		"Stripe":       "#00f2fe",
-	}
-
 	datasetsMap := make(map[string][]int)
 
 	// Initialize all sources with data for each month
@@ -85,7 +76,7 @@ func PrepareMonthChartData(months []schema.MonthInfo, sources []schema.SourceInf
 	var datasets []map[string]interface{}
 	for _, source := range sources {
 		if data, exists := datasetsMap[source.Name]; exists && len(data) > 0 {
-			color := sourceColors[source.Name]
+			color := source.Color
 			if color == "" {
 				color = "#" + colorHash(source.Name)
 			}

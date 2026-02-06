@@ -43,7 +43,12 @@ const (
 	DefaultProvidersSheet = "providers"
 
 	// Provider sheet column indices
-	ProvidersColName = 0 // Column A: provider name
+	ProvidersColName       = 0 // Column A: provider name
+	ProvidersColURL        = 1 // Column B: provider URL
+	ProvidersColElement    = 2 // Column C: CSS element/RSS path
+	ProvidersColStrategy   = 3 // Column D: strategy (rss/html)
+	ProvidersColBrandColor = 4 // Column E: brand color
+	ProvidersColAddedDate  = 5 // Column F: added date
 
 	// Provider names
 	SubstackProvider = "Substack"
@@ -51,15 +56,6 @@ const (
 	// Top oldest unread articles count
 	TopUnreadArticlesCount = 3
 )
-
-// SourceMetadataMap holds the addition dates for all known sources
-var SourceMetadataMap = map[string]string{
-	"freeCodeCamp": "initial",
-	"Substack":     "initial",
-	"GitHub":       "2024-03-18",
-	"Shopify":      "2025-03-05",
-	"Stripe":       "2025-11-19",
-}
 
 // calculateMonthsDifference calculates the number of months between two dates
 func calculateMonthsDifference(earliest, latest time.Time) int {
@@ -463,7 +459,7 @@ func (s *SheetServiceFetcher) GetArticleRows(spreadsheetID, articlesSheet string
 
 // GetProvidersSheet retrieves provider data from the Providers sheet
 func (s *SheetServiceFetcher) GetProvidersSheet(spreadsheetID, providersSheet string) ([][]interface{}, error) {
-	readRange := fmt.Sprintf("%s!A:B", providersSheet)
+	readRange := fmt.Sprintf("%s!A:F", providersSheet)
 	resp, err := s.service.Spreadsheets.Values.Get(spreadsheetID, readRange).Do()
 	if err != nil {
 		return nil, err
@@ -533,17 +529,10 @@ func fetchMetricsWithFetcher(spreadsheetID string, fetcher SheetsFetcher) (schem
 	// Find Article and Provider sheet names
 	articlesSheet, providersSheet := findSheetNames(spreadsheet)
 
-	// Get Substack provider count
-	substackCount := getSubstackProviderCount(fetcher, spreadsheetID, providersSheet)
-
-	// Read all articles data
-	articleRows, err := fetcher.GetArticleRows(spreadsheetID, articlesSheet)
+	// Read provider data for metadata and Substack count
+	providerRows, err := fetcher.GetProvidersSheet(spreadsheetID, providersSheet)
 	if err != nil {
-		return schema.Metrics{}, fmt.Errorf("unable to retrieve data from sheet: %w", err)
-	}
-
-	if len(articleRows) == 0 {
-		return schema.Metrics{}, fmt.Errorf("no data found in sheet")
+		log.Printf("Warning: Unable to read providers sheet: %v\n", err)
 	}
 
 	// Initialize metrics
@@ -564,6 +553,48 @@ func fetchMetricsWithFetcher(spreadsheetID string, fetcher SheetsFetcher) (schem
 		SourceMetadata:               make(map[string]schema.SourceMeta),
 	}
 
+	// Populate source metadata and count Substack authors
+	substackCount := 0
+	if len(providerRows) > 1 {
+		for i := 1; i < len(providerRows); i++ {
+			row := providerRows[i]
+			if len(row) > ProvidersColName {
+				name := NormalizeSourceName(fmt.Sprintf("%v", row[ProvidersColName]))
+
+				// Deduplication: Only store metadata for the first occurrence of a source name
+				if _, exists := metrics.SourceMetadata[name]; !exists {
+					meta := schema.SourceMeta{
+						Added: "initial", // Default fallback
+						Color: "",        // Default fallback
+					}
+
+					if len(row) > ProvidersColAddedDate {
+						meta.Added = fmt.Sprintf("%v", row[ProvidersColAddedDate])
+					}
+					if len(row) > ProvidersColBrandColor {
+						meta.Color = fmt.Sprintf("%v", row[ProvidersColBrandColor])
+					}
+					metrics.SourceMetadata[name] = meta
+				}
+
+				// Count Substack entries for the "author count" metric
+				if strings.EqualFold(fmt.Sprintf("%v", row[ProvidersColName]), SubstackProvider) {
+					substackCount++
+				}
+			}
+		}
+	}
+
+	// Read all articles data
+	articleRows, err := fetcher.GetArticleRows(spreadsheetID, articlesSheet)
+	if err != nil {
+		return schema.Metrics{}, fmt.Errorf("unable to retrieve data from sheet: %w", err)
+	}
+
+	if len(articleRows) == 0 {
+		return schema.Metrics{}, fmt.Errorf("no data found in sheet")
+	}
+
 	var earliestDate, latestDate time.Time
 
 	// Process all articles
@@ -580,11 +611,6 @@ func fetchMetricsWithFetcher(spreadsheetID string, fetcher SheetsFetcher) (schem
 
 	// Store substack count for later use in display
 	metrics.BySourceReadStatus["substack_author_count"] = [2]int{substackCount, 0}
-
-	// Populate source metadata
-	for source, addedDate := range SourceMetadataMap {
-		metrics.SourceMetadata[source] = schema.SourceMeta{Added: addedDate}
-	}
 
 	// Set timestamp
 	metrics.LastUpdated = time.Now()

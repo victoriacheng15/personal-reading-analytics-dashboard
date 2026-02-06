@@ -461,39 +461,22 @@ func TestPrepareMonthChartDataDataValues(t *testing.T) {
 
 func TestPrepareMonthChartDataColorAssignment(t *testing.T) {
 	tests := []struct {
-		name             string
-		sourceName       string
-		expectPredefined bool
+		name          string
+		sourceName    string
+		providedColor string
+		expectedColor string
 	}{
 		{
-			name:             "Substack has predefined color",
-			sourceName:       "Substack",
-			expectPredefined: true,
+			name:          "Source with provided color uses that color",
+			sourceName:    "Substack",
+			providedColor: "#667eea",
+			expectedColor: "#667eea",
 		},
 		{
-			name:             "freeCodeCamp has predefined color",
-			sourceName:       "freeCodeCamp",
-			expectPredefined: true,
-		},
-		{
-			name:             "GitHub has predefined color",
-			sourceName:       "GitHub",
-			expectPredefined: true,
-		},
-		{
-			name:             "Shopify has predefined color",
-			sourceName:       "Shopify",
-			expectPredefined: true,
-		},
-		{
-			name:             "Stripe has predefined color",
-			sourceName:       "Stripe",
-			expectPredefined: true,
-		},
-		{
-			name:             "unknown source gets generated color",
-			sourceName:       "UnknownSource",
-			expectPredefined: false,
+			name:          "Source without provided color uses hash-generated color",
+			sourceName:    "UnknownSource",
+			providedColor: "",
+			expectedColor: "#", // Should start with #
 		},
 	}
 
@@ -510,7 +493,7 @@ func TestPrepareMonthChartDataColorAssignment(t *testing.T) {
 			}
 
 			sources := []schema.SourceInfo{
-				{Name: tt.sourceName, Read: 10, Unread: 20},
+				{Name: tt.sourceName, Read: 10, Unread: 20, Color: tt.providedColor},
 			}
 
 			result := PrepareMonthChartData(months, sources)
@@ -529,8 +512,8 @@ func TestPrepareMonthChartDataColorAssignment(t *testing.T) {
 				}
 
 				colorStr := bgColor.(string)
-				if len(colorStr) == 0 {
-					t.Error("backgroundColor is empty")
+				if tt.providedColor != "" && colorStr != tt.expectedColor {
+					t.Errorf("expected color %s, got %s", tt.expectedColor, colorStr)
 				}
 
 				if colorStr[0] != '#' {

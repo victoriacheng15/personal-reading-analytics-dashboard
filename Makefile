@@ -3,12 +3,13 @@ IMAGE_NAME = extraction
 LINT_IMAGE = ghcr.io/igorshubovych/markdownlint-cli:v0.44.0
 
 # Nix wrapper logic: Use nix-shell if available and not already inside one
-USE_NIX = $(shell command -v nix-shell >/dev/null 2>&1 && [ -z "$$IN_NIX_SHELL" ] && echo "yes" || echo "no")
+# Also check if we are in a CI environment where we usually want to use system tools
+USE_NIX = $(shell if command -v nix-shell >/dev/null 2>&1 && [ -z "$$IN_NIX_SHELL" ] && [ "$$GITHUB_ACTIONS" != "true" ]; then echo "yes"; else echo "no"; fi)
 
 ifeq ($(USE_NIX),yes)
     NIX_RUN = nix-shell --run
 else
-    NIX_RUN = 
+    NIX_RUN = bash -c
 endif
 
 .PHONY: help run \

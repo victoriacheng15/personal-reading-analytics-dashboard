@@ -38,9 +38,10 @@ type ArticleMeta struct {
 	Read     bool   `json:"read"`
 }
 
-// SourceMeta tracks when a source was added
+// SourceMeta tracks when a source was added and its brand color
 type SourceMeta struct {
 	Added string `json:"added"`
+	Color string `json:"color"`
 }
 
 type SourceInfo struct {
@@ -50,6 +51,7 @@ type SourceInfo struct {
 	Unread      int
 	ReadPct     float64
 	AuthorCount int
+	Color       string
 }
 
 type MonthInfo struct {

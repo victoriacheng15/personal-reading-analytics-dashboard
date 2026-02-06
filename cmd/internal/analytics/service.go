@@ -91,6 +91,11 @@ func (s *AnalyticsService) prepareViewModel(m schema.Metrics, config GenConfig) 
 			authorCount = m.BySourceReadStatus["substack_author_count"][0]
 		}
 
+		color := ""
+		if meta, exists := m.SourceMetadata[name]; exists {
+			color = meta.Color
+		}
+
 		sources = append(sources, schema.SourceInfo{
 			Name:        name,
 			Count:       count,
@@ -98,6 +103,7 @@ func (s *AnalyticsService) prepareViewModel(m schema.Metrics, config GenConfig) 
 			Unread:      unread,
 			ReadPct:     readPct,
 			AuthorCount: authorCount,
+			Color:       color,
 		})
 	}
 
