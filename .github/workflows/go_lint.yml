@@ -22,16 +22,10 @@ jobs:
           go-version: ${{ env.go-version }}
 
       - name: Run tests
-        run: go test ./cmd/... -v
+        run: make go-test
 
       - name: Check gofmt
-        run: |
-          gofmt -l ./cmd/
-          if [ $(gofmt -l ./cmd/ | wc -l) -gt 0 ]; then
-            echo "❌ Go code not formatted. Run: gofmt -w ./cmd/"
-            exit 1
-          fi
-          echo "✅ Go code is properly formatted"
+        run: make go-check
 
       - name: Run go vet
         run: go vet ./cmd/...
@@ -46,4 +40,4 @@ jobs:
           go-version: ${{ env.go-version }}
 
       - name: Run tests
-        run: go test ./cmd/... -v
+        run: make go-test

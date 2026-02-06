@@ -21,9 +21,7 @@ jobs:
           python-version: ${{ env.py-version }}
 
       - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install -r requirements.txt
+        run: make install
 
       - name: Create credentials.json
         run: |
@@ -41,7 +39,7 @@ jobs:
       - name: Run Python script
         id: generate-log
         run: |
-          python3 script/main.py
+          .venv/bin/python script/main.py
         env:
           SHEET_ID: ${{ secrets.SHEET_ID }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
