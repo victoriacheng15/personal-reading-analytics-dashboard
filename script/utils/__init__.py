@@ -25,9 +25,9 @@ from .get_page import (
 
 # Article extraction
 from .extractors import (
-    provider_dict,
+    get_strategy_handler,
     get_articles,
-    extractor_error_handler,
+    wrap_with_error_handler,
     extract_fcc_articles,
     extract_substack_articles,
     extract_github_articles,
@@ -70,9 +70,9 @@ __all__ = [
     "fetch_page",
     "close_fetcher",
     # Article extraction
-    "provider_dict",
+    "get_strategy_handler",
     "get_articles",
-    "extractor_error_handler",
+    "wrap_with_error_handler",
     "extract_fcc_articles",
     "extract_substack_articles",
     "extract_github_articles",

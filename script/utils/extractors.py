@@ -5,78 +5,72 @@ from datetime import datetime
 from utils.format_date import clean_and_convert_date
 from utils.mongo import insert_error_event_mongo, get_mongo_client
 from utils.constants import (
-    SOURCE_FREECODECAMP,
-    SOURCE_SUBSTACK,
-    SOURCE_GITHUB,
-    SOURCE_SHOPIFY,
-    SOURCE_STRIPE,
+    STRATEGY_RSS,
+    STRATEGY_HTML,
+    STRATEGY_SUBSTACK,
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-# Error handling decorator for extractors
-def extractor_error_handler(site_name):
-    def decorator(func):
-        def wrapper(article):
+# Error handling wrapper for extractors
+def wrap_with_error_handler(func, site_name):
+    def wrapper(article):
+        try:
+            return func(article)
+        except Exception as e:
+            # Try to get a snippet of the article HTML for context
+            snippet = None
+            article_url = "unknown"
             try:
-                return func(article)
-            except Exception as e:
-                # Try to get a snippet of the article HTML for context
-                snippet = None
-                article_url = "unknown"
-                try:
-                    snippet = str(article)[:300].replace("\n", " ")
-                except Exception:
-                    snippet = "<unavailable>"
+                snippet = str(article)[:300].replace("\n", " ")
+            except Exception:
+                snippet = "<unavailable>"
 
-                # Try to extract URL from article
-                try:
-                    # For standard HTML
-                    link = article.find("a")
-                    if link and link.get("href"):
-                        article_url = link.get("href")
-                    # For RSS items
-                    elif article.find("link"):
-                        article_url = article.find("link").get_text().strip()
-                except Exception:
-                    pass
+            # Try to extract URL from article
+            try:
+                # For standard HTML
+                link = article.find("a")
+                if link and link.get("href"):
+                    article_url = link.get("href")
+                # For RSS items
+                elif article.find("link"):
+                    article_url = article.find("link").get_text().strip()
+            except Exception:
+                pass
 
-                tb = traceback.format_exc()
-                logger.error(
-                    f"Error extracting {site_name} article: {e}\n"
-                    f"Article snippet: {snippet}\n"
-                    f"Traceback: {tb}"
+            tb = traceback.format_exc()
+            logger.error(
+                f"Error extracting {site_name} article: {e}\n"
+                f"Article snippet: {snippet}\n"
+                f"Traceback: {tb}"
+            )
+
+            # Capture extraction failure event to MongoDB
+            try:
+                mongo_client = get_mongo_client()
+                if mongo_client:
+                    insert_error_event_mongo(
+                        client=mongo_client,
+                        source=site_name.lower(),
+                        error_type="extraction_failed",
+                        error_message=f"{type(e).__name__}: {str(e)}",
+                        url=article_url,
+                        metadata={
+                            "extractor_function": func.__name__,
+                            "article_snippet": snippet,
+                        },
+                        traceback_str=tb,
+                    )
+            except Exception as mongo_error:
+                logger.warning(
+                    f"Failed to log extraction error to MongoDB: {mongo_error}"
                 )
 
-                # Capture extraction failure event to MongoDB
-                try:
-                    mongo_client = get_mongo_client()
-                    if mongo_client:
-                        insert_error_event_mongo(
-                            client=mongo_client,
-                            source=site_name.lower(),
-                            error_type="extraction_failed",
-                            error_message=f"{type(e).__name__}: {str(e)}",
-                            url=article_url,
-                            metadata={
-                                "extractor_function": func.__name__,
-                                "article_snippet": snippet,
-                            },
-                            traceback_str=tb,
-                        )
-                        # Client is now a singleton managed globally, do not close here
-                except Exception as mongo_error:
-                    logger.warning(
-                        f"Failed to log extraction error to MongoDB: {mongo_error}"
-                    )
+            raise
 
-                raise
-
-        return wrapper
-
-    return decorator
+    return wrapper
 
 
 def clean_text(text):
@@ -91,7 +85,8 @@ def clean_text(text):
     # and handle any remaining newlines or whitespace
     return text.strip().strip(" >[]").strip()
 
-def extract_rss_item(article, source_name):
+
+def extract_rss_item(article):
     """
     Generic RSS item extractor.
     Parses <item> tags (RSS 2.0) using BeautifulSoup.
@@ -109,7 +104,7 @@ def extract_rss_item(article, source_name):
         # If link is empty, it might be due to self-closing tag behavior in html.parser
         if not link and link_elem.next_sibling:
             link = clean_text(str(link_elem.next_sibling))
-    
+
     # Final strip to handle any remaining newlines or whitespace
     link = link.strip()
 
@@ -119,27 +114,25 @@ def extract_rss_item(article, source_name):
     date_raw = date_elem.get_text() if date_elem else ""
     date = clean_and_convert_date(date_raw)
 
-    return (date, title, link, source_name)
+    return (date, title, link)
 
 
-@extractor_error_handler(SOURCE_FREECODECAMP)
 def extract_fcc_articles(article):
     """
     Extracts article information from a freeCodeCamp article element.
     Handles both HTML articles and RSS items.
     """
     if article.name == "item":
-        return extract_rss_item(article, SOURCE_FREECODECAMP)
+        return extract_rss_item(article)
     else:
         # Legacy HTML Scraping
         title = article.find("h2").get_text().strip()
         href = article.find("a").get("href")
         link = f"https://www.freecodecamp.org{href}"
         date = clean_and_convert_date(article.find("time").get("datetime"))
-        return (date, title, link, SOURCE_FREECODECAMP)
+        return (date, title, link)
 
 
-@extractor_error_handler(SOURCE_SUBSTACK)
 def extract_substack_articles(article):
     """
     Extracts article information from a Substack article element.
@@ -148,36 +141,33 @@ def extract_substack_articles(article):
     link = article.find(attrs={"data-testid": "post-preview-title"}).get("href")
     # Date is assumed to be in a format like "YYYY-MM-DD"
     date = article.find("time").get("datetime").split("T")[0]
-    return (date, title, link, SOURCE_SUBSTACK)
+    return (date, title, link)
 
 
-@extractor_error_handler(SOURCE_GITHUB)
 def extract_github_articles(article):
     """
     Extracts article information from a GitHub article element.
     Handles both HTML articles and RSS items.
     """
     if article.name == "item":
-        return extract_rss_item(article, SOURCE_GITHUB)
+        return extract_rss_item(article)
     else:
         # Legacy HTML Scraping
         title = article.find("h3").get_text().strip()
         link = article.find(class_="Link--primary").get("href")
         date = article.find("time").get("datetime")
-        return (date, title, link, SOURCE_GITHUB)
+        return (date, title, link)
 
 
-@extractor_error_handler(SOURCE_SHOPIFY)
 def extract_shopify_articles(article):
     """
     Extracts article information from a Shopify article element.
     """
     title_div = article.find(
         "div",
-        class_=lambda x: x
-        and "tracking-[-.02em]" in x
-        and "pb-4" in x
-        and "hover:underline" in x,
+        class_=lambda x: (
+            x and "tracking-[-.02em]" in x and "pb-4" in x and "hover:underline" in x
+        ),
     )
     title_a = title_div.find("a")
     title = title_a.get_text().strip()
@@ -193,10 +183,9 @@ def extract_shopify_articles(article):
     )
     before_format_date = datetime.strptime(date_element, "%b %d, %Y")
     date = before_format_date.strftime("%Y-%m-%d")
-    return (date, title, link, SOURCE_SHOPIFY)
+    return (date, title, link)
 
 
-@extractor_error_handler(SOURCE_STRIPE)
 def extract_stripe_articles(article):
     """
     Extracts article information from a Stripe Engineering blog article element.
@@ -218,65 +207,84 @@ def extract_stripe_articles(article):
     date_raw = time_elem.get("datetime") if time_elem else None
     date = clean_and_convert_date(date_raw) if date_raw else ""
 
-    return (date, title, link, SOURCE_STRIPE)
+    return (date, title, link)
 
 
-def get_articles(elements, extract_func, existing_titles):
+def get_articles(elements, extract_func, existing_titles, source_name):
     """
     Extracts articles from a given provider.
 
     Args:
         elements (list): A list of BeautifulSoup elements representing articles.
         extract_func (function): The function to use for extracting article information.
+        existing_titles (set): Set of titles already in the database to skip.
+        source_name (str): The canonical name of the source from the providers sheet.
 
     Yields:
-        tuple: A tuple containing the extracted article information.
+        tuple: A tuple containing (date, title, link, source_name).
     """
     # Normalize existing titles for comparison
     normalized_existing_titles = set(t.strip().lower() for t in existing_titles)
     for article in elements:
         try:
             article_info = extract_func(article)
-            title = article_info[1]
+            # Unpack first three elements and ignore the 4th (hardcoded) source if present
+            date, title, link = article_info[0], article_info[1], article_info[2]
+
             normalized_title = title.strip().lower()
-            # article_info tuple now: (date, title, link, source)
             if normalized_title not in normalized_existing_titles:
-                yield article_info
+                # Always use the source_name provided from the sheet
+                yield (date, title, link, source_name)
         except Exception as _:
             pass
 
 
-def provider_dict(provider_element):
+# Mapping of provider names to their specialized extractor functions
+EXTRACTOR_MAPPING = {
+    "freecodecamp": extract_fcc_articles,
+    "substack": extract_substack_articles,
+    "github": extract_github_articles,
+    "shopify": extract_shopify_articles,
+    "stripe": extract_stripe_articles,
+}
+
+
+def get_strategy_handler(provider_name, strategy, element):
     """
-    Returns a dictionary mapping provider names to their corresponding elements and extractor functions.
+    Factory that returns the appropriate element search criteria and extractor
+    function based on the provider's strategy.
 
     Args:
-        provider_element (str): The element or class name used to identify articles from the provider.
+        provider_name (str): The name of the provider.
+        strategy (str): The extraction strategy (rss, html, substack).
+        element (str): The primary element or class to search for.
 
     Returns:
-        dict: A dictionary containing the provider's element and extractor function.
+        dict: A dictionary containing 'element' (lambda returning search criteria)
+              and 'extractor' (function). Returns None if no extractor found.
     """
-    return {
-        SOURCE_FREECODECAMP.lower(): {
-            # Search for BOTH the HTML class (provider_element) AND the RSS tag "item"
-            "element": lambda: [provider_element, "item"],
-            "extractor": extract_fcc_articles,
-        },
-        SOURCE_SUBSTACK.lower(): {
-            "element": lambda: {"class_": re.compile(provider_element)},
-            "extractor": extract_substack_articles,
-        },
-        SOURCE_GITHUB.lower(): {
-            # Search for BOTH the HTML class (provider_element) AND the RSS tag "item"
-            "element": lambda: [provider_element, "item"],
-            "extractor": extract_github_articles,
-        },
-        SOURCE_SHOPIFY.lower(): {
-            "element": lambda: provider_element,
-            "extractor": extract_shopify_articles,
-        },
-        SOURCE_STRIPE.lower(): {
-            "element": lambda: provider_element,
-            "extractor": extract_stripe_articles,
-        },
-    }
+    strategy = (strategy or STRATEGY_HTML).lower()
+
+    # 1. Determine the extractor function
+    extractor = EXTRACTOR_MAPPING.get(provider_name.lower())
+
+    # Fallback to generic RSS extractor if strategy is RSS and no specialized extractor exists
+    if not extractor and strategy == STRATEGY_RSS:
+        extractor = lambda art: extract_rss_item(art)
+
+    if not extractor:
+        return None
+
+    # Wrap the extractor with the dynamic error handler using the provider_name
+    wrapped_extractor = wrap_with_error_handler(extractor, provider_name)
+
+    # 2. Determine the element search criteria
+    if strategy == STRATEGY_RSS:
+        # Default to "item" for RSS if element is missing
+        search_element = [element, "item"] if element else ["item"]
+    elif strategy == STRATEGY_SUBSTACK:
+        search_element = {"class_": re.compile(element)}
+    else:  # STRATEGY_HTML
+        search_element = element
+
+    return {"element": lambda: search_element, "extractor": wrapped_extractor}

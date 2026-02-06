@@ -14,9 +14,9 @@ MOCK_FETCHER_STATE = {"client": "mock_client"}
 
 @patch("main.get_articles")
 @patch("main.fetch_page", new_callable=AsyncMock)
-@patch("main.provider_dict")
+@patch("main.get_strategy_handler")
 def test_process_provider_success(
-    mock_provider_dict, mock_fetch_page, mock_get_articles
+    mock_get_strategy_handler, mock_fetch_page, mock_get_articles
 ):
     """Test successful processing of a provider"""
     mock_soup = Mock()
@@ -24,7 +24,7 @@ def test_process_provider_success(
 
     # Setup mocks
     mock_handler = {"element": lambda: "article", "extractor": Mock()}
-    mock_provider_dict.return_value = {"test_provider": mock_handler}
+    mock_get_strategy_handler.return_value = mock_handler
     mock_fetch_page.return_value = (mock_soup, MOCK_FETCHER_STATE)
     mock_get_articles.return_value = [("2025-01-01", "Title", "Link", "Source")]
 
@@ -41,10 +41,10 @@ def test_process_provider_success(
     mock_get_articles.assert_called_once()
 
 
-@patch("main.provider_dict")
-def test_process_provider_unknown_provider(mock_provider_dict):
+@patch("main.get_strategy_handler")
+def test_process_provider_unknown_provider(mock_get_strategy_handler):
     """Test processing with unknown provider"""
-    mock_provider_dict.return_value = {}
+    mock_get_strategy_handler.return_value = None
 
     articles, state = asyncio.run(
         process_provider(MOCK_FETCHER_STATE, MOCK_PROVIDER, set())
@@ -57,13 +57,13 @@ def test_process_provider_unknown_provider(mock_provider_dict):
 @patch("main.DRY_RUN", False)
 @patch("main.get_mongo_client")
 @patch("main.fetch_page", new_callable=AsyncMock)
-@patch("main.provider_dict")
+@patch("main.get_strategy_handler")
 def test_process_provider_fetch_failure(
-    mock_provider_dict, mock_fetch_page, mock_get_mongo_client
+    mock_get_strategy_handler, mock_fetch_page, mock_get_mongo_client
 ):
     """Test processing when page fetch fails"""
     mock_handler = {"element": lambda: "article", "extractor": Mock()}
-    mock_provider_dict.return_value = {"test_provider": mock_handler}
+    mock_get_strategy_handler.return_value = mock_handler
     mock_fetch_page.return_value = (None, MOCK_FETCHER_STATE)
     mock_get_mongo_client.return_value = None  # Prevent MongoDB connection
 

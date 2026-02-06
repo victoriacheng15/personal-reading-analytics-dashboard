@@ -22,9 +22,7 @@ GOOGLE_SHEETS_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 ARTICLES_WORKSHEET = "articles"
 PROVIDERS_WORKSHEET = "providers"
 
-# Canonical Source Names (Brand Case)
-SOURCE_FREECODECAMP = "freeCodeCamp"
-SOURCE_SUBSTACK = "Substack"
-SOURCE_GITHUB = "GitHub"
-SOURCE_SHOPIFY = "Shopify"
-SOURCE_STRIPE = "Stripe"
+# Extraction Strategies
+STRATEGY_RSS = "rss"
+STRATEGY_HTML = "html"
+STRATEGY_SUBSTACK = "substack"

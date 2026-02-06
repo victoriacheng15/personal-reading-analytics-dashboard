@@ -21,7 +21,7 @@ from utils import (
     fetch_page,
     close_fetcher,
     # Article extraction
-    provider_dict,
+    get_strategy_handler,
     get_articles,
     # Date utilities
     current_time,
@@ -44,15 +44,17 @@ logging.getLogger("httpx").setLevel(logging.CRITICAL)
 
 async def process_provider(fetcher_state, provider, existing_titles):
     """Process a single provider asynchronously and return articles"""
-    provider_name = provider["name"]
-    provider_url = provider["url"]
-    provider_element = provider["element"]
+    provider_name = provider.get("name")
+    provider_url = provider.get("url")
+    provider_element = provider.get("element")
+    provider_strategy = provider.get("strategy")
 
-    handlers = provider_dict(provider_element)
-    handler = handlers.get(provider_name.lower())
+    handler = get_strategy_handler(provider_name, provider_strategy, provider_element)
 
     if not handler:
-        logger.info(f"Unknown provider: {provider_name}")
+        logger.info(
+            f"Unknown provider or strategy: {provider_name} ({provider_strategy})"
+        )
         return [], fetcher_state
 
     try:
@@ -71,7 +73,10 @@ async def process_provider(fetcher_state, provider, existing_titles):
                         error_type="fetch_failed",
                         error_message="Failed to fetch page",
                         url=provider_url,
-                        metadata={"provider_element": provider_element, "retry_count": 0},
+                        metadata={
+                            "provider_element": provider_element,
+                            "retry_count": 0,
+                        },
                     )
                     # Client is singleton, do not close
 
@@ -85,7 +90,7 @@ async def process_provider(fetcher_state, provider, existing_titles):
         )
 
         articles_found = list(
-            get_articles(elements, handler["extractor"], existing_titles)
+            get_articles(elements, handler["extractor"], existing_titles, provider_name)
         )
         logger.info(
             f"Processing {provider_url} - {len(articles_found)} new articles found"
@@ -119,7 +124,9 @@ async def process_provider(fetcher_state, provider, existing_titles):
 
 async def async_main(timestamp):
     if DRY_RUN:
-        logger.info("🚫 DRY RUN MODE: No data will be written to Google Sheets or MongoDB.")
+        logger.info(
+            "🚫 DRY RUN MODE: No data will be written to Google Sheets or MongoDB."
+        )
 
     client = get_client()
     articles_sheet = get_worksheet(client, SHEET_ID, ARTICLES_WORKSHEET)
@@ -159,9 +166,16 @@ async def async_main(timestamp):
                 insert_summary_event_mongo(mongo_client, len(all_articles))
                 # Client is singleton, do not close
         else:
-            logger.info(f"DRY RUN: Found {len(all_articles)} new articles (Skipping writes).")
+            logger.info(
+                f"DRY RUN: Found {len(all_articles)} new articles (Skipping writes)."
+            )
             for a in all_articles:
-                logger.info(f" - [DRY RUN] Would add: {a[1]} ({a[2]})")
+                date, title, link, source = a
+                # Truncate link for readability
+                short_link = (link[:30] + "...") if len(link) > 50 else link
+                logger.info(
+                    f"[DRY RUN] Would add: ({date}, {title}, {short_link}, {source})"
+                )
     else:
         logger.info("\n✅ No new articles found\n")
         # Log summary event for no new articles
@@ -175,7 +189,7 @@ async def async_main(timestamp):
         articles_sheet.update_cell(1, 6, f"Updated at\n{timestamp}")
     else:
         logger.info("DRY RUN: Skipping sheet sort and timestamp update.")
-        
+
     await close_fetcher(fetcher_state)
 
 
