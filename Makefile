@@ -15,7 +15,7 @@ endif
 .PHONY: help run \
         install freeze update py-run py-check py-format py-test py-cov \
         go-check go-format go-update go-test go-cov \
-        run-metrics run-analytics lint clean nix-%
+        run-metrics run-analytics lint clean
 
 # === Help ===
 help:
@@ -47,30 +47,30 @@ run:
 
 # === Python Development ===
 install:
-	$(NIX_RUN) "if [ ! -d .venv ]; then python3 -m venv .venv; fi && \
+	if [ ! -d .venv ]; then python3 -m venv .venv; fi && \
 	.venv/bin/pip install --upgrade pip && \
-	.venv/bin/pip install -r requirements.txt"
+	.venv/bin/pip install -r requirements.txt
 
 freeze:
-	$(NIX_RUN) ".venv/bin/pip freeze > requirements.txt"
+	.venv/bin/pip freeze > requirements.txt
 
 update:
-	$(NIX_RUN) ".venv/bin/pip install --upgrade -r requirements.txt"
+	.venv/bin/pip install --upgrade -r requirements.txt
 
 py-check:
-	$(NIX_RUN) ".venv/bin/python -m ruff check script/ --diff"
+	.venv/bin/python -m ruff check script/ --diff
 
 py-format:
-	$(NIX_RUN) ".venv/bin/python -m ruff format script/"
+	.venv/bin/python -m ruff format script/
 
 py-test:
-	$(NIX_RUN) ".venv/bin/python -m pytest script/"
+	.venv/bin/python -m pytest script/
 
 py-cov:
-	$(NIX_RUN) ".venv/bin/python -m pytest --cov=script --cov-report=term-missing"
+	.venv/bin/python -m pytest --cov=script --cov-report=term-missing
 
 py-run:
-	$(NIX_RUN) ".venv/bin/python script/main.py"
+	.venv/bin/python script/main.py
 
 # === Go (Analytics & Metrics) ===
 go-check:
@@ -103,7 +103,3 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null
 	find . -type f -name "*.py[co]" -delete 2>/dev/null
 	rm -f coverage.out coverage.html *.exe
-
-# === Nix Integration (Backwards Compatibility) ===
-nix-%:
-	nix-shell --run "make $*"
