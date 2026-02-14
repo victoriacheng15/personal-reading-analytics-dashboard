@@ -46,6 +46,22 @@ def test_clean_and_convert_date_different_months():
         assert result == expected
 
 
+def test_clean_and_convert_date_fuzzy_parsing():
+    """Test clean_and_convert_date with fuzzy strings using dateutil"""
+    test_cases = [
+        ("Published on January 15, 2025", "2025-01-15"),
+        ("Posted: 2025/12/21", "2025-12-21"),
+        ("Jan 10, 2025 10:30 PM", "2025-01-10"),
+        ("21st December 2024", "2024-12-21"),
+        ("2025.05.15", "2025-05-15"),
+        ("Invalid Date String", ""),
+    ]
+
+    for input_date, expected in test_cases:
+        result = clean_and_convert_date(input_date)
+        assert result == expected
+
+
 # Tests for current_time function
 @patch("utils.format_date.datetime")
 def test_current_time_returns_tuple(mock_datetime):
