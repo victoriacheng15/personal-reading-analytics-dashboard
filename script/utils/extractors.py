@@ -73,6 +73,110 @@ def wrap_with_error_handler(func, site_name):
     return wrapper
 
 
+def universal_html_extractor(element, config=None, provider_url=None):
+    """
+    Universal extractor for HTML-based blogs driven by configuration.
+    Uses 'Link-First' heuristics for titles and a 5-tier discovery for dates.
+    """
+    config = config or {}
+
+    # 1. Title & Link (Link-First Heuristic)
+    title, link = _extract_title_and_link(element, config, provider_url)
+
+    # 2. Date (Multi-Tier Discovery)
+    date = _extract_date(element, config)
+
+    return (date, title, link)
+
+
+def _extract_title_and_link(element, config, provider_url=None):
+    # Step A: Find Primary Anchor
+    # Heuristic: First <a> tag with text length > 10
+    anchors = element.find_all("a")
+    primary_anchor = None
+    for a in anchors:
+        if len(a.get_text().strip()) > 10:
+            primary_anchor = a
+            break
+
+    # Fallback to first anchor if none meet length requirement
+    if not primary_anchor and anchors:
+        primary_anchor = anchors[0]
+
+    if not primary_anchor:
+        return "<untitled>", ""
+
+    # Step B: Extract Link & Normalize
+    href = primary_anchor.get("href", "")
+    link = href
+    if provider_url and not (href.startswith("http://") or href.startswith("https://")):
+        from urllib.parse import urljoin
+
+        link = urljoin(provider_url, href)
+
+    # Step C: Extract Title
+    title_selector = config.get("title_selector")
+    if title_selector:
+        title_elem = element.select_one(title_selector)
+        title = (
+            title_elem.get_text().strip()
+            if title_elem
+            else primary_anchor.get_text().strip()
+        )
+    else:
+        title = primary_anchor.get_text().strip()
+
+    return title, link
+
+
+def _extract_date(element, config):
+    # Tier 1: Explicit selector from SSOT
+    date_selector = config.get("date_selector")
+    if date_selector:
+        date_elem = element.select_one(date_selector)
+        if date_elem:
+            # Check datetime attribute first, then text
+            date_raw = date_elem.get("datetime") or date_elem.get_text()
+            date = clean_and_convert_date(date_raw)
+            if date:
+                return date
+
+    # Tier 2: Semantic <time> tag
+    time_tag = element.find("time")
+    if time_tag:
+        date_raw = time_tag.get("datetime") or time_tag.get_text()
+        date = clean_and_convert_date(date_raw)
+        if date:
+            return date
+
+    # Tier 3: Attribute Search (common meta patterns)
+    date_attrs = ["pubdate", "data-date", "data-published", "content"]
+    for attr in date_attrs:
+        elem = element.find(attrs={attr: True})
+        if elem:
+            date = clean_and_convert_date(elem.get(attr))
+            if date:
+                return date
+
+    # Tier 4: Class/Meta Search
+    meta_classes = ["date", "time", "meta", "published", "post-date"]
+    for cls in meta_classes:
+        elem = element.find(class_=re.compile(cls, re.I))
+        if elem:
+            date = clean_and_convert_date(elem.get_text())
+            if date:
+                return date
+
+    # Tier 5: Pattern Scan (Heuristic Regex)
+    # Search all text for something that looks like a date
+    text = element.get_text(separator=" ", strip=True)
+    date = clean_and_convert_date(text)
+    if date:
+        return date
+
+    return ""
+
+
 def clean_text(text):
     """
     Cleans text by removing CDATA tags and whitespace.
