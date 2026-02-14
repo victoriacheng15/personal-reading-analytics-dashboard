@@ -14,7 +14,7 @@ def test_universal_extractor_link_first_heuristic():
     """
     soup = BeautifulSoup(html, "html.parser")
 
-    date, title, link = universal_html_extractor(
+    date, title, link, tier = universal_html_extractor(
         soup, provider_url="https://example.com"
     )
 
@@ -34,10 +34,11 @@ def test_universal_extractor_explicit_selectors():
     soup = BeautifulSoup(html, "html.parser")
     config = {"title_selector": ".custom-title", "date_selector": ".custom-date"}
 
-    date, title, link = universal_html_extractor(soup, config=config)
+    date, title, link, tier = universal_html_extractor(soup, config=config)
 
     assert title == "Explicit Title"
     assert date == "2025-05-20"
+    assert tier == 1
 
 
 def test_universal_extractor_date_tier_2_semantic():
@@ -50,8 +51,9 @@ def test_universal_extractor_date_tier_2_semantic():
     """
     soup = BeautifulSoup(html, "html.parser")
 
-    date, _, _ = universal_html_extractor(soup)
+    date, _, _, tier = universal_html_extractor(soup)
     assert date == "2025-01-15"
+    assert tier == 2
 
 
 def test_universal_extractor_date_tier_3_attribute():
@@ -64,8 +66,9 @@ def test_universal_extractor_date_tier_3_attribute():
     """
     soup = BeautifulSoup(html, "html.parser")
 
-    date, _, _ = universal_html_extractor(soup)
+    date, _, _, tier = universal_html_extractor(soup)
     assert date == "2025-12-21"
+    assert tier == 3
 
 
 def test_universal_extractor_date_tier_4_class():
@@ -78,8 +81,9 @@ def test_universal_extractor_date_tier_4_class():
     """
     soup = BeautifulSoup(html, "html.parser")
 
-    date, _, _ = universal_html_extractor(soup)
+    date, _, _, tier = universal_html_extractor(soup)
     assert date == "2025-03-10"
+    assert tier == 4
 
 
 def test_universal_extractor_date_tier_5_pattern():
@@ -92,8 +96,9 @@ def test_universal_extractor_date_tier_5_pattern():
     """
     soup = BeautifulSoup(html, "html.parser")
 
-    date, _, _ = universal_html_extractor(soup)
+    date, _, _, tier = universal_html_extractor(soup)
     assert date == "2025-05-15"
+    assert tier == 5
 
 
 def test_universal_extractor_absolute_url_normalization():
@@ -101,6 +106,6 @@ def test_universal_extractor_absolute_url_normalization():
     html = '<article><a href="blog/post-1">Long enough title here</a></article>'
     soup = BeautifulSoup(html, "html.parser")
 
-    _, _, link = universal_html_extractor(soup, provider_url="https://github.blog/")
+    _, _, link, _ = universal_html_extractor(soup, provider_url="https://github.blog/")
 
     assert link == "https://github.blog/blog/post-1"

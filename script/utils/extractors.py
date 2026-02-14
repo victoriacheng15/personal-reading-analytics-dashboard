@@ -84,9 +84,9 @@ def universal_html_extractor(element, config=None, provider_url=None):
     title, link = _extract_title_and_link(element, config, provider_url)
 
     # 2. Date (Multi-Tier Discovery)
-    date = _extract_date(element, config)
+    date, tier = _extract_date(element, config)
 
-    return (date, title, link)
+    return (date, title, link, tier)
 
 
 def _extract_title_and_link(element, config, provider_url=None):
@@ -170,7 +170,7 @@ def _extract_date(element, config):
             date_raw = date_elem.get("datetime") or date_elem.get_text()
             date = clean_and_convert_date(date_raw)
             if date:
-                return date
+                return date, 1
 
     # Tier 2: Semantic <time> tag
     time_tag = element.find("time")
@@ -178,7 +178,7 @@ def _extract_date(element, config):
         date_raw = time_tag.get("datetime") or time_tag.get_text()
         date = clean_and_convert_date(date_raw)
         if date:
-            return date
+            return date, 2
 
     # Tier 3: Attribute Search (common meta patterns)
     date_attrs = ["pubdate", "data-date", "data-published", "content"]
@@ -187,7 +187,7 @@ def _extract_date(element, config):
         if elem:
             date = clean_and_convert_date(elem.get(attr))
             if date:
-                return date
+                return date, 3
 
     # Tier 4: Class/Meta Search
     meta_classes = ["date", "time", "meta", "published", "post-date"]
@@ -196,16 +196,16 @@ def _extract_date(element, config):
         if elem:
             date = clean_and_convert_date(elem.get_text())
             if date:
-                return date
+                return date, 4
 
     # Tier 5: Pattern Scan (Heuristic Regex)
     # Search all text for something that looks like a date
     text = element.get_text(separator=" ", strip=True)
     date = clean_and_convert_date(text)
     if date:
-        return date
+        return date, 5
 
-    return ""
+    return "", 0
 
 
 def clean_text(text):
@@ -249,7 +249,7 @@ def extract_rss_item(article):
     date_raw = date_elem.get_text() if date_elem else ""
     date = clean_and_convert_date(date_raw)
 
-    return (date, title, link)
+    return (date, title, link, 0)  # 0 indicates standard RSS strategy
 
 
 def extract_substack_articles(article):
@@ -260,7 +260,7 @@ def extract_substack_articles(article):
     link = article.find(attrs={"data-testid": "post-preview-title"}).get("href")
     # Date is assumed to be in a format like "YYYY-MM-DD"
     date = article.find("time").get("datetime").split("T")[0]
-    return (date, title, link)
+    return (date, title, link, 0)
 
 
 def get_articles(elements, extract_func, existing_titles, source_name):
@@ -281,13 +281,18 @@ def get_articles(elements, extract_func, existing_titles, source_name):
     for article in elements:
         try:
             article_info = extract_func(article)
-            # Unpack first three elements and ignore the 4th (hardcoded) source if present
-            date, title, link = article_info[0], article_info[1], article_info[2]
+            # Unpack first four elements (date, title, link, tier)
+            date, title, link, tier = (
+                article_info[0],
+                article_info[1],
+                article_info[2],
+                article_info[3],
+            )
 
             normalized_title = title.strip().lower()
             if normalized_title not in normalized_existing_titles:
                 # Always use the source_name provided from the sheet
-                yield (date, title, link, source_name)
+                yield (date, title, link, source_name, tier)
         except Exception as _:
             pass
 

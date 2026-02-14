@@ -32,6 +32,7 @@ def test_extract_substack_articles_success():
         "2025-01-15",
         "Test Substack",
         "https://example.substack.com/p/test",
+        0,
     )
 
 
@@ -57,7 +58,7 @@ def test_wrap_with_error_handler_logs_error():
 # Tests for get_articles
 def test_get_articles_yields_new_articles():
     mock_extractor = Mock(
-        return_value=("2025-01-01", "New Title", "http://link.com", "original_source")
+        return_value=("2025-01-01", "New Title", "http://link.com", 1)
     )
     elements = ["elem1"]
     existing_titles = {"Old Title"}
@@ -66,7 +67,7 @@ def test_get_articles_yields_new_articles():
     results = list(generator)
 
     assert len(results) == 1
-    assert results[0] == ("2025-01-01", "New Title", "http://link.com", "Sheet Source")
+    assert results[0] == ("2025-01-01", "New Title", "http://link.com", "Sheet Source", 1)
 
 
 def test_get_articles_skips_existing_titles():

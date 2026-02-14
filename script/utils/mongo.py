@@ -104,9 +104,8 @@ def insert_articles_event_mongo(client, articles):
         return
 
     documents = []
-    current_utc_time = datetime.now(UTC).isoformat()
 
-    for date, title, link, source in articles:
+    for date, title, link, source, tier in articles:
         # Extract domain from link
         try:
             parsed_uri = urlparse(link)
@@ -120,8 +119,9 @@ def insert_articles_event_mongo(client, articles):
             "published_date": date,
             "domain": domain,
         }
+        meta = {"discovery_tier": tier}
         # Ensure source is lowercased for consistency
-        doc = _create_event_doc(source.lower(), "extraction", payload)
+        doc = _create_event_doc(source.lower(), "extraction", payload, meta=meta)
         documents.append(doc)
 
     if documents:

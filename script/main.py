@@ -42,16 +42,17 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.CRITICAL)
 
 
-async def process_provider(fetcher_state, provider, existing_titles):
+async def process_provider(fetcher_state, provider, existing_titles, semaphore):
     """Process a single provider asynchronously and return articles"""
-    provider_name = provider.get("name")
-    provider_url = provider.get("url")
-    provider_element = provider.get("element")
-    provider_strategy = provider.get("strategy")
+    async with semaphore:
+        provider_name = provider.get("name")
+        provider_url = provider.get("url")
+        provider_element = provider.get("element")
+        provider_strategy = provider.get("strategy")
 
-    handler = get_strategy_handler(
-        provider_name, provider_strategy, provider_element, provider_url
-    )
+        handler = get_strategy_handler(
+            provider_name, provider_strategy, provider_element, provider_url
+        )
 
     if not handler:
         logger.info(
@@ -137,12 +138,13 @@ async def async_main(timestamp):
     existing_titles = get_all_titles(articles_sheet)
     providers = get_all_providers(providers_sheet)
 
+    semaphore = asyncio.Semaphore(3)
     fetcher_state = init_fetcher_state()
     all_articles = []
 
     # Create tasks for all providers to run concurrently
     tasks = [
-        process_provider(fetcher_state, provider, existing_titles)
+        process_provider(fetcher_state, provider, existing_titles, semaphore)
         for provider in providers
     ]
 
@@ -172,11 +174,12 @@ async def async_main(timestamp):
                 f"DRY RUN: Found {len(all_articles)} new articles (Skipping writes)."
             )
             for a in all_articles:
-                date, title, link, source = a
+                date, title, link, source, tier = a
                 # Truncate link for readability
                 short_link = (link[:30] + "...") if len(link) > 50 else link
+                tier_msg = f" (Tier {tier})" if tier > 0 else ""
                 logger.info(
-                    f"[DRY RUN] Would add: ({date}, {title}, {short_link}, {source})"
+                    f"[DRY RUN] Would add: ({date}, {title}, {short_link}, {source}){tier_msg}"
                 )
     else:
         logger.info("\n✅ No new articles found\n")

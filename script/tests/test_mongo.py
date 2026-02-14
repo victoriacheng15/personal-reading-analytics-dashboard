@@ -55,9 +55,9 @@ def test_insert_articles_event_mongo_success(mock_datetime, mock_get_collection)
     mock_client = Mock()
 
     articles = [
-        ("2025-12-20", "Test Article 1", "https://example.com/article1", "GitHub"),
-        ("2025-12-21", "Test Article 2", "https://stripe.com/article2", "Stripe"),
-        ("2025-12-22", "Test Article 3", "https://substack.com/article3", "Substack"),
+        ("2025-12-20", "Test Article 1", "https://example.com/article1", "GitHub", 1),
+        ("2025-12-21", "Test Article 2", "https://stripe.com/article2", "Stripe", 2),
+        ("2025-12-22", "Test Article 3", "https://substack.com/article3", "Substack", 0),
     ]
 
     insert_articles_event_mongo(mock_client, articles)
@@ -72,18 +72,21 @@ def test_insert_articles_event_mongo_success(mock_datetime, mock_get_collection)
     assert len(documents) == 3
     assert documents[0]["payload"]["title"] == "Test Article 1"
     assert documents[0]["payload"]["domain"] == "example.com"
+    assert documents[0]["meta"]["discovery_tier"] == 1
     assert documents[0]["status"] == "ingested"
     assert documents[0]["event_type"] == "extraction"
     assert documents[1]["payload"]["domain"] == "stripe.com"
+    assert documents[1]["meta"]["discovery_tier"] == 2
     assert documents[1]["event_type"] == "extraction"
     assert documents[2]["payload"]["domain"] == "substack.com"
+    assert documents[2]["meta"]["discovery_tier"] == 0
     assert documents[2]["event_type"] == "extraction"
 
 
 @patch("utils.mongo.logger")
 def test_insert_articles_event_mongo_no_client(mock_logger):
     """Test that function returns early when client is None"""
-    articles = [("2025-12-20", "Test", "https://example.com", "GitHub")]
+    articles = [("2025-12-20", "Test", "https://example.com", "GitHub", 1)]
 
     insert_articles_event_mongo(None, articles)
 
@@ -121,7 +124,7 @@ def test_insert_articles_event_mongo_insertion_error(
     mock_client = Mock()
 
     articles = [
-        ("2025-12-20", "Test Article", "https://example.com/article", "GitHub"),
+        ("2025-12-20", "Test Article", "https://example.com/article", "GitHub", 1),
     ]
 
     insert_articles_event_mongo(mock_client, articles)
@@ -155,6 +158,7 @@ def test_insert_articles_event_mongo_document_structure(
             "Why Observability Matters",
             "https://stripe.com/blog/observability",
             "Stripe",
+            4,
         ),
     ]
 
@@ -171,6 +175,7 @@ def test_insert_articles_event_mongo_document_structure(
     assert doc["payload"]["link"] == "https://stripe.com/blog/observability"
     assert doc["payload"]["published_date"] == "2025-12-20"
     assert doc["payload"]["domain"] == "stripe.com"
+    assert doc["meta"]["discovery_tier"] == 4
     assert doc["status"] == "ingested"
     assert doc["event_type"] == "extraction"
 

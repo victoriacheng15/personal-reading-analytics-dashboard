@@ -26,11 +26,12 @@ def test_process_provider_success(
     mock_handler = {"element": lambda: "article", "extractor": Mock()}
     mock_get_strategy_handler.return_value = mock_handler
     mock_fetch_page.return_value = (mock_soup, MOCK_FETCHER_STATE)
-    mock_get_articles.return_value = [("2025-01-01", "Title", "Link", "Source")]
+    mock_get_articles.return_value = [("2025-01-01", "Title", "Link", "Source", 1)]
 
     # Execute
+    semaphore = asyncio.Semaphore(1)
     articles, state = asyncio.run(
-        process_provider(MOCK_FETCHER_STATE, MOCK_PROVIDER, set())
+        process_provider(MOCK_FETCHER_STATE, MOCK_PROVIDER, set(), semaphore)
     )
 
     # Verify
@@ -46,8 +47,9 @@ def test_process_provider_unknown_provider(mock_get_strategy_handler):
     """Test processing with unknown provider"""
     mock_get_strategy_handler.return_value = None
 
+    semaphore = asyncio.Semaphore(1)
     articles, state = asyncio.run(
-        process_provider(MOCK_FETCHER_STATE, MOCK_PROVIDER, set())
+        process_provider(MOCK_FETCHER_STATE, MOCK_PROVIDER, set(), semaphore)
     )
 
     assert articles == []
@@ -67,8 +69,9 @@ def test_process_provider_fetch_failure(
     mock_fetch_page.return_value = (None, MOCK_FETCHER_STATE)
     mock_get_mongo_client.return_value = None  # Prevent MongoDB connection
 
+    semaphore = asyncio.Semaphore(1)
     articles, state = asyncio.run(
-        process_provider(MOCK_FETCHER_STATE, MOCK_PROVIDER, set())
+        process_provider(MOCK_FETCHER_STATE, MOCK_PROVIDER, set(), semaphore)
     )
 
     assert articles == []
@@ -104,7 +107,7 @@ def test_async_main_success(
     mock_get_worksheet.return_value = mock_sheet
     mock_get_providers.return_value = [MOCK_PROVIDER]
     mock_process.return_value = (
-        [("2025-01-01", "Title", "Link", "Source")],
+        [("2025-01-01", "Title", "Link", "Source", 1)],
         MOCK_FETCHER_STATE,
     )
     mock_client = MagicMock()  # Use MagicMock which supports __getitem__ better
