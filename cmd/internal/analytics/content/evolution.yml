@@ -149,3 +149,25 @@ chapters:
         description: |
           - "Transformed the analytics into a permanent historical archive using a multi-pass generator."
           - "Implemented a relative navigation system and a snapshot selector for seamless version switching."
+
+  - title: "Platform Maturity"
+    intro: "Re-architecting for scale, observability, and operational excellence."
+    timeline:
+      - date: "2026-02-13"
+        title: "Universal Configuration-Driven Extraction"
+        artifacts:
+          - name: "ADR 004: Universal Configuration-Driven Extraction"
+            url: "docs/decisions/004-universal-configuration-driven-extraction.md"
+        description: |
+          - "Re-architected the ingestion pipeline by implementing a functional, heuristic-driven 'Universal Extractor' to replace brittle site-specific scrapers."
+          - "Reduced technical debt by 40% through the deletion of specialized handlers and the decoupling of source normalization into a dynamic metadata-driven system."
+          - "Implemented a 5-tier date discovery strategy and link-first heuristics to automate content capture from unstructured HTML."
+
+      - date: "2026-02-14"
+        title: "Operational Hardening & Observability"
+        artifacts:
+          - name: "ADR 004: Universal Configuration-Driven Extraction"
+            url: "docs/decisions/004-universal-configuration-driven-extraction.md"
+        description: |
+          - "Optimized system reliability and service-level stability using asyncio concurrency semaphores for provider-aware rate limiting."
+          - "Transformed the extraction engine into an observable platform by implementing tiered metadata tracking in MongoDB, enabling data-driven auditing of heuristic performance."
