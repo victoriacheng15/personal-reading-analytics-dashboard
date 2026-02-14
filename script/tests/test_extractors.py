@@ -2,11 +2,7 @@ import pytest
 from unittest.mock import Mock, patch
 from bs4 import BeautifulSoup
 from utils import (
-    extract_fcc_articles,
     extract_substack_articles,
-    extract_github_articles,
-    extract_shopify_articles,
-    extract_stripe_articles,
     get_articles,
     get_strategy_handler,
     wrap_with_error_handler,
@@ -18,47 +14,6 @@ def create_element(html):
     soup = BeautifulSoup(html, "html.parser")
     # Return the first tag found, as extractors expect an element, not the full soup doc
     return soup.find() if soup.find() else soup
-
-
-# Tests for extract_fcc_articles
-def test_extract_fcc_articles_success():
-    html = """
-    <article>
-        <h2>Test Title</h2>
-        <a href="/news/test-article"></a>
-        <time datetime="2025-01-15T10:00:00Z">Jan 15, 2025</time>
-    </article>
-    """
-    element = create_element(html)
-
-    result = extract_fcc_articles(element)
-
-    assert result == (
-        "2025-01-15",
-        "Test Title",
-        "https://www.freecodecamp.org/news/test-article",
-    )
-
-
-def test_extract_fcc_articles_rss_success():
-    html = """
-    <item>
-        <title><![CDATA[ RSS Test Title ]]></title>
-        <link>https://www.freecodecamp.org/news/rss-article/</link>
-        <pubDate>Wed, 15 Jan 2025 10:00:00 +0000</pubDate>
-    </item>
-    """
-    # Beautifulsoup usually lowercase tags in html.parser, but RSS tags can be case-sensitive.
-    # However, our extractor uses .find("title"), which is case-insensitive in bs4.
-    element = create_element(html)
-
-    result = extract_fcc_articles(element)
-
-    assert result == (
-        "2025-01-15",
-        "RSS Test Title",
-        "https://www.freecodecamp.org/news/rss-article/",
-    )
 
 
 # Tests for extract_substack_articles
@@ -77,111 +32,6 @@ def test_extract_substack_articles_success():
         "2025-01-15",
         "Test Substack",
         "https://example.substack.com/p/test",
-    )
-
-
-# Tests for extract_github_articles
-def test_extract_github_articles_success():
-    html = """
-    <article>
-        <h3>GitHub News</h3>
-        <a class="Link--primary" href="https://github.blog/2025-01-15-news"></a>
-        <time datetime="2025-01-15">Jan 15, 2025</time>
-    </article>
-    """
-    element = create_element(html)
-
-    result = extract_github_articles(element)
-
-    assert result == (
-        "2025-01-15",
-        "GitHub News",
-        "https://github.blog/2025-01-15-news",
-    )
-
-
-def test_extract_github_articles_rss_success():
-    html = """
-    <item>
-        <title>GitHub RSS Title</title>
-        <link>https://github.blog/2025-01-15-rss-news/</link>
-        <pubDate>Wed, 15 Jan 2025 10:00:00 +0000</pubDate>
-    </item>
-    """
-    element = create_element(html)
-
-    result = extract_github_articles(element)
-
-    assert result == (
-        "2025-01-15",
-        "GitHub RSS Title",
-        "https://github.blog/2025-01-15-rss-news/",
-    )
-
-
-# Tests for extract_shopify_articles
-def test_extract_shopify_articles_success():
-    # Note: The class names in extract_shopify_articles are specific.
-    # We need to match what the lambda looks for: "tracking-[-.02em]", "pb-4", "hover:underline"
-    html = """
-    <div>
-        <div class="tracking-[-.02em] pb-4 hover:underline">
-            <a href="/engineering/shopify-article">Shopify Article</a>
-        </div>
-        <p class="richtext text-body-sm font-normal text-engineering-dark-author-text font-sans">
-            Jan 15, 2025
-        </p>
-    </div>
-    """
-    element = create_element(html)
-
-    result = extract_shopify_articles(element)
-
-    assert result == (
-        "2025-01-15",
-        "Shopify Article",
-        "https://shopify.engineering/engineering/shopify-article",
-    )
-
-
-# Tests for extract_stripe_articles
-def test_extract_stripe_articles_success():
-    html = """
-    <article>
-        <h1>
-            <a class="BlogIndexPost__titleLink" href="/blog/stripe-news">Stripe News</a>
-        </h1>
-        <time datetime="2025-01-15">Jan 15, 2025</time>
-    </article>
-    """
-    element = create_element(html)
-
-    result = extract_stripe_articles(element)
-
-    assert result == (
-        "2025-01-15",
-        "Stripe News",
-        "https://stripe.com/blog/stripe-news",
-    )
-
-
-def test_extract_stripe_articles_fallback():
-    html = """
-    <article>
-        <h1>
-            <a href="/blog/stripe-news-fallback">Stripe Fallback</a>
-        </h1>
-        <time datetime="2025-01-15">Jan 15, 2025</time>
-    </article>
-    """
-    element = create_element(html)
-
-    result = extract_stripe_articles(element)
-
-    assert result == (
-        "2025-01-15",
-        "Stripe Fallback",
-        "https://stripe.com/blog/stripe-news-fallback",
     )
 
 
@@ -272,9 +122,12 @@ def test_get_strategy_handler_substack():
     assert callable(handler["extractor"])
 
 
-def test_get_strategy_handler_unknown_provider():
+def test_get_strategy_handler_unknown_provider_html():
+    """HTML strategy now fallbacks to universal extractor even for unknown providers."""
     handler = get_strategy_handler("Unknown", "html", "test-class")
-    assert handler is None
+    assert handler is not None
+    assert handler["element"]() == "test-class"
+    assert callable(handler["extractor"])
 
 
 def test_get_strategy_handler_generic_rss():
@@ -284,3 +137,27 @@ def test_get_strategy_handler_generic_rss():
     assert handler["element"]() == ["test-class", "item"]
     assert callable(handler["extractor"])
     # It should be a lambda or partial wrapping extract_rss_item
+
+
+def test_get_strategy_handler_html_json_config():
+    """Test get_strategy_handler with JSON configuration for HTML strategy."""
+    provider_name = "CustomBlog"
+    strategy = "html"
+    element_json = (
+        '{"container": "div.article", "title_selector": "h3", "date_selector": ".date"}'
+    )
+
+    handler = get_strategy_handler(provider_name, strategy, element_json)
+
+    assert handler is not None
+    assert handler["element"]() == "div.article"
+    # Extractor is wrapped, so we can't easily check internal lambda name,
+    # but we can verify it's callable.
+    assert callable(handler["extractor"])
+
+
+def test_get_strategy_handler_migration_github():
+    """Test that GitHub correctly migrates to universal extractor via handler."""
+    handler = get_strategy_handler("GitHub", "html", "article")
+    assert handler is not None
+    assert callable(handler["extractor"])

@@ -1,7 +1,7 @@
 import re
+import json
 import logging
 import traceback
-from datetime import datetime
 from utils.format_date import clean_and_convert_date
 from utils.mongo import insert_error_event_mongo, get_mongo_client
 from utils.constants import (
@@ -91,42 +91,73 @@ def universal_html_extractor(element, config=None, provider_url=None):
 
 def _extract_title_and_link(element, config, provider_url=None):
     # Step A: Find Primary Anchor
-    # Heuristic: First <a> tag with text length > 10
-    anchors = element.find_all("a")
-    primary_anchor = None
-    for a in anchors:
-        if len(a.get_text().strip()) > 10:
-            primary_anchor = a
-            break
-
-    # Fallback to first anchor if none meet length requirement
-    if not primary_anchor and anchors:
-        primary_anchor = anchors[0]
-
-    if not primary_anchor:
-        return "<untitled>", ""
-
-    # Step B: Extract Link & Normalize
-    href = primary_anchor.get("href", "")
-    link = href
-    if provider_url and not (href.startswith("http://") or href.startswith("https://")):
-        from urllib.parse import urljoin
-
-        link = urljoin(provider_url, href)
-
-    # Step C: Extract Title
+    # 1. Explicit title selector from config
     title_selector = config.get("title_selector")
     if title_selector:
         title_elem = element.select_one(title_selector)
-        title = (
-            title_elem.get_text().strip()
-            if title_elem
-            else primary_anchor.get_text().strip()
-        )
-    else:
-        title = primary_anchor.get_text().strip()
+        if title_elem:
+            # If the selected element isn't an anchor, look for one inside it
+            anchor = title_elem if title_elem.name == "a" else title_elem.find("a")
+            if anchor:
+                return title_elem.get_text().strip(), _normalize_url(
+                    anchor.get("href"), provider_url
+                )
+            return title_elem.get_text().strip(), ""
 
-    return title, link
+    # 2. Prioritize headers (h1-h4) that contain links
+    for tag in ["h1", "h2", "h3", "h4"]:
+        for header in element.find_all(tag):
+            anchor = header.find("a")
+            if anchor and len(anchor.get_text().strip()) > 5:
+                return anchor.get_text().strip(), _normalize_url(
+                    anchor.get("href"), provider_url
+                )
+
+    # 3. Look for anchors with "title" or "link" in their class names
+    title_anchors = element.find_all(
+        "a", class_=re.compile(r"title|headline|link|entry", re.I)
+    )
+    for anchor in title_anchors:
+        text = anchor.get_text().strip()
+        # Filter out category links and short noise
+        if (
+            len(text) > 10
+            and "&" not in text
+            and not re.search(r"category|tag|topic", anchor.get("href", ""), re.I)
+        ):
+            return text, _normalize_url(anchor.get("href"), provider_url)
+
+    # 4. Fallback: First <a> tag with substantial text
+    anchors = element.find_all("a")
+    for a in anchors:
+        text = a.get_text().strip()
+        href = a.get("href", "")
+        # Avoid common generic links, category links, and breadcrumbs
+        if (
+            len(text) > 15
+            and text.lower() not in ["read more", "continue reading"]
+            and not re.search(r"category|tag|topic|author", href, re.I)
+            and "&" not in text
+        ):
+            return text, _normalize_url(href, provider_url)
+
+    # absolute fallback
+    if anchors:
+        return anchors[0].get_text().strip(), _normalize_url(
+            anchors[0].get("href"), provider_url
+        )
+
+    return "<untitled>", ""
+
+
+def _normalize_url(href, provider_url):
+    if not href:
+        return ""
+    if provider_url and not (href.startswith("http://") or href.startswith("https://")):
+        from urllib.parse import urljoin
+
+        return urljoin(provider_url, href)
+    return href
 
 
 def _extract_date(element, config):
@@ -221,22 +252,6 @@ def extract_rss_item(article):
     return (date, title, link)
 
 
-def extract_fcc_articles(article):
-    """
-    Extracts article information from a freeCodeCamp article element.
-    Handles both HTML articles and RSS items.
-    """
-    if article.name == "item":
-        return extract_rss_item(article)
-    else:
-        # Legacy HTML Scraping
-        title = article.find("h2").get_text().strip()
-        href = article.find("a").get("href")
-        link = f"https://www.freecodecamp.org{href}"
-        date = clean_and_convert_date(article.find("time").get("datetime"))
-        return (date, title, link)
-
-
 def extract_substack_articles(article):
     """
     Extracts article information from a Substack article element.
@@ -245,72 +260,6 @@ def extract_substack_articles(article):
     link = article.find(attrs={"data-testid": "post-preview-title"}).get("href")
     # Date is assumed to be in a format like "YYYY-MM-DD"
     date = article.find("time").get("datetime").split("T")[0]
-    return (date, title, link)
-
-
-def extract_github_articles(article):
-    """
-    Extracts article information from a GitHub article element.
-    Handles both HTML articles and RSS items.
-    """
-    if article.name == "item":
-        return extract_rss_item(article)
-    else:
-        # Legacy HTML Scraping
-        title = article.find("h3").get_text().strip()
-        link = article.find(class_="Link--primary").get("href")
-        date = article.find("time").get("datetime")
-        return (date, title, link)
-
-
-def extract_shopify_articles(article):
-    """
-    Extracts article information from a Shopify article element.
-    """
-    title_div = article.find(
-        "div",
-        class_=lambda x: (
-            x and "tracking-[-.02em]" in x and "pb-4" in x and "hover:underline" in x
-        ),
-    )
-    title_a = title_div.find("a")
-    title = title_a.get_text().strip()
-    blog_address = title_a.get("href")
-    link = f"https://shopify.engineering{blog_address}"
-    date_element = (
-        article.find(
-            "p",
-            class_="richtext text-body-sm font-normal text-engineering-dark-author-text font-sans",
-        )
-        .get_text()
-        .strip()
-    )
-    before_format_date = datetime.strptime(date_element, "%b %d, %Y")
-    date = before_format_date.strftime("%Y-%m-%d")
-    return (date, title, link)
-
-
-def extract_stripe_articles(article):
-    """
-    Extracts article information from a Stripe Engineering blog article element.
-    """
-    # Title link is inside an <h1> with a nested <a class="BlogIndexPost__titleLink">...
-    title_a = article.find("a", class_=lambda x: x and "BlogIndexPost__titleLink" in x)
-    if not title_a:
-        # fallback to any h1 > a
-        h1 = article.find("h1")
-        title_a = h1.find("a") if h1 else None
-
-    title = title_a.get_text().strip() if title_a else "<untitled>"
-    href = title_a.get("href") if title_a else None
-    # Normalize to absolute URL when possible
-    link = f"https://stripe.com{href}" if href and href.startswith("/") else href
-
-    # Date is in a <time datetime="..." element
-    time_elem = article.find("time")
-    date_raw = time_elem.get("datetime") if time_elem else None
-    date = clean_and_convert_date(date_raw) if date_raw else ""
-
     return (date, title, link)
 
 
@@ -343,17 +292,11 @@ def get_articles(elements, extract_func, existing_titles, source_name):
             pass
 
 
-# Mapping of provider names to their specialized extractor functions
-EXTRACTOR_MAPPING = {
-    "freecodecamp": extract_fcc_articles,
-    "substack": extract_substack_articles,
-    "github": extract_github_articles,
-    "shopify": extract_shopify_articles,
-    "stripe": extract_stripe_articles,
-}
+# Substack is kept as it uses a very specific platform layout
+# All other HTML blogs use the universal extractor
 
 
-def get_strategy_handler(provider_name, strategy, element):
+def get_strategy_handler(provider_name, strategy, element, provider_url=None):
     """
     Factory that returns the appropriate element search criteria and extractor
     function based on the provider's strategy.
@@ -361,20 +304,35 @@ def get_strategy_handler(provider_name, strategy, element):
     Args:
         provider_name (str): The name of the provider.
         strategy (str): The extraction strategy (rss, html, substack).
-        element (str): The primary element or class to search for.
+        element (str): The primary element or class to search for, or a JSON config.
+        provider_url (str, optional): The base URL of the provider for relative link normalization.
 
     Returns:
         dict: A dictionary containing 'element' (lambda returning search criteria)
               and 'extractor' (function). Returns None if no extractor found.
     """
     strategy = (strategy or STRATEGY_HTML).lower()
+    config = {}
+    search_element = element
+
+    # Try to parse element as JSON for HTML strategy
+    if element and (element.startswith("{") or strategy == STRATEGY_HTML):
+        try:
+            config = json.loads(element)
+            search_element = config.get("container", element)
+        except (json.JSONDecodeError, TypeError):
+            # Fallback to treating element as a plain string selector/tag
+            pass
 
     # 1. Determine the extractor function
-    extractor = EXTRACTOR_MAPPING.get(provider_name.lower())
+    extractor = None
 
-    # Fallback to generic RSS extractor if strategy is RSS and no specialized extractor exists
-    if not extractor and strategy == STRATEGY_RSS:
-        extractor = lambda art: extract_rss_item(art)
+    if strategy == STRATEGY_HTML:
+        extractor = lambda art: universal_html_extractor(art, config, provider_url)
+    elif strategy == STRATEGY_SUBSTACK:
+        extractor = extract_substack_articles
+    elif strategy == STRATEGY_RSS:
+        extractor = extract_rss_item
 
     if not extractor:
         return None
@@ -385,10 +343,11 @@ def get_strategy_handler(provider_name, strategy, element):
     # 2. Determine the element search criteria
     if strategy == STRATEGY_RSS:
         # Default to "item" for RSS if element is missing
-        search_element = [element, "item"] if element else ["item"]
+        search_element = [search_element, "item"] if search_element else ["item"]
     elif strategy == STRATEGY_SUBSTACK:
-        search_element = {"class_": re.compile(element)}
+        search_element = {"class_": re.compile(search_element)}
     else:  # STRATEGY_HTML
-        search_element = element
+        # search_element is already set from config or passed element
+        pass
 
     return {"element": lambda: search_element, "extractor": wrapped_extractor}

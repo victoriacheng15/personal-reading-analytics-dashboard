@@ -49,7 +49,9 @@ async def process_provider(fetcher_state, provider, existing_titles):
     provider_element = provider.get("element")
     provider_strategy = provider.get("strategy")
 
-    handler = get_strategy_handler(provider_name, provider_strategy, provider_element)
+    handler = get_strategy_handler(
+        provider_name, provider_strategy, provider_element, provider_url
+    )
 
     if not handler:
         logger.info(

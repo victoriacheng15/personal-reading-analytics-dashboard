@@ -28,11 +28,7 @@ from .extractors import (
     get_strategy_handler,
     get_articles,
     wrap_with_error_handler,
-    extract_fcc_articles,
     extract_substack_articles,
-    extract_github_articles,
-    extract_shopify_articles,
-    extract_stripe_articles,
 )
 
 # Date and time utilities
@@ -73,11 +69,7 @@ __all__ = [
     "get_strategy_handler",
     "get_articles",
     "wrap_with_error_handler",
-    "extract_fcc_articles",
     "extract_substack_articles",
-    "extract_github_articles",
-    "extract_shopify_articles",
-    "extract_stripe_articles",
     # Date utilities
     "clean_and_convert_date",
     "current_time",
