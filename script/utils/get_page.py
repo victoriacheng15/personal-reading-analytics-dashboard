@@ -19,10 +19,15 @@ def init_fetcher_state():
     Returns:
         dict: A dictionary containing the fetcher state.
     """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
     return {
         "last_request_time": 0.0,
         "request_interval": DEFAULT_REQUEST_INTERVAL,
-        "client": httpx.AsyncClient(timeout=DEFAULT_TIMEOUT, http2=True),
+        "client": httpx.AsyncClient(
+            timeout=DEFAULT_TIMEOUT, http2=True, headers=headers, verify=False
+        ),
         "lock": asyncio.Lock(),
     }
 

@@ -171,3 +171,12 @@ chapters:
         description: |
           - "Optimized system reliability and service-level stability using asyncio concurrency semaphores for provider-aware rate limiting."
           - "Transformed the extraction engine into an observable platform by implementing tiered metadata tracking in MongoDB, enabling data-driven auditing of heuristic performance."
+
+  - title: "Content Expansion"
+    intro: "Expanding the collection of engineering blogs."
+    timeline:
+      - date: "2026-02-15"
+        title: "Onboarded Netflix"
+        description: |
+          - "Added the Netflix Tech Blog to the collection via RSS."
+          - "Hardened the extraction engine with custom headers and SSL resilience to handle Medium-hosted content delivery networks."

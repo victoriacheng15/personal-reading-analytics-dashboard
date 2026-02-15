@@ -93,6 +93,7 @@ Currently extracting articles from:
 - GitHub (Added 2024-03-18)
 - Shopify (Added 2025-03-05)
 - Stripe (Added 2025-11-19)
+- Netflix (Added 2026-02-15)
 
 ---
 
