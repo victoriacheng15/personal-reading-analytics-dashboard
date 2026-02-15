@@ -1,53 +1,53 @@
 chapters:
   - title: "The Foundation"
-    intro: "Establishing a resilient data ingestion pipeline for chaotic web content."
+    intro: "Building the core resilient data ingestion pipeline for chaotic web content."
     timeline:
       - date: "2024-02-04"
         title: "Article Collection Begins"
         description: |
-          - "Automated article collection from technical blogs to Google Sheets using a local Python script."
-          - "Optimized memory efficiency using Python generators to stream data, ensuring performance on constrained resources."
-          - "Implemented basic deduplication logic to ensure a clean dataset for archival."
+          - "Automated article collection from technical blogs to Google Sheets."
+          - "Optimized memory efficiency with Python generators for streaming data."
+          - "Implemented deduplication logic to ensure clean dataset for archival."
 
       - date: "2024-03-04"
         title: "Consistent Parsing Across Diverse Layouts"
         description: |
-          - "Built robust detection for article titles and authors to handle unstructured HTML from diverse sources."
-          - "Containerized the development environment to ensure reproducibility across different machines."
+          - "Built robust detection for article titles and authors in unstructured HTML from diverse sources."
+          - "Containerized the development environment to ensure reproducibility."
 
       - date: "2024-04-03"
         title: "Future-Proof Extraction Logic"
         description: |
-          - "Engineered resilient extraction logic that adapts to layout changes, drastically reducing maintenance overhead."
+          - "Engineered resilient extraction logic that adapts to layout changes, significantly reducing maintenance overhead."
 
       - date: "2024-05-12"
         title: "Handling Complex, Dynamic Websites"
         description: |
-          - "Upgraded the system to reliably capture articles from modern dynamic sites like Substack by identifying stable structural patterns."
+          - "Upgraded system to reliably capture articles from dynamic sites (e.g., Substack) by identifying stable structural patterns."
 
       - date: "2024-06-12"
         title: "Standardized Local Development"
         description: |
-          - "Implemented Docker Compose and a standardized Makefile to streamline developer workflows and ensure execution consistency."
+          - "Implemented Docker Compose and standardized Makefile to streamline developer workflows and ensure execution consistency."
 
   - title: "Automation"
-    intro: "Transitioning to automated CI/CD to eliminate manual toil and ensure data freshness."
+    intro: "Automating CI/CD to eliminate manual toil and ensure data freshness."
     timeline:
       - date: "2025-01-01"
         title: "Configuration as Data"
         description: |
-          - "Decoupled source configurations from application code, allowing rapid data source updates without deployment."
-          - "Migrated configuration to a centralized provider sheet to democratize management."
+          - "Decoupled source configurations from application code for rapid data source updates."
+          - "Migrated configuration to a centralized provider sheet, democratizing management."
 
       - date: "2025-01-25"
         title: "Automated Code Quality & Formatting"
         description: |
-          - "Enforced code quality standards via GitHub Actions CI pipelines to prevent technical debt accumulation."
+          - "Enforced code quality standards via GitHub Actions CI pipelines, preventing technical debt accumulation."
 
       - date: "2025-01-26"
         title: "Fully Automated Daily Collection"
         description: |
-          - "Migrated manual workflows to fully automated, scheduled GitHub Actions, ensuring daily data freshness."
+          - "Migrated workflows to fully automated, scheduled GitHub Actions, ensuring daily data freshness."
           - "Secured API integrations using encrypted secrets management."
 
       - date: "2025-02-01"
@@ -61,38 +61,38 @@ chapters:
           - "Standardized technical documentation across the extraction engine to onboard contributors and facilitate long-term maintenance."
 
   - title: "Scale"
-    intro: "Expanding data sources, optimizing performance, and launching public-facing analytics."
+    intro: "Scaling data sources, optimizing performance, and launching public analytics."
     timeline:
       - date: "2025-03-05"
         title: "Expanded to Technical Engineering Blogs"
         description: |
-          - "Added major engineering blogs (GitHub, Shopify) to the automated pipeline."
-          - "Enhanced error resilience strategies to maintain pipeline stability during partial source failures."
+          - "Expanded automated pipeline to major engineering blogs (e.g., GitHub, Shopify)."
+          - "Enhanced error resilience strategies for stability during partial source failures."
 
       - date: "2025-04-17"
         title: "Faster, Parallel Content Fetching"
         description: |
-          - "Re-architected the ingestion engine for concurrency using asyncio, enabling efficient scaling as data sources multiply."
+          - "Re-architected ingestion engine for concurrency using asyncio, enabling efficient scaling with multiplying data sources."
 
       - date: "2025-11-28"
         title: "Personal Reading Analytics Launched"
         description: |
-          - "Released a public analytics dashboard on GitHub Pages to visualize long-term reading trends."
-          - "Built a lightweight, high-performance metrics engine using Go."
+          - "Launched public analytics dashboard on GitHub Pages, visualizing long-term reading trends."
+          - "Built lightweight, high-performance metrics engine in Go."
 
       - date: "2025-12-19"
         title: "Deeper Insights & Observability Foundation"
         description: |
-          - "Introduced advanced metrics for unread aging and publication year distribution to identify reading bottlenecks."
-          - "Designed a centralized observability system with MongoDB to track ingestion health and accelerate debugging."
+          - "Introduced advanced metrics (unread aging, publication year distribution) to identify reading bottlenecks."
+          - "Designed centralized MongoDB observability for ingestion health and faster debugging."
 
   - title: "Governance"
-    intro: "Formalizing architectural standards and project documentation."
+    intro: "Formalizing architectural standards, enhancing project documentation."
     timeline:
       - date: "2026-01-01"
         title: "Launched Landing and Evolution Pages"
         description: |
-          - "Launched a comprehensive project portal to visualize engineering milestones and document technical growth."
+          - "Launched comprehensive project portal visualizing engineering milestones and technical growth."
 
       - date: "2026-01-16"
         title: "Architectural Governance"
@@ -100,7 +100,7 @@ chapters:
           - name: "ADR 001: Prefer RSS over Scraping"
             url: "docs/decisions/001-prefer-rss-over-html-scraping.md"
         description: |
-          - "Defined architectural standards to prioritize RSS feeds, shifting strategy from fragile scraping to stable API-based ingestion."
+          - "Defined architectural standards prioritizing RSS feeds, shifting from fragile scraping to stable API ingestion."
 
       - date: "2026-01-22"
         title: "Transitioned to RSS Extraction"
@@ -108,10 +108,10 @@ chapters:
           - name: "ADR 001: Prefer RSS over Scraping"
             url: "docs/decisions/001-prefer-rss-over-html-scraping.md"
         description: |
-          - "Led the migration of key data sources to auto-detected RSS feeds, significantly improving pipeline reliability."
+          - "Led migration of key data sources to auto-detected RSS feeds, significantly improving pipeline reliability."
 
   - title: "Intelligence"
-    intro: "Integrating AI-powered analysis to extract qualitative insights."
+    intro: "Integrating AI-powered analysis for qualitative insight extraction."
     timeline:
       - date: "2026-01-22"
         title: "Proposed AI Delta Analysis"
@@ -119,7 +119,7 @@ chapters:
           - name: "ADR 002: Integrate AI Delta Analysis"
             url: "docs/decisions/002-integrate-ai-delta-analysis.md"
         description: |
-          - "Authored ADR 002 to propose integrating Generative AI for qualitative trend analysis."
+          - "Authored ADR 002 proposing Generative AI integration for qualitative trend analysis."
 
       - date: "2026-01-23"
         title: "Integrated AI Delta Analysis"
@@ -127,11 +127,11 @@ chapters:
           - name: "ADR 002: Integrate AI Delta Analysis"
             url: "docs/decisions/002-integrate-ai-delta-analysis.md"
         description: |
-          - "Integrated Google Gemini (GenAI) to transform raw reading metrics into qualitative, actionable insights."
-          - "Designed a flexible analysis pipeline allowing standalone execution for cost optimization."
+          - "Integrated Google Gemini (GenAI) transforming raw metrics into qualitative, actionable insights."
+          - "Designed flexible analysis pipeline for cost-optimized standalone execution."
 
   - title: "Persistence"
-    intro: "Preserving historical snapshots to visualize long-term reading trends."
+    intro: "Preserving historical snapshots for visualizing long-term reading trends."
     timeline:
       - date: "2026-01-30"
         title: "Proposed Static Historical Metrics Snapshots"
@@ -139,7 +139,7 @@ chapters:
           - name: "ADR 003: Static Historical Metrics"
             url: "docs/decisions/003-static-historical-metrics.md"
         description: |
-          - "Authored ADR 003 to transform the analytics from a single snapshot into a permanent historical archive."
+          - "Authored ADR 003 to transform analytics into a permanent historical archive."
 
       - date: "2026-02-02"
         title: "Implemented Historical Metrics Snapshots"
@@ -147,11 +147,11 @@ chapters:
           - name: "ADR 003: Static Historical Metrics"
             url: "docs/decisions/003-static-historical-metrics.md"
         description: |
-          - "Transformed the analytics into a permanent historical archive using a multi-pass generator."
-          - "Implemented a relative navigation system and a snapshot selector for seamless version switching."
+          - "Transformed analytics into a permanent historical archive via multi-pass generator."
+          - "Implemented relative navigation, snapshot selector for seamless switching."
 
   - title: "Platform Maturity"
-    intro: "Re-architecting for scale, observability, and operational excellence."
+    intro: "Re-architecting for scalability, observability, and operational excellence."
     timeline:
       - date: "2026-02-13"
         title: "Universal Configuration-Driven Extraction"
@@ -159,9 +159,9 @@ chapters:
           - name: "ADR 004: Universal Configuration-Driven Extraction"
             url: "docs/decisions/004-universal-configuration-driven-extraction.md"
         description: |
-          - "Re-architected the ingestion pipeline by implementing a functional, heuristic-driven 'Universal Extractor' to replace brittle site-specific scrapers."
-          - "Reduced technical debt by 40% through the deletion of specialized handlers and the decoupling of source normalization into a dynamic metadata-driven system."
-          - "Implemented a 5-tier date discovery strategy and link-first heuristics to automate content capture from unstructured HTML."
+          - "Re-architected ingestion pipeline with heuristic 'Universal Extractor', replacing brittle scrapers."
+          - "Reduced technical debt by 40% via dynamic, metadata-driven normalization."
+          - "Implemented 5-tier date discovery, link-first heuristics for automated content capture."
 
       - date: "2026-02-14"
         title: "Operational Hardening & Observability"
@@ -169,14 +169,14 @@ chapters:
           - name: "ADR 004: Universal Configuration-Driven Extraction"
             url: "docs/decisions/004-universal-configuration-driven-extraction.md"
         description: |
-          - "Optimized system reliability and service-level stability using asyncio concurrency semaphores for provider-aware rate limiting."
-          - "Transformed the extraction engine into an observable platform by implementing tiered metadata tracking in MongoDB, enabling data-driven auditing of heuristic performance."
+          - "Optimized system reliability and stability using asyncio concurrency semaphores for rate limiting."
+          - "Transformed extraction engine into an observable platform via tiered MongoDB metadata for heuristic performance auditing."
 
   - title: "Content Expansion"
-    intro: "Expanding the collection of engineering blogs."
+    intro: "Expanding the project's engineering blog collection."
     timeline:
       - date: "2026-02-15"
         title: "Onboarded Netflix"
         description: |
-          - "Added the Netflix Tech Blog to the collection via RSS."
-          - "Hardened the extraction engine with custom headers and SSL resilience to handle Medium-hosted content delivery networks."
+          - "Onboarded Netflix Tech Blog via RSS."
+          - "Hardened extraction engine with custom headers, SSL resilience for CDNs."
