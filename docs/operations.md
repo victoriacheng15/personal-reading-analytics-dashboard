@@ -76,3 +76,25 @@ All sensitive configuration is managed via GitHub Secrets.
 | **Metrics PR Missing** | Check `metrics_generation.yml` logs. Verify `SHEET_ID` access. Run `make run-metrics` locally to debug. |
 | **Deploy Fails** | Ensure `metrics/` folder has JSON files. Check `deployment.yml` logs for template errors. |
 | **Linting Fails** | Run `make gofmt` or `ruff check script/` locally and commit fixes. |
+
+## 5. Zero-Code Onboarding for New Sources
+
+The project supports "Zero-Code" onboarding for new content providers using the **Google Sheets `providers` worksheet** as the Single Source of Truth (SSOT). Once a new source is added to this sheet, the daily extraction workflow automatically picks it up without requiring any code changes or deployments.
+
+### Onboarding Steps
+
+1. **Open the Providers Worksheet:** Navigate to the Google Sheet associated with `SHEET_ID` and select the `providers` worksheet.
+2. **Add a New Row:** Append a new row with the following information:
+
+    | Column        | Description                                                     | Example                                           |
+    | :------------ | :-------------------------------------------------------------- | :------------------------------------------------ |
+    | `name`        | (Required) Canonical name for display and internal categorization. | `Netflix`                                         |
+    | `url`         | (Required) Base URL for RSS feed or HTML page extraction.       | `https://netflixtechblog.com/feed`                |
+    | `element`     | (Optional) CSS selector or JSON config for article container.   | `{"container": "article", "title_selector": "h2"}` |
+    | `strategy`    | (Required) Extraction strategy: `rss`, `html`, or `substack`.   | `rss`                                             |
+    | `brand_color` | (Optional) Hex color code (`#RRGGBB`) for UI theming.           | `#E50914`                                         |
+    | `added_date`  | (Optional) Date added to sheet (`YYYY-MM-DD` format).           | `2026-02-15`                                      |
+
+3. **Verification:** The next daily `extraction.yml` GitHub Actions workflow will automatically attempt to fetch articles from the newly added source. Monitor the workflow logs for `extraction.yml` to confirm successful processing.
+
+**Note on `element` field:** For `html` strategy, if left blank, the Universal Extractor will use advanced heuristics to discover article titles and dates. For complex layouts, a JSON object can be provided to specify CSS selectors (`container`, `title_selector`, `date_selector`) for more precise control.

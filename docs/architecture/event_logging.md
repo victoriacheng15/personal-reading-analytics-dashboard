@@ -8,7 +8,7 @@ The architecture follows an **Event Sourcing** pattern where every significant a
 
 ```mermaid
 graph LR
-    A[Extraction] -->|Emits Events| B(MongoDB)
+    A[Python Extraction <br/> script/main.py] -->|Emits Events| B(MongoDB <br/> events collection)
     B -->|Fetch Documents| C[Observability Hub]
     C -->|Insert| D[(PostgreSQL)]
     D -->|Visualize| E[Grafana Dashboard]

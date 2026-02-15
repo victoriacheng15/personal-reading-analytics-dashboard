@@ -6,11 +6,12 @@ The extraction layer is an **async web scraping ETL pipeline** that aggregates a
 
 ```mermaid
 graph TD
-    Sources[External Sources<br/>freeCodeCamp, Substack, etc.] -->|Async HTTP/2| Scraper(Python ETL Script<br/>script/main.py)
-    Scraper -->|Extract| Parsers[HTML Parsers<br/>BeautifulSoup]
-    Parsers -->|Transform| Deduper{Deduplication}
-    Deduper -->|Load| Sheets[Google Sheets<br/>Primary Store]
-    Deduper -->|Load| Mongo[MongoDB<br/>Secondary Store]
+        Sources["External Sources<br/>(RSS Feeds, HTML Blogs)"] -->|Async HTTP/2| Scraper(Python ETL Script<br/>script/main.py)
+        Scraper -->|Extract & Normalize| UniversalExtractor(Universal Extractor<br/>utils/extractors.py)
+        UniversalExtractor -->|Configuration Driven| SheetsSSOT["Google Sheets<br/>(providers worksheet)"]
+        UniversalExtractor -->|Transform| Deduper{Deduplication}
+        Deduper -->|Load Primary| Sheets["Google Sheets<br/>(articles worksheet)"]
+        Deduper -->|Load Secondary & Event Log| Mongo["MongoDB<br/>(events collection)"]
 ```
 
 ## Core Components
@@ -29,12 +30,14 @@ Handles network interactions with resilience.
 - **Features:** HTTP/2 support, connection pooling, and stateful rate-limiting (1s intervals).
 - **Safety:** Graceful degradation on timeouts or non-200 responses.
 
-### 3. Transformation Layer (`utils/extractors.py`)
+### 3. Universal Extractor (`utils/extractors.py`)
 
-Provider-specific logic to turn raw HTML into structured data.
+The core of the "Zero-Code" onboarding. This component performs configuration-driven, heuristic-based extraction.
 
-- **Routing:** Selects the correct parser based on the domain.
-- **Normalization:** Standardizes dates to ISO 8601 and titles to lowercase for deduplication.
+- **Metadata-Driven Governance:** Reads site-specific selectors, strategies (RSS, HTML, Substack), and other extraction parameters directly from the Google Sheets `providers` worksheet (the SSOT).
+- **Heuristic Extraction:** Employs a "Link-First" strategy for title detection and a 5-tier discovery strategy for publication dates, making it resilient to minor DOM changes.
+- **Dynamic Normalization:** Standardizes dates to ISO 8601 and dynamically maps/capitalizes source names based on live SSOT metadata, replacing static Go maps.
+- **Operational Hardening:** Captures "Discovery Tier" metadata in MongoDB to audit heuristic performance in production.
 
 ### 4. Load Layer (`utils/sheet.py` & `mongo.py`)
 
@@ -47,21 +50,29 @@ Dual-write strategy for data redundancy.
 
 ```mermaid
 sequenceDiagram
-    participant Main as Orchestrator
-    participant Fetch as Async Fetcher
-    participant Parse as Extractor
-    participant DB as Google Sheets
+    participant Orchestrator as script/main.py
+    participant Sheets as Google Sheets
+    participant Fetcher as utils/get_page.py
+    participant Extractor as Universal Extractor
+    participant Deduper as Deduplication
+    participant Mongo as MongoDB
 
-    Main->>DB: Fetch Existing Titles (Dedup Cache)
-    loop For Each Provider
-        Main->>Fetch: Request Page (HTTP/2)
-        Fetch-->>Main: Return HTML DOM
-        Main->>Parse: Extract Article Tuples
-        Parse-->>Main: Return New Articles
-        Main->>Main: Deduplicate vs Cache
+    Orchestrator->>Sheets: Fetch All Providers (SSOT)
+    Orchestrator->>Sheets: Fetch Existing Titles (Dedup Cache)
+
+    loop For Each Provider from SSOT
+        Orchestrator->>Fetcher: Request Page (URL from SSOT)
+        Fetcher-->>Orchestrator: Return HTML/RSS
+        Orchestrator->>Extractor: Extract Article Tuples (using SSOT config & heuristics)
+        Extractor-->>Orchestrator: Return New Articles + Discovery Tier
+        Orchestrator->>Deduper: Deduplicate vs Cache
+        Deduper-->>Orchestrator: Return Unique Articles
     end
-    Main->>DB: Batch Write New Articles
-    Main->>DB: Update Timestamp
+
+    Orchestrator->>Sheets: Batch Write New Articles
+    Orchestrator->>Sheets: Update Timestamp
+    Orchestrator->>Mongo: Log Extraction Events (including Discovery Tier)
+    Orchestrator->>Mongo: Log Summary & Error Events
 ```
 
 ## References

@@ -8,7 +8,7 @@ Welcome to the technical documentation hub for the **Personal Reading Analytics 
   - Documentation of key architectural shifts and technical decisions.
 
 - **[Extraction Pipeline](architecture/extraction.md)**
-  - Details the async Python ETL pipeline that scrapes articles and loads them into Google Sheets and MongoDB.
+  - Details the async Python ETL pipeline that scrapes articles and loads them into Google Sheets and MongoDB, enabling "Zero-Code" onboarding for new sources.
   - Covers the orchestration, extraction, transformation, and load layers.
 
 - **[Analytics Pipeline](architecture/analytics.md)**

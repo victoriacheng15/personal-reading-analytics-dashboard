@@ -27,20 +27,9 @@ This project is built to reflect how I believe small, personal tools should work
 
 ---
 
-## 🏗 Architecture & Documentation
+## 📚 Documentation
 
-Unlike typical "script-based" scrapers, this system is architected for scale and maintenance using an **Event Sourcing** pattern.
-
-- **Ingestion**: Python scripts harvest content and emit standardized events to a MongoDB immutable log.
-- **Observability**: An external hub consumes these events to populate Grafana dashboards for system health monitoring.
-- **Visualization**: Go binaries process the event stream, generate AI-powered summaries for historical context, and produce the static site.
-
-### 📈 System Observability
-
-To demonstrate operational maturity, I maintain a public **[Observability Hub](https://victoriacheng15.github.io/observability-hub/snapshots.html)**.
-This separate dashboard visualizes the "health" of this pipeline (ETL status, error rates, latencies) without requiring Grafana authentication.
-
-For deep technical details, architectural diagrams, and operational guides, please visit the **[Documentation](docs/README.md)**.
+For all project documentation, including architectural diagrams, operational guides, and detailed schema specifications, please visit the **[Project Documentation](docs/README.md)**. This central hub includes details on the external **[Observability Hub](https://github.com/victoriacheng15/observability-hub)**, which processes events from this pipeline (MongoDB to PostgreSQL) for Grafana visualization. Note that the Grafana instance itself is not publicly exposed.
 
 ---
 
@@ -83,17 +72,6 @@ For deep technical details, architectural diagrams, and operational guides, plea
 - Substack per-author average calculation (total articles ÷ author count)
 - Top 3 oldest unread articles with clickable links, dates, and age calculations
 - Source metadata showing when each provider was added to tracking
-
-### Supported Sources
-
-Currently extracting articles from:
-
-- freeCodeCamp
-- Substack
-- GitHub (Added 2024-03-18)
-- Shopify (Added 2025-03-05)
-- Stripe (Added 2025-11-19)
-- Netflix (Added 2026-02-15)
 
 ---
 

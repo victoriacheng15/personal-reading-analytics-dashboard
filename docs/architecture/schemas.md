@@ -30,11 +30,12 @@ classDiagram
     }
 
     class MongoDocument {
-        +String extracted_at
+        +String timestamp
         +String source
-        +String domain
+        +String event_type
         +String status
-        +Object article
+        +Object payload
+        +Object meta
     }
 
     Metrics "1" *-- "many" ArticleMeta : contains top unread
@@ -88,7 +89,7 @@ type ArticleMeta struct {
 ### Article Tuple (Python Internal)
 
 Used internally during the Python extraction pipeline (ETL) before loading.
-Format: `(date, title, link, source)`
+Format: `(date, title, link, source, tier)`
 
 ### MongoDB Document
 
@@ -96,15 +97,19 @@ Structure used for archival and event logging in MongoDB.
 
 ```json
 {
-  "extracted_at": "2025-12-22T10:30:00Z",
+  "timestamp": "2025-12-22T10:30:00.000Z",
   "source": "freecodecamp",
-  "article": {
+  "event_type": "extraction",
+  "status": "ingested",
+  "payload": {
     "title": "Understanding Async Python",
     "link": "https://www.freecodecamp.org/news/async-python",
-    "published_date": "2025-01-15"
+    "published_date": "2025-01-15",
+    "domain": "freecodecamp.org"
   },
-  "domain": "freecodecamp.org",
-  "status": "ingested"
+  "meta": {
+    "discovery_tier": 2
+  }
 }
 ```
 
