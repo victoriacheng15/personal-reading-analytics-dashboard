@@ -5,6 +5,8 @@ from urllib.parse import urlparse
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
+from .constants import DRY_RUN
+
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -94,7 +96,7 @@ def insert_articles_event_mongo(client, articles):
 
     Args:
         client (MongoClient): The MongoDB client.
-        articles (list): List of tuples (date, title, link, source).
+        articles (list): List of tuples (date, title, link, source, tier).
     """
     if not articles:
         return
@@ -125,6 +127,14 @@ def insert_articles_event_mongo(client, articles):
         documents.append(doc)
 
     if documents:
+        if DRY_RUN:
+            logger.info(f"[DRY RUN] Prepared {len(documents)} events for MongoDB.")
+            if documents:
+                import json
+                pretty_doc = json.dumps(documents[0], indent=2)
+                logger.info(f"[DRY RUN] Example MongoDB document:\n{pretty_doc}")
+            return
+
         try:
             result = collection.insert_many(documents)
             logger.info(

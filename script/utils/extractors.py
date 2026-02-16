@@ -274,20 +274,14 @@ def get_articles(elements, extract_func, existing_titles, source_name):
         source_name (str): The canonical name of the source from the providers sheet.
 
     Yields:
-        tuple: A tuple containing (date, title, link, source_name).
+        tuple: A tuple containing (date, title, link, source_name, tier).
     """
     # Normalize existing titles for comparison
     normalized_existing_titles = set(t.strip().lower() for t in existing_titles)
     for article in elements:
         try:
-            article_info = extract_func(article)
-            # Unpack first four elements (date, title, link, tier)
-            date, title, link, tier = (
-                article_info[0],
-                article_info[1],
-                article_info[2],
-                article_info[3],
-            )
+            # Unpack date, title, link, and tier from the extractor
+            date, title, link, tier = extract_func(article)
 
             normalized_title = title.strip().lower()
             if normalized_title not in normalized_existing_titles:

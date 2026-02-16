@@ -1,10 +1,13 @@
 import os
+import logging
 from typing import Set, List, Dict, Any
 import gspread
 from gspread import Worksheet
 from google.oauth2.service_account import Credentials
 from dotenv import load_dotenv
-from .constants import GOOGLE_SHEETS_SCOPES
+from .constants import GOOGLE_SHEETS_SCOPES, DRY_RUN
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 SHEET_ID = os.environ.get("SHEET_ID")
@@ -82,15 +85,23 @@ def batch_append_articles(sheet: Worksheet, articles: List[tuple]) -> None:
 
     Args:
         sheet (Worksheet): The worksheet to update.
-        articles (list): List of article tuples as (date, title, link, source).
-        log_func (function, optional): Function used to log output. Defaults to print.
+        articles (list): List of article tuples as (date, title, link, source, tier).
     """
     if not articles:
         return
 
-    # Batch append all rows at once
+    # Batch prepare all rows at once
     # Ensure source is lowercased for consistency
+    # The 'tier' (5th element) is ignored for Google Sheets as it's only for MongoDB
     rows = [
-        [date, title, link, source.lower()] for date, title, link, source in articles
+        [date, title, link, source.lower()]
+        for date, title, link, source, _ in articles
     ]
+
+    if DRY_RUN:
+        logger.info(f"[DRY RUN] Prepared {len(rows)} rows for Google Sheets.")
+        if rows:
+            logger.info(f"[DRY RUN] Example row structure: {rows[0]}")
+        return
+
     sheet.append_rows(rows)
