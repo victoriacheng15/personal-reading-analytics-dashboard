@@ -156,22 +156,23 @@ async def async_main(timestamp):
 
     # Batch write all articles at once
     if all_articles:
-        if not DRY_RUN:
-            # Write to Google Sheets
-            batch_append_articles(articles_sheet, all_articles)
-            logger.info(
-                f"Batch write complete: {len(all_articles)} articles added to the sheet."
-            )
+        # Write to Google Sheets (Handles DRY_RUN internally)
+        batch_append_articles(articles_sheet, all_articles)
 
-            # Write to MongoDB
-            mongo_client = get_mongo_client()
-            if mongo_client:
-                insert_articles_event_mongo(mongo_client, all_articles)
+        # Write to MongoDB (Handles DRY_RUN internally)
+        mongo_client = get_mongo_client()
+        if mongo_client:
+            insert_articles_event_mongo(mongo_client, all_articles)
+            if not DRY_RUN:
                 insert_summary_event_mongo(mongo_client, len(all_articles))
-                # Client is singleton, do not close
+
+        if not DRY_RUN:
+            logger.info(
+                f"Batch write complete: {len(all_articles)} articles added to targets."
+            )
         else:
             logger.info(
-                f"DRY RUN: Found {len(all_articles)} new articles (Skipping writes)."
+                f"DRY RUN: Found {len(all_articles)} new articles (Simulated writes)."
             )
             for a in all_articles:
                 date, title, link, source, tier = a
@@ -179,7 +180,7 @@ async def async_main(timestamp):
                 short_link = (link[:30] + "...") if len(link) > 50 else link
                 tier_msg = f" (Tier {tier})" if tier > 0 else ""
                 logger.info(
-                    f"[DRY RUN] Would add: ({date}, {title}, {short_link}, {source}){tier_msg}"
+                    f"[DRY RUN] Source Data: ({date}, {title}, {short_link}, {source}){tier_msg}"
                 )
     else:
         logger.info("\n✅ No new articles found\n")

@@ -199,12 +199,13 @@ def test_get_all_providers_empty_sheet():
 
 
 # Tests for batch_append_articles function
+@patch("utils.sheet.DRY_RUN", False)
 def test_batch_append_articles_calls_append_rows():
     """Test that batch_append_articles calls append_rows with correct format"""
     mock_sheet = Mock()
     articles = [
-        ("2025-01-15", "Article One", "http://example.com/1", "Source A"),
-        ("2025-01-16", "Article Two", "http://example.com/2", "Source B"),
+        ("2025-01-15", "Article One", "http://example.com/1", "Source A", 1),
+        ("2025-01-16", "Article Two", "http://example.com/2", "Source B", 2),
     ]
 
     batch_append_articles(mock_sheet, articles)
@@ -239,10 +240,11 @@ def test_batch_append_articles_returns_none_on_none():
     mock_sheet.append_rows.assert_not_called()
 
 
+@patch("utils.sheet.DRY_RUN", False)
 def test_batch_append_articles_single_article():
     """Test batch_append_articles with a single article"""
     mock_sheet = Mock()
-    articles = [("2025-01-15", "Article One", "http://example.com/1", "Source A")]
+    articles = [("2025-01-15", "Article One", "http://example.com/1", "Source A", 0)]
 
     batch_append_articles(mock_sheet, articles)
 
@@ -252,3 +254,14 @@ def test_batch_append_articles_single_article():
 
     assert len(rows) == 1
     assert rows[0] == ["2025-01-15", "Article One", "http://example.com/1", "source a"]
+
+
+@patch("utils.sheet.DRY_RUN", True)
+def test_batch_append_articles_dry_run():
+    """Test that batch_append_articles does NOT call append_rows in dry run mode"""
+    mock_sheet = Mock()
+    articles = [("2025-01-15", "Article One", "http://example.com/1", "Source A", 1)]
+
+    batch_append_articles(mock_sheet, articles)
+
+    mock_sheet.append_rows.assert_not_called()
