@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/joho/godotenv v1.5.1
 	google.golang.org/api v0.267.0
-	google.golang.org/genai v1.46.0
+	google.golang.org/genai v1.47.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
