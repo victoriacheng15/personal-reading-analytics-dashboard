@@ -107,35 +107,82 @@ type Author struct {
 	LinkedIn string `yaml:"linkedin"`
 }
 
-type IndexContent struct {
-	Author        Author        `yaml:"author"`
-	Intro         Intro         `yaml:"intro"`
-	OriginStory   OriginStory   `yaml:"origin_story"`
-	EngPrinciples EngPrinciples `yaml:"eng_principles"`
+type Landing struct {
+	Header        Header              `yaml:"header"`
+	SystemSpec    SystemSpecification `yaml:"system_specification"`
+	Hero          Hero                `yaml:"hero"`
+	WhatIsReading WhatIsReading       `yaml:"what_is_reading_analytics"`
+	KeyFeatures   KeyFeatures         `yaml:"key_features"`
+	WhyItMatters  WhyItMatters        `yaml:"why_it_matters"`
+	Footer        LandingFooter       `yaml:"footer"`
 }
 
-type Intro struct {
-	Heading    string      `yaml:"heading"`
-	CTAButtons []CTAButton `yaml:"cta_buttons"`
+type Header struct {
+	ProjectName string `yaml:"project_name"`
+	SiteURL     string `yaml:"site_url"`
 }
 
-type CTAButton struct {
-	Text string `yaml:"text"`
-	URL  string `yaml:"url"`
+type SystemSpecification struct {
+	Objective           string `yaml:"objective"`
+	Stack               string `yaml:"stack"`
+	Pattern             string `yaml:"pattern"`
+	EntryPoint          string `yaml:"entry_point"`
+	PersistenceStrategy string `yaml:"persistence_strategy"`
+	Observability       string `yaml:"observability"`
+	MachineRegistry     string `yaml:"machine_registry"`
 }
 
-type OriginStory struct {
-	Title      string   `yaml:"title"`
-	Paragraphs []string `yaml:"paragraphs"`
+type Hero struct {
+	Headline         string `yaml:"headline"`
+	SubHeadline      string `yaml:"sub_headline"`
+	BriefDescription string `yaml:"brief_description"`
+	CTAText          string `yaml:"cta_text"`
+	CTALink          string `yaml:"cta_link"`
+	SecondaryCTAText string `yaml:"secondary_cta_text"`
+	SecondaryCTALink string `yaml:"secondary_cta_link"`
+	TertiaryCTAText  string `yaml:"tertiary_cta_text"`
+	TertiaryCTALink  string `yaml:"tertiary_cta_link"`
 }
 
-type EngPrinciples struct {
-	Title      string      `yaml:"title"`
-	Principles []Principle `yaml:"principles"`
+type WhatIsReading struct {
+	Title   string   `yaml:"title"`
+	Content []string `yaml:"content"`
 }
 
-type Principle struct {
-	Icon        string `yaml:"icon"`
-	Title       string `yaml:"title"`
+type KeyFeatures struct {
+	Title    string    `yaml:"title"`
+	Features []Feature `yaml:"features"`
+}
+
+type Feature struct {
+	Name        string `yaml:"name"`
 	Description string `yaml:"description"`
+	Icon        string `yaml:"icon"`
+}
+
+type WhyItMatters struct {
+	Title  string   `yaml:"title"`
+	Points []string `yaml:"points"`
+}
+
+type LandingFooter struct {
+	Author       string `yaml:"author"`
+	GitHubLink   string `yaml:"github_link"`
+	LinkedInLink string `yaml:"linkedin_link"`
+}
+
+// Registry represents the machine-readable evolution data
+type Registry struct {
+	Project            string              `json:"project"`
+	Version            string              `json:"version"`
+	LastUpdated        string              `json:"last_updated"`
+	MachineRegistryURL string              `json:"machine_registry_url"`
+	Milestones         []RegistryMilestone `json:"milestones"`
+}
+
+type RegistryMilestone struct {
+	Date        string `json:"date"`
+	Title       string `json:"title"`
+	Category    string `json:"category"`
+	Description string `json:"description"`
 }

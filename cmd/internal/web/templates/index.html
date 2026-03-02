@@ -1,34 +1,62 @@
 {{define "content"}}
 <main class="flex flex-col gap-16">
-    <section aria-label="Intro" class="flex flex-col gap-8 text-center items-center">
-        <h2 class="text-2xl font-bold text-slate-900 tracking-tight leading-tight">{{.IndexContent.Intro.Heading}}</h2>
-        <div class="flex flex-wrap gap-4 justify-center">
-            {{range .IndexContent.Intro.CTAButtons}}
-            <a href="{{.URL}}" class="px-8 py-3 rounded-xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-lg shadow-md {{if eq .Text "View the Analytics"}}bg-sky-700 text-white hover:bg-sky-800{{else if eq .Text "See How It Evolved"}}bg-orange-600 text-white hover:bg-orange-700{{else}}bg-slate-50 text-slate-700 border-2 border-slate-200 hover:border-sky-700{{end}}" {{if eq .Text "View Code on GitHub"}}target="_blank" rel="noopener noreferrer"{{end}}>
-                {{.Text}}
+    <!-- Hero Section -->
+    <section aria-label="Hero" class="flex flex-col gap-8 text-center items-center py-12">
+        <h1 class="text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            {{.Landing.Hero.Headline}}
+        </h1>
+        <p class="text-2xl text-sky-800 font-medium">{{.Landing.Hero.SubHeadline}}</p>
+        <p class="text-xl text-slate-600 max-w-2xl leading-relaxed">
+            {{.Landing.Hero.BriefDescription}}
+        </p>
+        <div class="flex flex-wrap gap-4 justify-center mt-4">
+            <a href="{{.Landing.Hero.CTALink}}" class="px-8 py-3 rounded-xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-lg shadow-md bg-sky-700 text-white hover:bg-sky-800">
+                {{.Landing.Hero.CTAText}}
             </a>
-            {{end}}
+            <a href="{{.Landing.Hero.SecondaryCTALink}}" class="px-8 py-3 rounded-xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-lg shadow-md bg-white text-sky-700 border-2 border-sky-700 hover:bg-sky-50">
+                {{.Landing.Hero.SecondaryCTAText}}
+            </a>
+            <a href="{{.Landing.Hero.TertiaryCTALink}}" target="_blank" rel="noopener noreferrer" class="px-8 py-3 rounded-xl font-bold text-lg transition-all hover:-translate-y-1 hover:shadow-lg shadow-md bg-slate-50 text-slate-700 border-2 border-slate-200 hover:border-sky-700">
+                {{.Landing.Hero.TertiaryCTAText}}
+            </a>
         </div>
     </section>
 
-    <section aria-label="Origin Story" class="flex flex-col gap-6">
-        <h2 class="text-2xl font-bold text-slate-800 border-b-4 border-sky-700 pb-2 self-start">{{.IndexContent.OriginStory.Title}}</h2>
-        <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-8 shadow-sm flex flex-col gap-4 text-slate-700 leading-relaxed italic text-lg border-l-8 border-l-sky-700">
-            {{range .IndexContent.OriginStory.Paragraphs}}
+    <!-- What Is It -->
+    <section aria-label="{{.Landing.WhatIsReading.Title}}" class="flex flex-col gap-6">
+        <h2 class="text-2xl font-bold text-slate-800 border-b-4 border-sky-700 pb-2 self-start">{{.Landing.WhatIsReading.Title}}</h2>
+        <div class="bg-white border-2 border-slate-200 rounded-2xl p-8 shadow-sm flex flex-col gap-6 text-slate-700 leading-relaxed text-lg italic border-l-8 border-l-sky-700">
+            {{range .Landing.WhatIsReading.Content}}
             <p>{{.}}</p>
             {{end}}
         </div>
     </section>
 
-    <section aria-label="Engineering Principles" class="flex flex-col gap-8">
-        <h2 class="text-2xl font-bold text-slate-800 border-b-4 border-sky-700 pb-2 self-start">{{.IndexContent.EngPrinciples.Title}}</h2>
+    <!-- Key Features -->
+    <section aria-label="Core Principles" class="flex flex-col gap-8">
+        <h2 class="text-2xl font-bold text-slate-800 border-b-4 border-sky-700 pb-2 self-start">{{.Landing.KeyFeatures.Title}}</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {{range .IndexContent.EngPrinciples.Principles}}
-            <article class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-8 flex flex-col gap-4 transition-all hover:shadow-md group border-b-8 border-b-slate-100 hover:border-b-sky-700">
-                <div class="text-4xl group-hover:scale-110 transition-transform self-start"><span role="img" aria-hidden="true">{{.Icon}}</span></div>
-                <h3 class="text-xl font-bold text-sky-800 tracking-wide uppercase">{{.Title}}</h3>
+            {{range .Landing.KeyFeatures.Features}}
+            <article class="bg-white border-2 border-slate-200 rounded-2xl p-8 flex flex-col gap-4 transition-all hover:shadow-md group border-b-8 border-b-slate-100 hover:border-b-sky-700">
+                <div class="text-4xl group-hover:scale-110 transition-transform self-start">
+                    <span role="img" aria-hidden="true" class="bg-sky-100 p-3 rounded-xl block">{{.Icon}}</span>
+                </div>
+                <h3 class="text-xl font-bold text-sky-800 tracking-wide uppercase">{{.Name}}</h3>
                 <p class="text-slate-600 leading-relaxed">{{.Description}}</p>
             </article>
+            {{end}}
+        </div>
+    </section>
+
+    <!-- Why It Matters -->
+    <section aria-label="Why It Matters" class="flex flex-col gap-8">
+        <h2 class="text-2xl font-bold text-slate-800 border-b-4 border-sky-700 pb-2 self-start">{{.Landing.WhyItMatters.Title}}</h2>
+        <div class="flex flex-col gap-4">
+            {{range .Landing.WhyItMatters.Points}}
+            <div class="flex items-center gap-4 bg-slate-50 p-6 rounded-2xl border-2 border-slate-200 transition-all hover:border-sky-700 hover:shadow-md">
+                <span class="text-sky-600 font-bold text-xl">✓</span>
+                <span class="text-slate-700 font-bold text-lg leading-relaxed">{{.}}</span>
+            </div>
             {{end}}
         </div>
     </section>
