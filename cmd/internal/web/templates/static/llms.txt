@@ -1,20 +1,24 @@
-# Personal Reading Analytics - Project Overview
+# {{ .Landing.Header.ProjectName }} - System Specification
 
-Zero-infrastructure reading analytics pipeline. Automated data pipeline via GitHub Actions with MongoDB event sourcing for observability and AI-powered Delta Analysis via Google Gemini.
+## Objective
 
-## Candidate Profile
-- **Developer:** Victoria Cheng (Software Developer)
-- **Specialization:** Automation, Observability, Data Visualization.
-- **Background:** Transitioned from physical engineering to software development, bringing a rigor for measurement and reliability (Prev at Shopify).
-- **GitHub:** https://github.com/victoriacheng15
+{{ .Landing.SystemSpec.Objective }}
 
-## Tech Stack
-- **Languages:** Go (1.24+), Python (3.12+)
-- **Pipeline:** GitHub Actions (CI/CD governance)
-- **Data:** MongoDB Atlas (Event Sourcing), Google Sheets API
-- **AI:** Google Gemini (Delta Analysis)
+## Technical Stack
 
-## Key Architectural Decisions
-- **Zero Infrastructure:** No servers or hosting costs. Runs entirely on GitHub Actions and Pages, proving powerful automation doesn't require a budget.
-- **Observability First:** Uses an Event Sourcing pattern with MongoDB to decouple extraction from analytics, ensuring full auditability and health monitoring.
-- **Configuration-Driven Extraction:** Universal extractor pattern supporting multiple sources through structured configuration rather than hardcoded logic.
+{{ .Landing.SystemSpec.Stack }}
+
+## Core Architecture
+
+- **Pattern**: {{ .Landing.SystemSpec.Pattern }}
+- **Entry Point**: {{ .Landing.SystemSpec.EntryPoint }}
+- **Persistence Strategy**: {{ .Landing.SystemSpec.PersistenceStrategy }}
+- **Observability**: {{ .Landing.SystemSpec.Observability }}
+
+## Discovery & Registry
+
+- **Machine Registry**: {{ .Landing.Header.SiteURL }}{{ .Landing.SystemSpec.MachineRegistry }}
+
+## Key
+
+- **GitHub Repository**: {{ .Landing.Hero.CTALink }}

@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
+	texttmpl "text/template"
 	"time"
 
 	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
@@ -54,7 +56,12 @@ func (s *AnalyticsService) GenerateFullSite(m schema.Metrics, config GenConfig) 
 		{"evolution.html", "⏳ Evolution"},
 	}
 
-	return s.render(vm, config.OutputDir, pages)
+	// Generate machine-readable registry
+	if err := s.generateRegistry(vm, config.OutputDir); err != nil {
+		log.Printf("⚠️ Warning: Failed to generate evolution registry: %v", err)
+	}
+
+	return s.render(vm, config.OutputDir, pages, true)
 }
 
 // GenerateAnalyticsOnly generates only the analytics.html page
@@ -71,7 +78,7 @@ func (s *AnalyticsService) GenerateAnalyticsOnly(m schema.Metrics, config GenCon
 		{"analytics.html", "📊 Analytics (Archived)"},
 	}
 
-	return s.render(vm, config.OutputDir, pages)
+	return s.render(vm, config.OutputDir, pages, false)
 }
 
 func (s *AnalyticsService) prepareViewModel(m schema.Metrics, config GenConfig) (ViewModel, error) {
@@ -237,10 +244,10 @@ func (s *AnalyticsService) prepareViewModel(m schema.Metrics, config GenConfig) 
 		}
 	}
 
-	// Load index content
-	indexContent, err := LoadIndexContent()
+	// Load landing content
+	landing, err := LoadLanding()
 	if err != nil {
-		log.Printf("⚠️ Warning: Failed to load index content: %v", err)
+		log.Printf("⚠️ Warning: Failed to load landing content: %v", err)
 	}
 
 	return ViewModel{
@@ -273,7 +280,7 @@ func (s *AnalyticsService) prepareViewModel(m schema.Metrics, config GenConfig) 
 		UnreadByYearJSON:                 unreadByYearJSON,
 		TopOldestUnreadArticles:          m.TopOldestUnreadArticles,
 		EvolutionData:                    evolutionData,
-		IndexContent:                     indexContent,
+		Landing:                          landing,
 
 		// New fields from config
 		BaseURL:      config.BaseURL,
@@ -286,7 +293,7 @@ func (s *AnalyticsService) prepareViewModel(m schema.Metrics, config GenConfig) 
 func (s *AnalyticsService) render(vm ViewModel, outputDir string, pages []struct {
 	Filename string
 	Title    string
-}) error {
+}, isRoot bool) error {
 	// Get templates directory
 	tmplDir, err := GetTemplatesDir()
 	if err != nil {
@@ -311,29 +318,12 @@ func (s *AnalyticsService) render(vm ViewModel, outputDir string, pages []struct
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
-	// Copy CSS directory
-	cssSrc := filepath.Join(tmplDir, "css")
-	cssDst := filepath.Join(outputDir, "css")
-	if err := copyDir(cssSrc, cssDst); err != nil {
-		// Log warning but don't fail, in case css dir doesn't exist
-		log.Printf("⚠️ Warning: Failed to copy CSS directory: %v", err)
-	}
-
-	// Copy static SEO/AI metadata files to output root
-	staticSrc := filepath.Join(tmplDir, "static")
-	staticFiles, err := os.ReadDir(staticSrc)
-	if err == nil {
-		for _, file := range staticFiles {
-			if !file.IsDir() {
-				src := filepath.Join(staticSrc, file.Name())
-				dst := filepath.Join(outputDir, file.Name())
-				if err := copyFile(src, dst); err != nil {
-					log.Printf("⚠️ Warning: Failed to copy static file %s: %v", file.Name(), err)
-				}
-			}
+	// Copy static SEO/AI metadata files recursively
+	if isRoot {
+		staticSrc := filepath.Join(tmplDir, "static")
+		if err := s.copyStaticFiles(staticSrc, outputDir, vm); err != nil {
+			log.Printf("⚠️ Warning: Failed to process static directory: %v", err)
 		}
-	} else if !os.IsNotExist(err) {
-		log.Printf("⚠️ Warning: Failed to read static directory: %v", err)
 	}
 
 	// Loop and generate each page
@@ -437,4 +427,96 @@ func copyFile(src, dst string) error {
 	}
 
 	return out.Close()
+}
+
+// copyStaticFiles recursively processes the static directory, treating certain files as templates
+func (s *AnalyticsService) copyStaticFiles(src, dst string, vm ViewModel) error {
+	entries, err := os.ReadDir(src)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+
+	if err := os.MkdirAll(dst, 0755); err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		srcPath := filepath.Join(src, entry.Name())
+		dstPath := filepath.Join(dst, entry.Name())
+
+		if entry.IsDir() {
+			if err := s.copyStaticFiles(srcPath, dstPath, vm); err != nil {
+				return err
+			}
+			continue
+		}
+
+		// Treat text files as templates to inject config
+		if entry.Name() == "llms.txt" || entry.Name() == "robots.txt" {
+			t, err := texttmpl.ParseFiles(srcPath)
+			if err != nil {
+				log.Printf("⚠️ Warning: Failed to parse %s as template: %v", entry.Name(), err)
+				continue
+			}
+
+			f, err := os.Create(dstPath)
+			if err != nil {
+				log.Printf("⚠️ Warning: Failed to create %s: %v", dstPath, err)
+				continue
+			}
+
+			if err := t.Execute(f, vm); err != nil {
+				log.Printf("⚠️ Warning: Failed to execute template %s: %v", entry.Name(), err)
+			}
+			f.Close()
+		} else {
+			if err := copyFile(srcPath, dstPath); err != nil {
+				log.Printf("⚠️ Warning: Failed to copy static file %s: %v", entry.Name(), err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// generateRegistry creates the evolution-registry.json file from the evolution data
+func (s *AnalyticsService) generateRegistry(vm ViewModel, outputDir string) error {
+	registry := schema.Registry{
+		Project:            vm.Landing.Header.ProjectName,
+		Version:            "1.0.0",
+		LastUpdated:        vm.LastUpdated.Format("2006-01-02"),
+		MachineRegistryURL: vm.Landing.SystemSpec.MachineRegistry,
+	}
+
+	for _, chapter := range vm.EvolutionData.Chapters {
+		for _, milestone := range chapter.Timeline {
+			registry.Milestones = append(registry.Milestones, schema.RegistryMilestone{
+				Date:        milestone.Date,
+				Title:       milestone.Title,
+				Category:    chapter.Title,
+				Description: strings.TrimSpace(milestone.Description),
+			})
+		}
+	}
+
+	// Create api directory in output
+	apiDir := filepath.Join(outputDir, "api")
+	if err := os.MkdirAll(apiDir, 0755); err != nil {
+		return fmt.Errorf("failed to create api directory: %w", err)
+	}
+
+	registryJSON, err := json.Marshal(registry)
+	if err != nil {
+		return fmt.Errorf("failed to marshal registry to JSON: %w", err)
+	}
+
+	registryPath := filepath.Join(apiDir, "evolution-registry.json")
+	if err := os.WriteFile(registryPath, registryJSON, 0644); err != nil {
+		return fmt.Errorf("failed to write evolution-registry.json: %w", err)
+	}
+
+	return nil
 }

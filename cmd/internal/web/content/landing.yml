@@ -1,0 +1,61 @@
+header:
+  project_name: "Personal Reading Analytics"
+  site_url: "https://victoriacheng15.github.io/personal-reading-analytics"
+
+system_specification:
+  objective: "A zero-infrastructure reading analytics pipeline that transforms personal reading habits into actionable insights using Go, Python, and GitHub Actions."
+  stack: "Go, Python, GitHub Actions, MongoDB Atlas, Google Sheets, Google Gemini"
+  pattern: "Event Sourcing / Serverless Pipeline"
+  entry_point: "cmd/web/main.go"
+  persistence_strategy: "MongoDB (Event Log) + Google Sheets (Current State)"
+  observability: "GitHub Actions Logs + MongoDB Event Sourcing"
+  machine_registry: "/api/evolution-registry.json"
+
+hero:
+  headline: "Your Reading, Visualized"
+  sub_headline: "No servers, no noise, just your data."
+  brief_description: "A lightweight analytics system designed to track engineering blog consumption and surface learning patterns without infrastructure overhead."
+  cta_text: "View Analytics"
+  cta_link: "analytics.html"
+  secondary_cta_text: "See the Evolution"
+  secondary_cta_link: "evolution.html"
+  tertiary_cta_text: "View on GitHub"
+  tertiary_cta_link: "https://github.com/victoriacheng15/personal-reading-analytics"
+
+what_is_reading_analytics:
+  title: "Origin Story"
+  content:
+    - "I used to follow a handful of engineering blogs, but checking each one for new posts became a chore, too many tabs, too easy to miss something. (Yes, I’ve definitely had 20+ tabs open at once… 😅)"
+    - "So I built a simple script to automatically pull article titles, dates, and links into Google Sheets, inspired by early Levels.fyi’s “no database” approach. Everything in one place. No more tab-hopping."
+    - "Later, I got curious: What if I could actually see my reading habits over time? Not to “optimize” productivity, but to understand where my attention really goes… and which blogs still earn it."
+    - "That curiosity led me to build a lightweight analytics system in Go, powered by the same Python-collected data. The result? A personal reading analytics: a quiet mirror on my learning journey."
+
+key_features:
+  title: "Engineering Principles"
+  features:
+    - name: "Zero Infrastructure"
+      description: "No servers or hosting costs. Runs entirely on GitHub Actions and Pages."
+      icon: "🚀"
+    - name: "Fully Automated"
+      description: "Scheduled workflows keep data fresh, utilizing CI/CD governance for human-in-the-loop oversight."
+      icon: "🤖"
+    - name: "Observability First"
+      description: "Uses an Event Sourcing pattern to decouple extraction from analytics, ensuring full auditability."
+      icon: "🛡️"
+    - name: "Cost Effective"
+      description: "Leverages free tiers (GitHub, MongoDB Atlas, Google Sheets) for powerful, budget-free automation."
+      icon: "💰"
+
+why_it_matters:
+  title: "Mastering the Information Stream"
+  points:
+    - "Data Ownership: Complete control over your reading history and metrics."
+    - "Operational Simplicity: Proves that sophisticated automation doesn't require a large budget."
+    - "Actionable Insights: Identifies high-value sources and reading trends over time."
+    - "Educational Laboratory: A playground for testing Go, Python, and Event Sourcing patterns."
+    - "Minimalist Design: Focuses on domain value by eliminating infrastructure 'plumbing'."
+
+footer:
+  author: "Victoria Cheng"
+  github_link: "https://github.com/victoriacheng15"
+  linkedin_link: "https://www.linkedin.com/in/victoriacheng15/"

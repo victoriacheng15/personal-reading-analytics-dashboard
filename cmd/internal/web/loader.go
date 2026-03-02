@@ -99,24 +99,24 @@ func LoadEvolutionData() (schema.EvolutionData, error) {
 	return data, nil
 }
 
-// LoadIndexContent reads the index.yml file and parses it into IndexContent struct
-func LoadIndexContent() (schema.IndexContent, error) {
+// LoadLanding reads the landing.yml file and parses it into Landing struct
+func LoadLanding() (schema.Landing, error) {
 	possiblePaths := []string{
-		"cmd/internal/web/content/index.yml",
-		"internal/web/content/index.yml",
-		filepath.Join(".", "cmd", "internal", "web", "content", "index.yml"),
+		"cmd/internal/web/content/landing.yml",
+		"internal/web/content/landing.yml",
+		filepath.Join(".", "cmd", "internal", "web", "content", "landing.yml"),
 	}
 
-	var data schema.IndexContent
+	var data schema.Landing
 
 	content, _, err := findAndReadFile(possiblePaths)
 	if err != nil {
-		return schema.IndexContent{}, fmt.Errorf("index.yml not found. Tried paths: %v", possiblePaths)
+		return schema.Landing{}, fmt.Errorf("landing.yml not found. Tried paths: %v", possiblePaths)
 	}
 
 	err = yaml.Unmarshal(content, &data)
 	if err != nil {
-		return schema.IndexContent{}, fmt.Errorf("failed to parse index.yml: %w", err)
+		return schema.Landing{}, fmt.Errorf("failed to parse landing.yml: %w", err)
 	}
 
 	return data, nil

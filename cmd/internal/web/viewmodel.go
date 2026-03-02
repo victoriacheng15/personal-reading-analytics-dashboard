@@ -39,7 +39,7 @@ type ViewModel struct {
 	UnreadByYearJSON                 template.JS
 	TopOldestUnreadArticles          []schema.ArticleMeta
 	EvolutionData                    schema.EvolutionData
-	IndexContent                     schema.IndexContent
+	Landing                          schema.Landing
 
 	// Historical Metrics context
 	BaseURL      string
