@@ -2,7 +2,7 @@ credentials.json
 .gitops
 
 # Go binaries
-site
+dist
 *.exe
 *.dll
 *.so
@@ -146,7 +146,7 @@ venv.bak/
 .ropeproject
 
 # mkdocs documentation
-# /site (removed - we want to commit metrics.json and site/)
+# /dist (removed - we want to commit metrics.json and dist/)
 
 # mypy
 .mypy_cache/

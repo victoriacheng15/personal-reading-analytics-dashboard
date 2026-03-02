@@ -70,7 +70,7 @@ sequenceDiagram
     participant Main as cmd/analytics
     participant FS as File System
     participant Tmpl as HTML Templates
-    participant Output as site/
+    participant Output as dist/
 
     Main->>FS: Scan metrics/ directory
     FS-->>Main: List [2024-12-01.json, 2024-12-08.json...]

@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// 2. Initialize Analytics Service
-	service := analytics.NewAnalyticsService("site")
+	service := analytics.NewAnalyticsService("dist")
 
 	log.Printf("Generating reports for %d dates...\n", len(dates))
 
@@ -33,9 +33,9 @@ func main() {
 			continue
 		}
 
-		// Historical: ONLY analytics.html in site/history/YYYY-MM-DD
+		// Historical: ONLY analytics.html in dist/history/YYYY-MM-DD
 		err = service.GenerateAnalyticsOnly(metrics, analytics.GenConfig{
-			OutputDir:    filepath.Join("site", "history", date),
+			OutputDir:    filepath.Join("dist", "history", date),
 			BaseURL:      "../../",
 			IsHistorical: true,
 			HistoryDates: dates,
@@ -45,10 +45,10 @@ func main() {
 			log.Printf("⚠️ Warning: Failed historical generation for %s: %v\n", date, err)
 		}
 
-		// Latest (root): ALL pages in site/
+		// Latest (root): ALL pages in dist/
 		if i == 0 {
 			err = service.GenerateFullSite(metrics, analytics.GenConfig{
-				OutputDir:    "site",
+				OutputDir:    "dist",
 				BaseURL:      "./",
 				IsHistorical: false,
 				HistoryDates: dates,

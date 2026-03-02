@@ -1,4 +1,4 @@
-name: Analytics Deployment
+name: Github Page Deployment
 
 on:
   push:
@@ -29,19 +29,19 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: actions/setup-go@v6.3.0
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{ env.go-version }}
 
       - name: Build and generate analytics
         run: make run-analytics
 
-      - uses: actions/configure-pages@v5.0.0
-      - uses: actions/upload-pages-artifact@v4.0.0
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
         with:
-          path: 'site'
+          path: 'dist'
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4.0.5
+        uses: actions/deploy-pages@v4

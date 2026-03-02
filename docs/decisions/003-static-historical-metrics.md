@@ -6,7 +6,7 @@
 
 ## Context and Problem Statement
 
-The current analytics dashboard (`site/index.html`) is ephemeral; it only displays the state of the reading list based on the most recent metrics generation (the latest `YYYY-MM-DD.json`). When a new report is generated, the previous state is overwritten and lost to the user interface.
+The current analytics dashboard (`dist/index.html`) is ephemeral; it only displays the state of the reading list based on the most recent metrics generation (the latest `YYYY-MM-DD.json`). When a new report is generated, the previous state is overwritten and lost to the user interface.
 
 However, the system already archives the raw data in the `metrics/` directory as individual JSON files. Users (and the system owner) desire the ability to browse past weeks to track trends, review previous "AI Delta Analyses," and see the state of their reading backlog at specific points in time.
 
@@ -20,7 +20,7 @@ We will extend the static site generation process to build a **full historical a
 - **Directory Structure**: We will adopt a nested folder structure for history to keep the root clean:
 
     ```text
-    site/
+    dist/
     ├── analytics.html      # (Latest)
     └── history/
         ├── 2026-01-23/
@@ -46,5 +46,5 @@ We will extend the static site generation process to build a **full historical a
 
 ## Verification
 
-- [x] **Manual Check:** Run `make nix-run-analytics` and inspect the `site/history/` directory to ensure subfolders are created for past dates.
+- [x] **Manual Check:** Run `make nix-run-analytics` and inspect the `dist/history/` directory to ensure subfolders are created for past dates.
 - [x] **Automated Tests:** `make nix-go-test` passes, including updated service and main tests for multi-pass generation.

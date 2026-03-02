@@ -114,9 +114,9 @@ engineering_principles_section:
 				t.Fatal(err)
 			}
 
-			service := NewAnalyticsService("site")
+			service := NewAnalyticsService("dist")
 			config := GenConfig{
-				OutputDir:    "site",
+				OutputDir:    "dist",
 				BaseURL:      "./",
 				IsHistorical: false,
 				HistoryDates: []string{"2024-01-01"},
@@ -129,21 +129,21 @@ engineering_principles_section:
 				t.Errorf("GenerateFullSite() error = %v, expectSuccess %v", err, tt.expectSuccess)
 			}
 
-			if _, err := os.Stat("site/index.html"); os.IsNotExist(err) {
-				t.Error("site/index.html was not created")
+			if _, err := os.Stat("dist/index.html"); os.IsNotExist(err) {
+				t.Error("dist/index.html was not created")
 			}
 
 			// Test Analytics Only Generation
 			config.IsHistorical = true
-			config.OutputDir = "site/history/2024-01-01"
+			config.OutputDir = "dist/history/2024-01-01"
 			config.BaseURL = "../../"
 			err = service.GenerateAnalyticsOnly(tt.metrics, config)
 			if (err == nil) != tt.expectSuccess {
 				t.Errorf("GenerateAnalyticsOnly() error = %v, expectSuccess %v", err, tt.expectSuccess)
 			}
 
-			if _, err := os.Stat("site/history/2024-01-01/analytics.html"); os.IsNotExist(err) {
-				t.Error("site/history/2024-01-01/analytics.html was not created")
+			if _, err := os.Stat("dist/history/2024-01-01/analytics.html"); os.IsNotExist(err) {
+				t.Error("dist/history/2024-01-01/analytics.html was not created")
 			}
 		})
 	}

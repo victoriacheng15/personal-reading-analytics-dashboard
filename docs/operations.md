@@ -9,7 +9,7 @@ The `Makefile` is the primary entry point for running tasks locally.
 | Command | Description |
 | :--- | :--- |
 | `make run-metrics` | Fetches data from Google Sheets and generates `metrics/YYYY-MM-DD.json`. |
-| `make run-analytics` | Generates the HTML analytics site in `site/index.html` using the latest metrics. |
+| `make run-analytics` | Generates the HTML analytics site in `dist/index.html` using the latest metrics. |
 | `make cleanup` | Removes compiled binaries (`metricsjson.exe`, `analytics.exe`) and test coverage files. |
 | `make go-test` | Runs all Go unit tests with verbose output. |
 | `make go-coverage` | Runs Go tests and generates a coverage report. |
