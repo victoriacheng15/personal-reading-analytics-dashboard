@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"testing"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
+	schema "github.com/victoriacheng15/personal-reading-analytics/internal"
 )
 
 func TestPrepareReadUnreadByYear(t *testing.T) {

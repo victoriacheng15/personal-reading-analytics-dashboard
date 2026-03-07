@@ -13,8 +13,8 @@ import (
 	texttmpl "text/template"
 	"time"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
-	"github.com/victoriacheng15/personal-reading-analytics/cmd/internal/metrics"
+	schema "github.com/victoriacheng15/personal-reading-analytics/internal"
+	"github.com/victoriacheng15/personal-reading-analytics/internal/metrics"
 )
 
 const (

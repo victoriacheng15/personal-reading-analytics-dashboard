@@ -3,7 +3,7 @@ package metrics
 import (
 	"testing"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
+	schema "github.com/victoriacheng15/personal-reading-analytics/internal"
 )
 
 func TestCalculateTopReadRateSource(t *testing.T) {

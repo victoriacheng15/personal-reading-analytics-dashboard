@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
+	"github.com/victoriacheng15/personal-reading-analytics/internal"
 )
 
 func TestConstructPrompt(t *testing.T) {

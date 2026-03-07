@@ -3,7 +3,7 @@ package web
 import (
 	"encoding/json"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
+	schema "github.com/victoriacheng15/personal-reading-analytics/internal"
 )
 
 // ChartDataset represents a single dataset for Chart.js

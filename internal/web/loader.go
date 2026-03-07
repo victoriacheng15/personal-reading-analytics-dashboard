@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
+	schema "github.com/victoriacheng15/personal-reading-analytics/internal"
 	"gopkg.in/yaml.v3"
 )
 
@@ -16,11 +16,9 @@ func GetTemplatesDir() (string, error) {
 	// Define canonical paths in priority order
 	possibleDirs := []string{
 		// When running from project root (most common during development)
-		"cmd/internal/web/templates",
-		// When binary is in cmd/web directory
 		"internal/web/templates",
 		// Fallback: explicit relative path construction
-		filepath.Join(".", "cmd", "internal", "web", "templates"),
+		filepath.Join(".", "internal", "web", "templates"),
 	}
 
 	var cwd string
@@ -57,9 +55,8 @@ func findAndReadFile(possiblePaths []string) ([]byte, string, error) {
 // LoadEvolutionData reads the evolution.yml file and parses it into EvolutionData struct
 func LoadEvolutionData() (schema.EvolutionData, error) {
 	possiblePaths := []string{
-		"cmd/internal/web/content/evolution.yml",
 		"internal/web/content/evolution.yml",
-		filepath.Join(".", "cmd", "internal", "web", "content", "evolution.yml"),
+		filepath.Join(".", "internal", "web", "content", "evolution.yml"),
 	}
 
 	var data schema.EvolutionData
@@ -102,9 +99,8 @@ func LoadEvolutionData() (schema.EvolutionData, error) {
 // LoadLanding reads the landing.yml file and parses it into Landing struct
 func LoadLanding() (schema.Landing, error) {
 	possiblePaths := []string{
-		"cmd/internal/web/content/landing.yml",
 		"internal/web/content/landing.yml",
-		filepath.Join(".", "cmd", "internal", "web", "content", "landing.yml"),
+		filepath.Join(".", "internal", "web", "content", "landing.yml"),
 	}
 
 	var data schema.Landing

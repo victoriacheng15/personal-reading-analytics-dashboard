@@ -35,7 +35,7 @@ func TestGetTemplatesDir(t *testing.T) {
 				}
 
 				// Create directory structure for primary path
-				templatesDir := filepath.Join("cmd", "internal", "web", "templates")
+				templatesDir := filepath.Join("internal", "web", "templates")
 				if err := os.MkdirAll(templatesDir, 0755); err != nil {
 					t.Fatalf("failed to create directories: %v", err)
 				}
@@ -46,15 +46,15 @@ func TestGetTemplatesDir(t *testing.T) {
 			expectEmpty: false,
 		},
 		{
-			name: "finds templates directory from secondary path",
+			name: "finds templates directory from relative path",
 			setup: func(t *testing.T) string {
 				tmpDir := t.TempDir()
 				if err := os.Chdir(tmpDir); err != nil {
 					t.Fatalf("failed to change directory: %v", err)
 				}
 
-				// Create directory structure for secondary path
-				templatesDir := filepath.Join("internal", "web", "templates")
+				// Create directory structure for relative path
+				templatesDir := filepath.Join(".", "internal", "web", "templates")
 				if err := os.MkdirAll(templatesDir, 0755); err != nil {
 					t.Fatalf("failed to create directories: %v", err)
 				}
@@ -137,7 +137,7 @@ func TestLoadEvolutionData(t *testing.T) {
 					t.Fatalf("failed to change directory: %v", err)
 				}
 
-				dir := filepath.Join("cmd", "internal", "web", "content")
+				dir := filepath.Join("internal", "web", "content")
 				if err := os.MkdirAll(dir, 0755); err != nil {
 					t.Fatal(err)
 				}

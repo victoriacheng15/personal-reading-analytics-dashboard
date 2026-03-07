@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
+	schema "github.com/victoriacheng15/personal-reading-analytics/internal"
 )
 
 func TestAnalyticsService_Generate(t *testing.T) {
@@ -52,7 +52,7 @@ func TestAnalyticsService_Generate(t *testing.T) {
 
 			// The service looks for templates relative to CWD or in specific paths.
 			// For testing, we'll create a mock structure.
-			templateDir := filepath.Join(tmpDir, "cmd", "internal", "web", "templates")
+			templateDir := filepath.Join(tmpDir, "internal", "web", "templates")
 			if err := os.MkdirAll(templateDir, 0755); err != nil {
 				t.Fatal(err)
 			}
@@ -78,7 +78,7 @@ func TestAnalyticsService_Generate(t *testing.T) {
 
 			// Mock evolution.yml
 			evolutionData := `chapters: []`
-			contentDir := filepath.Join(tmpDir, "cmd", "internal", "web", "content")
+			contentDir := filepath.Join(tmpDir, "internal", "web", "content")
 			if err := os.MkdirAll(contentDir, 0755); err != nil {
 				t.Fatal(err)
 			}
