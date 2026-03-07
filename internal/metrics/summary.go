@@ -9,8 +9,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
-	"github.com/victoriacheng15/personal-reading-analytics/cmd/internal/ai"
+	"github.com/victoriacheng15/personal-reading-analytics/internal"
+	"github.com/victoriacheng15/personal-reading-analytics/internal/ai"
 )
 
 // GenerateAndSaveDeltaAnalysis generates an AI delta analysis comparing the current metrics with the previous week's.

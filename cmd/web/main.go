@@ -9,8 +9,8 @@ import (
 	"sort"
 	"strings"
 
-	schema "github.com/victoriacheng15/personal-reading-analytics/cmd/internal"
-	web "github.com/victoriacheng15/personal-reading-analytics/cmd/internal/web"
+	schema "github.com/victoriacheng15/personal-reading-analytics/internal"
+	web "github.com/victoriacheng15/personal-reading-analytics/internal/web"
 )
 
 func main() {

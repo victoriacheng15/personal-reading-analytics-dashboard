@@ -74,19 +74,19 @@ py-run:
 
 # === Go (Analytics & Metrics) ===
 go-check:
-	$(NIX_RUN) "if [ \$$(gofmt -l ./cmd/ | wc -l) -gt 0 ]; then exit 1; fi"
+	$(NIX_RUN) "if [ \$$(gofmt -l ./cmd/ ./internal/ | wc -l) -gt 0 ]; then exit 1; fi"
 
 go-format:
-	$(NIX_RUN) "gofmt -w ./cmd"
+	$(NIX_RUN) "gofmt -w ./cmd ./internal"
 
 go-update:
 	$(NIX_RUN) "go get -u ./... && go mod tidy"
 
 go-test:
-	$(NIX_RUN) "go test -v ./cmd/..."
+	$(NIX_RUN) "go test -v ./cmd/... ./internal/..."
 
 go-cov:
-	$(NIX_RUN) "go test -coverprofile=coverage.out ./cmd/... && go tool cover -func=coverage.out && rm coverage.out || exit 1"
+	$(NIX_RUN) "go test -coverprofile=coverage.out ./cmd/... ./internal/... && go tool cover -func=coverage.out && rm coverage.out || exit 1"
 
 metrics-build:
 	$(NIX_RUN) "go build -o ./metricsjson.exe ./cmd/metrics && ./metricsjson.exe && rm ./metricsjson.exe"
@@ -100,11 +100,11 @@ web-build: setup-tailwind
 	$(NIX_RUN) "echo 'Running analytics build...' && \
 	rm -rf dist && \
 	mkdir -p dist && \
-	go build -o ./analytics.exe ./cmd/web && \
-	./analytics.exe && \
+	go build -o ./web-ssg ./cmd/web && \
+	./web-ssg && \
 	mkdir -p dist/css && \
-	./tailwindcss -i ./cmd/internal/web/templates/css/input.css -o ./dist/css/styles.css --minify && \
-	rm ./analytics.exe && \
+	./tailwindcss -i ./internal/web/templates/css/input.css -o ./dist/css/styles.css --minify && \
+	rm ./web-ssg && \
 	rm tailwindcss"
 
 # === Quality & Linting ===
