@@ -1,6 +1,8 @@
 # === Variables ===
 IMAGE_NAME = extraction
 LINT_IMAGE = ghcr.io/igorshubovych/markdownlint-cli:v0.44.0
+# Container Engine (Default to Podman)
+DOCKER ?= podman
 
 # Nix wrapper logic: Use nix-shell if available and not already inside one
 # Also check if we are in a CI environment where we usually want to use system tools
@@ -41,9 +43,9 @@ help:
 
 # === Docker (Python Application) ===
 run:
-	docker build -t $(IMAGE_NAME) .
-	docker run --rm $(IMAGE_NAME)
-	docker image rm $(IMAGE_NAME)
+	$(DOCKER) build -t $(IMAGE_NAME) .
+	$(DOCKER) run --rm $(IMAGE_NAME)
+	$(DOCKER) image rm $(IMAGE_NAME)
 
 # === Python Development ===
 install:
@@ -74,22 +76,22 @@ py-run:
 
 # === Go (Analytics & Metrics) ===
 go-check:
-	$(NIX_RUN) "if [ \$$(gofmt -l ./cmd/ ./internal/ | wc -l) -gt 0 ]; then exit 1; fi"
+	if [ \$$(gofmt -l ./cmd/ ./internal/ | wc -l) -gt 0 ]; then exit 1; fi 
 
 go-format:
-	$(NIX_RUN) "gofmt -w ./cmd ./internal"
+	gofmt -w ./cmd ./internal 
 
 go-update:
-	$(NIX_RUN) "go get -u ./... && go mod tidy"
+	go get -u ./... && go mod tidy 
 
 go-test:
-	$(NIX_RUN) "go test -v ./cmd/... ./internal/..."
+	go test -v ./cmd/... ./internal/... 
 
 go-cov:
-	$(NIX_RUN) "go test -coverprofile=coverage.out ./cmd/... ./internal/... && go tool cover -func=coverage.out && rm coverage.out || exit 1"
+	go test -coverprofile=coverage.out ./cmd/... ./internal/... && go tool cover -func=coverage.out && rm coverage.out || exit 1
 
 metrics-build:
-	$(NIX_RUN) "go build -o ./metricsjson.exe ./cmd/metrics && ./metricsjson.exe && rm ./metricsjson.exe"
+	go build -o ./metricsjson.exe ./cmd/metrics && ./metricsjson.exe && rm ./metricsjson.exe 
 
 setup-tailwind:
 	@echo "Downloading tailwind css cli v4..."
@@ -97,7 +99,7 @@ setup-tailwind:
 	@chmod +x tailwindcss
 
 web-build: setup-tailwind
-	$(NIX_RUN) "echo 'Running analytics build...' && \
+	echo 'Running analytics build...' && \
 	rm -rf dist && \
 	mkdir -p dist && \
 	go build -o ./web-ssg ./cmd/web && \
@@ -105,11 +107,11 @@ web-build: setup-tailwind
 	mkdir -p dist/css && \
 	./tailwindcss -i ./internal/web/templates/css/input.css -o ./dist/css/styles.css --minify && \
 	rm ./web-ssg && \
-	rm tailwindcss"
+	rm tailwindcss
 
 # === Quality & Linting ===
 lint:
-	docker run --rm -v "$(PWD):/data" -w /data $(LINT_IMAGE) --fix "**/*.md"
+	$(DOCKER) run --rm -v "$(PWD):/data:Z" -w /data $(LINT_IMAGE) --fix "**/*.md"
 
 # === Utilities ===
 clean:
